@@ -6,11 +6,12 @@ class DBManager:
     def __init__(self):
         try:
             self.conn = psycopg2.connect(
-                host=st.secrets.connections.postgresql.host,
-                port=st.secrets.connections.postgresql.port,
-                database=st.secrets.connections.postgresql.database,
-                user=st.secrets.connections.postgresql.username,
-                password=st.secrets.connections.postgresql.password,
+                host=st.secrets["DB_HOST"],
+                port=st.secrets["DB_PORT"],
+                database=st.secrets["DB_NAME"],
+                user=st.secrets["DB_USER"],
+                password=st.secrets["DB_PASSWORD"],
+                sslmode="require"
             )
             self.cursor = self.conn.cursor()
         except psycopg2.OperationalError as e:
