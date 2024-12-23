@@ -29,7 +29,7 @@ packaging==24.2
 pandas==2.2.3
 pillow==11.0.0
 protobuf==5.29.0
-psycopg2==2.9.10
+psycopg2-binary==2.9.10
 pyarrow==18.1.0
 pyasn1==0.6.1
 pyasn1_modules==0.4.1
@@ -58,5 +58,3 @@ tzdata==2024.2
 urllib3==2.2.3
 validators==0.34.0
 watchdog==6.0.0
-psycopg2-binary==2.9.10
-
