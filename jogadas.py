@@ -56,8 +56,8 @@ else:
                     # Coluna 1: Exibir a imagem e capturar as coordenadas
                     with col1:
                         coordinates = streamlit_image_coordinates(
-                            "https://raw.githubusercontent.com/lenizio/futsal_analysis/refs/heads/main/images/futasl_court.jpg?token=GHSAT0AAAAAAC3PUI2Z46RG7S227VZAWCJCZ3NJRPA",
-                            key="url",
+                            "/mount/src/futsal_analysis/images/futsal_court.jpeg",
+                            key="local",
                         )
 
                     # Coluna 2: Formulário
