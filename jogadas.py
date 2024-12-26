@@ -53,7 +53,7 @@ else:
                     # Coluna 1: Exibir a imagem e capturar as coordenadas
                     with col1:
                         coordinates = streamlit_image_coordinates(
-                            "/images/futasl_court.jpg",
+                            "futsal_analysis/images/futasl_court.jpg",
                             key="local",
                         )
 
