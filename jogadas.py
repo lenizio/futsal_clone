@@ -1,8 +1,11 @@
 import streamlit as st
+import os
 from PIL import Image
 from streamlit_image_coordinates import streamlit_image_coordinates
 from streamlit_gsheets import GSheetsConnection
 from db_manager import DBManager
+current_dir = os.path.dirname(os.path.abspath(__file__))
+st.write(current_dir)
 db_manager = DBManager()
 
 lista_jogos = db_manager.listar_jogos()
