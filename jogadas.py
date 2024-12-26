@@ -1,8 +1,11 @@
 import streamlit as st
+import os
 from PIL import Image
 from streamlit_image_coordinates import streamlit_image_coordinates
 from streamlit_gsheets import GSheetsConnection
 from db_manager import DBManager
+
+
 db_manager = DBManager()
 
 lista_jogos = db_manager.listar_jogos()
@@ -53,7 +56,7 @@ else:
                     # Coluna 1: Exibir a imagem e capturar as coordenadas
                     with col1:
                         coordinates = streamlit_image_coordinates(
-                            "/home/lenizio/minas_projects/futsal_analysis/images/futasl_court.jpg",
+                            "futasl_court.jpg",
                             key="local",
                         )
 
