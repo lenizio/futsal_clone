@@ -6,11 +6,11 @@ class DBManager:
     def __init__(self):
         try:
             self.conn = psycopg2.connect(
-                host=st.secrets["DB_HOST"],
-                port=st.secrets["DB_PORT"],
-                database=st.secrets["DB_NAME"],
-                user=st.secrets["DB_USER"],
-                password=st.secrets["DB_PASSWORD"],
+                host=st.secrets.DB_HOST,
+                port=st.secrets.DB_PORT,
+                database=st.secrets.DB_NAME,
+                user=st.secrets.DB_USER,
+                password=st.secrets.DB_PASSWORD,
                 sslmode="require"
             )
             self.cursor = self.conn.cursor()
