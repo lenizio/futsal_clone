@@ -4,9 +4,12 @@ from PIL import Image
 from streamlit_image_coordinates import streamlit_image_coordinates
 from streamlit_gsheets import GSheetsConnection
 from db_manager import DBManager
+from utils import listar_opces_jogadores
 db_manager = DBManager()
 
+    
 lista_jogos = db_manager.listar_jogos()
+
 
 if not lista_jogos:
     st.warning("Sem jogos registrados")  
@@ -28,27 +31,7 @@ else:
             if not lista_jogadores:
                     st.warning("Equipe sem jogadores cadastrados. Cadastre para poder analisar")
             else:        
-                    # opcoes_jogadores_dict = {}
-                    # opcoes_jogadores_dict.update({jogador[3]: [jogador[0], jogador[1]] for jogador in lista_jogadores if jogador[2] == "Goleiro"})
-                    # opcoes_jogadores_dict.update({jogador[3]: [jogador[0], jogador[1]] for jogador in lista_jogadores if jogador[2] == "Fixo"})
-                    # opcoes_jogadores_dict.update({jogador[3]: [jogador[0], jogador[1]] for jogador in lista_jogadores if jogador[2] == "Ala D"})
-                    # opcoes_jogadores_dict.update({jogador[3]: [jogador[0], jogador[1]] for jogador in lista_jogadores if jogador[2] == "Ala E"})
-                    # opcoes_jogadores_dict.update({jogador[3]: [jogador[0], jogador[1]] for jogador in lista_jogadores if jogador[2] == "Pivô"})
-                    # opcoes_jogadores_list = list(opcoes_jogadores_dict.keys())
-                    opcoes_jogadores_dict={}
-                    opcoes_goleiro_dict = {jogador[3]: [jogador[0], jogador[1]] for jogador in lista_jogadores if jogador[2] == "Goleiro"}
-                    opcoes_jogadores_dict.update(opcoes_goleiro_dict)
-                    opcoes_goleiro_list = list(opcoes_goleiro_dict.keys())                    
-                    opcoes_jogadores_linha_dict = {}
-                    opcoes_jogadores_linha_dict.update({jogador[3]: [jogador[0], jogador[1]] for jogador in lista_jogadores if jogador[2] == "Fixo"})
-                    opcoes_jogadores_linha_dict.update({jogador[3]: [jogador[0], jogador[1]] for jogador in lista_jogadores if jogador[2] == "Ala D"})
-                    opcoes_jogadores_linha_dict.update({jogador[3]: [jogador[0], jogador[1]] for jogador in lista_jogadores if jogador[2] == "Ala E"})
-                    opcoes_jogadores_linha_dict.update({jogador[3]: [jogador[0], jogador[1]] for jogador in lista_jogadores if jogador[2] == "Pivô"})
-                    opcoes_jogadores_linha_list = list(opcoes_jogadores_linha_dict.keys())
-                    opcoes_jogadores_linha_list.sort()
-                    opcoes_jogadores_list=opcoes_goleiro_list+opcoes_jogadores_linha_list
-                    opcoes_jogadores_dict.update(opcoes_jogadores_linha_dict)
-                    
+                    opcoes_jogadores_dict, opcoes_jogadores_list = listar_opces_jogadores(lista_jogadores)
                     col2, col1 = st.columns(2)
 
                     # Coluna 1: Exibir a imagem e capturar as coordenadas

@@ -1,15 +1,21 @@
 import streamlit as st
 from db_manager import DBManager
+import atexit
 
 
 db_manager = DBManager()
 db_manager.criar_tabelas()
 
 equipes_page = st.Page("equipes.py", title="Times")
-jogadores_page = st.Page("jogadores.py", title="Jogadores")
+analise_tempo_real_page = st.Page("analise_tempo_real.py", title="Análise Tempo Real")
 jogos_page = st.Page("jogos.py", title="Jogos")
 jogadas_page = st.Page("jogadas.py", title="Jogadas")
 
-pg = st.navigation([equipes_page,jogadores_page,jogos_page,jogadas_page])
+pg = st.navigation([equipes_page,jogos_page,jogadas_page,analise_tempo_real_page])
 st.set_page_config(page_title="Análise Futsal")
 pg.run()
+
+if hasattr(st, "on_event") and callable(getattr(st, "on_event")):
+    st.on_event("shutdown", db_manager.fechar_conexao)
+else:
+    atexit.register(db_manager.fechar_conexao)

@@ -3,6 +3,7 @@ from psycopg2 import sql
 import streamlit as st
 
 class DBManager:
+    
     def __init__(self):
         try:
             self.conn = psycopg2.connect(
