@@ -22,7 +22,7 @@ def listar_opces_jogadores(lista_jogadores):
     return opcoes_jogadores_dict, opcoes_jogadores_list
 
 def pegar_dados_pizza_plot(lista_jogadas):
-    df = pd.DataFrame(lista_jogadas,columns=["id","jogador_id","jogador_nome","jogo_id","jogada","x_loc","y_loc"])
+    df = pd.DataFrame(lista_jogadas,columns=["id","jogador_id","jogador_nome","jogo_id","jogada","tempo","x_loc","y_loc"])
     tipos_finalizacoes = ["FIN.C", "FIN.E", "FIN.T"]    
     quantidade_finalizacoes = df.jogada[df["jogada"].isin( tipos_finalizacoes)].value_counts().reindex( tipos_finalizacoes, fill_value=0)
     quantidade_finalizacoes = quantidade_finalizacoes.to_numpy()

@@ -60,6 +60,7 @@ class DBManager:
                 jogador_nome VARCHAR(100) NOT NULL,
                 jogo_id INT NOT NULL REFERENCES jogos(id) ON DELETE CASCADE,
                 jogada VARCHAR(255) NOT NULL,
+                tempo VARCHAR(10) NOT NULL,
                 x_loc FLOAT NOT NULL,
                 y_loc FLOAT NOT NULL
             )
@@ -160,13 +161,13 @@ class DBManager:
         self.conn.commit()
         return self.cursor.fetchone()[0]
 
-    def adicionar_jogada(self, jogador_id, jogador_nome, jogo_id, jogada, x_loc, y_loc):
+    def adicionar_jogada(self, jogador_id, jogador_nome, jogo_id, jogada, tempo, x_loc, y_loc):
         self.cursor.execute(
             """
-            INSERT INTO jogadas (jogador_id, jogador_nome, jogo_id, jogada, x_loc, y_loc)
-            VALUES (%s, %s, %s, %s, %s, %s)
+            INSERT INTO jogadas (jogador_id, jogador_nome, jogo_id, jogada, tempo, x_loc, y_loc)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
             """,
-            (jogador_id, jogador_nome, jogo_id, jogada, x_loc, y_loc)
+            (jogador_id, jogador_nome, jogo_id, jogada, tempo, x_loc, y_loc)
         )
         self.conn.commit()
         return self.cursor.lastrowid
