@@ -2,17 +2,18 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 from db_manager import DBManager
+from utils import convert_df_to_csv
 
 db_manager = DBManager()
 
-clubes = db_manager.listar_equipes()  # Função para listar clubes únicos
+lista_equipes = db_manager.listar_equipes()
+lista_jogos = db_manager.listar_jogos()
 
-if len(clubes) <= 1:
+if len(lista_equipes) <= 1:
     st.warning("Adicione mais equipes.")
     
 @st.dialog("Adicionar Jogos")
-def adicionar_jogos_dialog():
-    lista_equipes = db_manager.listar_equipes()
+def adicionar_jogos_dialog(lista_equipes):
     dict_equipes = {equipe[1] + " " + equipe[2]: equipe[0] for equipe in lista_equipes}
     
     # Seleciona a equipe mandante
@@ -65,8 +66,31 @@ def adicionar_jogos_dialog():
                         st.rerun()
                     except Exception as e:
                         st.error(f"Erro ao adicionar jogo: {e}")
+@st.dialog("Deletar Jogos")
+def deletar_jogos_dialog(lista_jogos):
+    opcoes_jogos = {f"{jogo[2]} x {jogo[4]} - {jogo[6]} - {jogo[7]} - {jogo[8]}" : jogo[0] for jogo in lista_jogos}
+    jogo_selecionado = st.selectbox("Selecinoe um jogo para excluir", options=opcoes_jogos.keys(), index=None)
+    
+    if jogo_selecionado:
+        jogo_id = opcoes_jogos[jogo_selecionado]
+        if st.button("Exluir Jogo", key="excluir_jogo_dialog"):
+            try:
+                db_manager.deletar_jogo(jogo_id)
+                st.success(f"Jogo deletado com sucesso!")
+                st.rerun()
+            except Exception as e:
+                        st.error(f"Erro ao deletar jogo: {e}")
         
-lista_jogos = db_manager.listar_jogos()
+    
+column1, column2 = st.columns(2)           
+
+with column1:
+    if st.button("Adicionar Jogos", key="adicionar_jogos"):
+        adicionar_jogos_dialog(lista_equipes)
+with column2:
+    if st.button("Excluir Jogos", key="excluir_jogos"):
+        deletar_jogos_dialog(lista_jogos)
+
 
 if not lista_jogos:
     st.warning("Sem jogos registrados")  
@@ -74,7 +98,22 @@ else:
     df = pd.DataFrame(lista_jogos, columns=["id",'equipe_mandante_id',"Equipe Mandante","equipe_visitante_id" ,"Equipe Visitante","date" ,"Competição","Fase", "Rodada"])
     df = df.drop(columns=["id","date",'equipe_mandante_id',"equipe_visitante_id"])
     st.dataframe(df, hide_index=True)
+
+    opcoes_jogos = {f"{jogo[2]} x {jogo[4]} - {jogo[6]} - {jogo[7]} - {jogo[8]}" : jogo[0] for jogo in lista_jogos}
+    jogo_selecionado = st.selectbox("Selecinoe um jogo para baixar jogadas", options=opcoes_jogos.keys(), index=None)
     
-if st.button("Adicionar Jogos", key="adicionar_jogos"):
-    adicionar_jogos_dialog()
+    if jogo_selecionado:
+        jogo_id = opcoes_jogos[jogo_selecionado]
+        lista_jogadas = db_manager.listar_jogadas_por_partida(jogo_id)
+        lista_jogadas_df = pd.DataFrame(lista_jogadas, columns=["equipe_mandante_nome","equipe_visitante_nome","fase","rodada","competicao","jogador_nome","jogada","tempo","x_loc","y_loc"])
+        csv_data = convert_df_to_csv(lista_jogadas_df)
+
+        # Botão para download do CSV
+        st.download_button(
+            label="Baixar CSV",
+            data=csv_data,
+            file_name= jogo_selecionado + ".csv",
+            mime="text/csv"
+        )
+
     

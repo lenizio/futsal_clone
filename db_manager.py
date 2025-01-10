@@ -196,6 +196,11 @@ class DBManager:
     def listar_jogadores_por_equipe(self, equipe_id):
         self.cursor.execute("SELECT id, nome, posicao, numero_camisa FROM jogadores WHERE equipe_id = %s", (equipe_id,))
         return self.cursor.fetchall()  # Retorna uma lista de tuplas
+    
+     # Listar jogadores por equipe
+    def listar_nome_id_jogadores_por_equipe(self, equipe_id):
+        self.cursor.execute("SELECT id, nome FROM jogadores WHERE equipe_id = %s", (equipe_id,))
+        return self.cursor.fetchall()  # Retorna uma lista de tuplas
 
     # Listar jogos por equipe e competição
     def listar_jogos_por_equipe_e_competicao(self, equipe_id, competicao):
@@ -208,15 +213,61 @@ class DBManager:
         )
         return self.cursor.fetchall()  # Retorna uma lista de tuplas
 
-    # Listar jogadas por jogo
-    def listar_jogadas_por_jogo(self, jogo_id):
-        self.cursor.execute("SELECT * FROM jogadas WHERE jogo_id = %s", (jogo_id,))
-        return self.cursor.fetchall()  # Retorna uma lista de tuplas
+   
     
     def listar_detalhes_jogo(self, jogo_id):
         self.cursor.execute("SELECT equipe_mandante_id, equipe_mandante_nome,equipe_visitante_id ,equipe_visitante_nome,data,fase,rodada,competicao FROM jogos WHERE id = %s",(jogo_id,))
-        self.conn.commit()
         return self.cursor.fetchone()
+    
+    def listar_dados_analise_individual(self):
+        self.cursor.execute("""
+            SELECT
+                    jogos.id,
+                    jogos.equipe_mandante_nome,
+                    jogos.equipe_visitante_nome,
+                    jogos.fase,
+                    jogos.rodada,
+                    jogos.competicao,
+                    jogadas.jogador_nome, 
+                    jogadas.jogada,
+                    jogadas.tempo,
+                    jogadas.x_loc,
+                    jogadas.y_loc
+                FROM
+                    jogos
+                LEFT JOIN
+                    jogadas
+                ON
+                    jogos.id = jogadas.jogo_id 
+                    """ )
+        return self.cursor.fetchall() 
+    
+    def listar_jogadas_por_partida(self,jogo_id):
+        self.cursor.execute("""
+            SELECT
+                    jogos.equipe_mandante_nome,
+                    jogos.equipe_visitante_nome,
+                    jogos.fase,
+                    jogos.rodada,
+                    jogos.competicao,
+                    jogadas.jogador_nome, 
+                    jogadas.jogada,
+                    jogadas.tempo,
+                    jogadas.x_loc,
+                    jogadas.y_loc
+                FROM
+                    jogos
+                LEFT JOIN
+                    jogadas
+                ON
+                    jogos.id = jogadas.jogo_id
+                WHERE
+                    jogos.id = %s""",
+                    (jogo_id,)
+                    )
+        return self.cursor.fetchall() 
+    
+    
         
     def deletar_equipe(self, equipe_id):
         self.cursor.execute("DELETE FROM equipes WHERE id = %s", (equipe_id,))
