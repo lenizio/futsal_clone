@@ -99,7 +99,17 @@ def pizza_plot(dados_grafico_pizza):
         figs.append(fig)
     
     return figs
-
+def calcular_quadrante(x, y):
+    
+    num_colunas = 3
+    num_linhas = 6
+    width_quadrante = 280 / num_colunas
+    height_quadrante = 470 / num_linhas
+    # Encontrar a coluna (1 a 3)
+    coluna = (x // width_quadrante) + 1
+    # Encontrar a linha (1 a 6)
+    linha = (y // height_quadrante) + 1
+    return f"{linha}-{coluna}"
 
 def extrair_dataframe_jogador(db_manager):
     dados_jogador = db_manager.listar_dados_analise_individual()
@@ -108,6 +118,7 @@ def extrair_dataframe_jogador(db_manager):
         lambda row: f"{row['equipe_mandante_nome']} x {row['equipe_visitante_nome']} - {row['competicao']} - {row['fase']} - {row['rodada']}",
         axis=1
     ) 
+    dados_jogador_df['quadrante'] = dados_jogador_df.apply(lambda row: calcular_quadrante(row['x_loc'], row['y_loc']), axis=1)
     
     return dados_jogador_df
 
@@ -134,7 +145,25 @@ def extrair_estatisticas_gerais(dados_jogador_df):
     estatisticas_segundo_tempo_dict = estatisticas_jogadores_df["2ºT"].to_dict()
     estatisticas_totais_dict = estatisticas_jogadores_df["Total"].to_dict()
     
-    return estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict, estatisticas_totais_dict      
+    return estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict, estatisticas_totais_dict 
+
+
+def extrair_estatisticas_localizacao(dados_jogador_df,jogada):
+    primeiro_tempo = dados_jogador_df[(dados_jogador_df["tempo"] == '1ºT') & (dados_jogador_df["jogada"] == jogada)].quadrante.value_counts().reindex(
+    ['1.0-1.0', '1.0-2.0', '1.0-3.0', '2.0-1.0', '2.0-2.0', '2.0-3.0', '3.0-1.0', '3.0-2.0', '3.0-3.0', '4.0-1.0', '4.0-2.0', '4.0-3.0', '5.0-1.0', '5.0-2.0', '5.0-3.0', '6.0-1.0', '6.0-2.0', '6.0-3.0'], fill_value=0)
+    segundo_tempo = dados_jogador_df[(dados_jogador_df["tempo"] == '2ºT') & (dados_jogador_df["jogada"] == jogada)].quadrante.value_counts().reindex(
+    ['1.0-1.0', '1.0-2.0', '1.0-3.0', '2.0-1.0', '2.0-2.0', '2.0-3.0', '3.0-1.0', '3.0-2.0', '3.0-3.0', '4.0-1.0', '4.0-2.0', '4.0-3.0', '5.0-1.0', '5.0-2.0', '5.0-3.0', '6.0-1.0', '6.0-2.0', '6.0-3.0'], fill_value=0)
+    total = primeiro_tempo + segundo_tempo
+    
+    localizacao_jogadas = {
+        "Primeiro Tempo": primeiro_tempo,
+        "Segundo Tempo" : segundo_tempo,
+        "Total": total
+    }
+    
+    return localizacao_jogadas
+    
+         
 
 
 def plotar_estatisticas_gerais(estatisticas_totais_dict):
@@ -253,15 +282,19 @@ def plotar_grafico_barras(estatisticas_primeiro_tempo_dict, estatisticas_segundo
 
 
 
-def plotar_historico(estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict):
+def plotar_historico(estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,numero_jogos):
 
     # Dados para os gráficos
     labels = ['Primeiro Tempo', 'Segundo Tempo']
 
     # Dados para cada gráfico
-    data_finalizacoes = [estatisticas_primeiro_tempo_dict['FIN.TOTAL'], estatisticas_segundo_tempo_dict['FIN.TOTAL']]
-    data_desempenho_posse = [estatisticas_primeiro_tempo_dict['DES.C/P.'], estatisticas_segundo_tempo_dict['DES.C/P.']]
-    data_perda_posse = [estatisticas_primeiro_tempo_dict['PER.P'], estatisticas_segundo_tempo_dict['PER.P']]
+    data_finalizacoes =np.array([estatisticas_primeiro_tempo_dict['FIN.TOTAL'], estatisticas_segundo_tempo_dict['FIN.TOTAL']])
+    data_desempenho_posse = np.array([estatisticas_primeiro_tempo_dict['DES.C/P.'], estatisticas_segundo_tempo_dict['DES.C/P.']])
+    data_perda_posse = np.array([estatisticas_primeiro_tempo_dict['PER.P'], estatisticas_segundo_tempo_dict['PER.P']])
+    
+    mean_finalizacoes = (data_finalizacoes/numero_jogos).astype(int)
+    mean_desempenho_posse=(data_desempenho_posse/numero_jogos).astype(int)
+    mean_perda_posse =(data_perda_posse/numero_jogos).astype(int)
 
     # Criar subplots com 1 linha e 3 colunas
     fig = make_subplots(
@@ -273,7 +306,7 @@ def plotar_historico(estatisticas_primeiro_tempo_dict, estatisticas_segundo_temp
     # Adicionar gráficos de "rosca" (hole > 0)
     fig.add_trace(go.Pie(
         labels=labels, 
-        values=data_finalizacoes, 
+        values=mean_finalizacoes, 
         name="Finalizações", 
         hole=0.5, 
         textinfo='percent',
@@ -282,7 +315,7 @@ def plotar_historico(estatisticas_primeiro_tempo_dict, estatisticas_segundo_temp
 
     fig.add_trace(go.Pie(
         labels=labels, 
-        values=data_desempenho_posse, 
+        values=mean_desempenho_posse, 
         name="Des. c/ Posse", 
         hole=0.5, 
         textinfo='percent',
@@ -291,7 +324,7 @@ def plotar_historico(estatisticas_primeiro_tempo_dict, estatisticas_segundo_temp
 
     fig.add_trace(go.Pie(
         labels=labels, 
-        values=data_perda_posse, 
+        values=mean_perda_posse, 
         name="Perda de Posse", 
         hole=0.5, 
         textinfo='percent',
@@ -300,7 +333,7 @@ def plotar_historico(estatisticas_primeiro_tempo_dict, estatisticas_segundo_temp
 
     # Atualizar layout
     fig.update_layout(
-        title_text="Análise por Tempo",
+        title_text="Histórico",
         title_x=0.4,  # Centraliza o título
         showlegend=True,
         legend=dict(
@@ -356,4 +389,145 @@ def plotar_radar_chart(estatisticas_totais_dict, estatisticas_geral_totais_dict)
         template="plotly_dark"  # Tema visual
     )
     
+    return fig
+
+def create_arc(x_center, y_center, radius, theta1, theta2, color='gray', width=2):
+    theta = np.linspace(np.radians(theta1), np.radians(theta2), 100)
+    x = x_center + radius * np.cos(theta)
+    y = y_center + radius * np.sin(theta)
+    return dict(type='scatter', x=x, y=y, mode='lines', line=dict(color=color, width=width)), (x[0], y[0]), (x[-1], y[-1])
+
+# Função principal para criar a quadra de futsal
+def create_futsal_court(titulo,localizacao_jogadas):
+  
+    # Criar a figura
+    fig = go.Figure()
+
+    # Tamanho ajustado da quadra
+    width = 280  # Comprimento da quadra
+    height = 470  # Largura da quadra
+    radius = 60  # Raio dos arcos ajustado
+
+    # Adicionar a quadra
+    # Área de gol inferior
+    arc_left_bottom, left_bottom_start, left_bottom_end = create_arc(-30, 0, radius, 90, 180)
+    arc_right_bottom, right_bottom_start, right_bottom_end = create_arc(30, 0, radius, 0, 90)
+
+    fig.add_trace(arc_left_bottom)
+    fig.add_trace(arc_right_bottom)
+
+    # Linha inferior conectando os extremos dos arcos inferiores
+    fig.add_shape(
+        type='line',
+        x0=-30, y0=radius,  # Usar 'left_bottom_end' como ponto de partida
+        x1=30, y1=radius,  # Usar 'right_bottom_start' como ponto final
+        line=dict(color='gray', width=2)
+    )
+
+    # Área de gol superior
+    arc_left_top, left_top_start, left_top_end = create_arc(-30, height, radius, 180, 270)
+    arc_right_top, right_top_start, right_top_end = create_arc(30, height, radius, 270, 360)
+
+    fig.add_trace(arc_left_top)
+    fig.add_trace(arc_right_top)
+
+    # Linha superior conectando os extremos dos arcos superiores
+    fig.add_shape(
+        type='line',
+        x0=left_top_end[0], y0=left_top_end[1],  # Usar 'left_top_end' como ponto de partida
+        x1=right_top_start[0], y1=right_top_start[1],  # Usar 'right_top_start' como ponto final
+        line=dict(color='gray', width=2)
+    )
+
+    # Linha central
+    fig.add_shape(type='line', x0=-140, y0=height / 2, x1=140, y1=height / 2, line=dict(color='gray', width=2))
+
+    # Círculo central
+    radius_circle = 40
+    theta = np.linspace(0, 2 * np.pi, 100)
+    x_center_circle = radius_circle * np.cos(theta)
+    y_center_circle = height / 2 + radius_circle * np.sin(theta)
+    fig.add_trace(go.Scatter(x=x_center_circle, y=y_center_circle, mode='lines', line=dict(color='gray', width=2)))
+
+    # Linhas externas (ajustadas para 280 x 470)
+    fig.add_shape(type='rect', x0=-140, y0=0, x1=140, y1=height, line=dict(color='gray', width=2))
+
+    # Adicionar as linhas pontilhadas para dividir a quadra em 3 colunas e 6 linhas
+    # Linhas verticais (colunas)
+    for i in range(1, 3):  # Para as 2 linhas verticais (entre as colunas)
+        fig.add_shape(
+            type='line',
+            x0=-140 + (i * 93.33), y0=0,  # Calculando a posição das colunas
+            x1=-140 + (i * 93.33), y1=height,
+            line=dict(color='gray', width=2, dash='dot')  # Linha pontilhada
+        )
+
+    # Linhas horizontais (linhas)
+    for i in range(1, 6):  # Para as 5 linhas horizontais
+        fig.add_shape(
+            type='line',
+            x0=-140, y0=(i * 78.33),  # Calculando a posição das linhas horizontais
+            x1=140, y1=(i * 78.33),
+            line=dict(color='gray', width=2, dash='dot')  # Linha pontilhada
+        )
+
+    # Adicionar círculos superior e inferior entre a linha central e a linha de fundo
+    radius_small_circle = 1.5
+    y_position_upper = 117.5  # Posição Y para o círculo superior
+    y_position_lower = 352.5  # Posição Y para o círculo inferior
+
+    # Círculo superior
+    x_small_circle_upper = radius_small_circle * np.cos(theta)
+    y_small_circle_upper = y_position_upper + radius_small_circle * np.sin(theta)
+    fig.add_trace(go.Scatter(x=x_small_circle_upper, y=y_small_circle_upper, mode='lines', fill='toself', 
+                             line=dict(color='gray', width=2)))
+
+    # Círculo inferior
+    x_small_circle_lower = radius_small_circle * np.cos(theta)
+    y_small_circle_lower = y_position_lower + radius_small_circle * np.sin(theta)
+    fig.add_trace(go.Scatter(x=x_small_circle_lower, y=y_small_circle_lower, mode='lines', fill='toself', 
+                             line=dict(color='gray', width=2)))
+
+    # Adicionar anotações no meio de cada quadrante com o número de ações
+    for quadrante, quantidade in localizacao_jogadas.items():
+        # Extrair linha e coluna a partir do formato 'linha-coluna'
+        try:
+            linha, coluna = map(float, quadrante.split('-'))
+        except ValueError:
+            print(f"Erro ao processar o quadrante: {quadrante}")
+            continue
+        
+        # Calcular o centro do quadrante
+        x_pos = -140 + (coluna - 1) * 93.33 + 46.67  # Posição x do centro do quadrante
+        y_pos = height - (linha - 1) * 78.33 - 39.17
+  # Posição y do centro do quadrante
+
+        # Adicionar anotação de texto no centro do quadrante
+        fig.add_trace(go.Scatter(
+            x=[x_pos], y=[y_pos],
+            mode='text',
+            text=[str(quantidade)],
+            textposition='middle center',
+            showlegend=False,
+            textfont=dict(size=14, color='white')  # Correção: usar textfont ao invés de font
+        ))
+
+    # Ajustar layout
+    fig.update_layout(
+        title=dict(
+            text=titulo,  # Texto do título
+            x=0.5,        # Centraliza o título no eixo X
+            xanchor='center',  # Âncora centralizada
+            yanchor='top'      # Âncora no topo
+        ),
+        xaxis=dict(visible=False),
+        yaxis=dict(visible=False, scaleanchor="x", scaleratio=1),
+        width=600,
+        height=800,
+        showlegend=False,
+        plot_bgcolor='#121212',  # Fundo escuro
+        template="plotly_dark"
+        )
+
+    # Exibir a quadra
     return fig

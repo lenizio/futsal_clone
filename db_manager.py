@@ -219,6 +219,12 @@ class DBManager:
         self.cursor.execute("SELECT equipe_mandante_id, equipe_mandante_nome,equipe_visitante_id ,equipe_visitante_nome,data,fase,rodada,competicao FROM jogos WHERE id = %s",(jogo_id,))
         return self.cursor.fetchone()
     
+    def listar_jogadas_por_jogo(self, jogo_id):
+        self.cursor.execute("SELECT * FROM jogadas WHERE jogo_id = %s", (jogo_id,))
+        return self.cursor.fetchall()  # Retorna uma lista de tuplas
+   
+
+
     def listar_dados_analise_individual(self):
         self.cursor.execute("""
             SELECT
@@ -262,7 +268,7 @@ class DBManager:
                 ON
                     jogos.id = jogadas.jogo_id
                 WHERE
-                    jogos.id = %s""",
+                    jogos.id = %s""", 
                     (jogo_id,)
                     )
         return self.cursor.fetchall() 

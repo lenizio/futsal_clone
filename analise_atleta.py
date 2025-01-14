@@ -2,7 +2,8 @@ import streamlit as st
 import pandas as pd
 from db_manager import DBManager
 import plotly.graph_objects as go
-from utils import extrair_dataframe_jogador, extrair_estatisticas_jogadores,plotar_estatisticas_gerais,extrair_estatisticas_gerais,plotar_grafico_barras,plotar_historico,plotar_radar_chart
+
+from utils import *
 
 # Inicialização do gerenciador de banco de dados
 db_manager = DBManager()
@@ -51,11 +52,12 @@ with filter_container:
             st.session_state.filtro_jogador = filtro_jogador
             jogador_id = jogadores_dict[filtro_jogador]
             estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict, estatisticas_geral_totais_dict = extrair_estatisticas_gerais(dados_todos_jogadores_df)
+            numero_jogos = int(dados_todos_jogadores_df["jogo_id"].nunique())
             dados_jogador_df = dados_jogador_df[dados_jogador_df['jogador_nome'] == filtro_jogador]
             estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict, estatisticas_totais_dict = extrair_estatisticas_gerais(dados_jogador_df)
             estatisticas_gerais_fig = plotar_estatisticas_gerais(estatisticas_totais_dict)
             grafico_barras_fig = plotar_grafico_barras(estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict)
-            historico_fig = plotar_historico(estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict)
+            historico_fig = plotar_historico(estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict,numero_jogos)
             radar_fig = plotar_radar_chart(estatisticas_totais_dict,estatisticas_geral_totais_dict)
             options_competicao = dados_jogador_df["competicao"].unique().tolist()
 
@@ -68,14 +70,16 @@ with filter_container:
                 index=options_competicao.index(st.session_state.filtro_competicao) if st.session_state.filtro_competicao else None,
             )
             if filtro_competicao:
+                st.session_state.filtro_partida = None  # 
                 st.session_state.filtro_competicao = filtro_competicao
                 dados_jogador_df = dados_jogador_df[dados_jogador_df['competicao'] == filtro_competicao]
                 dados_todos_jogadores_df = dados_todos_jogadores_df[dados_todos_jogadores_df['competicao'] == filtro_competicao]
+                numero_jogos = int(dados_todos_jogadores_df["jogo_id"].nunique())
                 estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict, estatisticas_geral_totais_dict = extrair_estatisticas_gerais(dados_todos_jogadores_df)
                 estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict, estatisticas_totais_dict = extrair_estatisticas_gerais(dados_jogador_df)
                 estatisticas_gerais_fig = plotar_estatisticas_gerais(estatisticas_totais_dict)
-                grafico_barras_fig = plotar_grafico_barras(estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict)
-                historico_fig = plotar_historico(estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict)
+                grafico_barras_fig = plotar_grafico_barras(estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,)
+                historico_fig = plotar_historico(estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict,numero_jogos)
                 radar_fig = plotar_radar_chart(estatisticas_totais_dict,estatisticas_geral_totais_dict)               
                 options_partidas = dados_jogador_df["partida"].unique().tolist()
 
@@ -122,6 +126,30 @@ if filtro_jogador:
 
     with col6:
         with st.container(border=True, height=500):
+            
             st.plotly_chart(radar_fig, use_container_width=True, key="grafico_radar")
-        
+            
+    
+    
+    filtro_jogada = st.selectbox(
+                "Selecione uma jogada",
+                options=['FIN.C', 'FIN.E', 'FIN.T', 'ASSIST.', 'GOL', 'DES.C/P.', 'DES.S/P.', 'PER.P', 'C.A'],
+                index=None,
+            )       
+    
+    if filtro_jogada:
+        with st.container(border=True, height=800):
+            colunas = st.columns(3) 
+            localizacao_jogadas = extrair_estatisticas_localizacao(dados_jogador_df,filtro_jogada)
+            
+            for i, (chave, valor) in enumerate(localizacao_jogadas.items()):
+                titulo = f"{filtro_jogada} - {chave}"
+                fig = create_futsal_court(titulo,valor)
+                colunas[i].plotly_chart(fig)
+            
+    
+    
+                
+
+      
                   
