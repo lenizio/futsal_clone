@@ -1,10 +1,12 @@
 import streamlit as st
 import pandas as pd
 from datetime import datetime
-from db_manager import DBManager
+from db_manager import DBManager,get_db_manager
 from utils import convert_df_to_csv
+import atexit
 
-db_manager = DBManager()
+
+db_manager = get_db_manager()
 
 lista_equipes = db_manager.listar_equipes()
 lista_jogos = db_manager.listar_jogos()
@@ -117,3 +119,7 @@ else:
         )
 
     
+if hasattr(st, "on_event") and callable(getattr(st, "on_event")):
+    st.on_event("shutdown", db_manager.fechar_conexao)
+else:
+    atexit.register(db_manager.fechar_conexao) 

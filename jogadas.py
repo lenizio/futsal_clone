@@ -3,9 +3,11 @@ import os
 from PIL import Image
 from streamlit_image_coordinates import streamlit_image_coordinates
 from streamlit_gsheets import GSheetsConnection
-from db_manager import DBManager
+from db_manager import DBManager,get_db_manager
+import atexit
+
 from utils import listar_opces_jogadores
-db_manager = DBManager()
+db_manager = get_db_manager()
 
 # Lista de jogos
 lista_jogos = db_manager.listar_jogos()
@@ -107,3 +109,8 @@ else:
                                             
                                         except Exception as e:
                                             st.error(f"Erro ao adicionar jogadas: {e}")
+
+if hasattr(st, "on_event") and callable(getattr(st, "on_event")):
+    st.on_event("shutdown", db_manager.fechar_conexao)
+else:
+    atexit.register(db_manager.fechar_conexao) 

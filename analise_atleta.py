@@ -1,12 +1,13 @@
 import streamlit as st
 import pandas as pd
-from db_manager import DBManager
+from db_manager import DBManager, get_db_manager
 import plotly.graph_objects as go
+import atexit
 
 from utils import *
 
 # Inicialização do gerenciador de banco de dados
-db_manager = DBManager()
+db_manager = get_db_manager()
 
 # Obter lista de jogadores
 lista_atletas = db_manager.listar_nome_id_jogadores_por_equipe(1)
@@ -152,4 +153,7 @@ if filtro_jogador:
                 
 
       
-                  
+if hasattr(st, "on_event") and callable(getattr(st, "on_event")):
+    st.on_event("shutdown", db_manager.fechar_conexao)
+else:
+    atexit.register(db_manager.fechar_conexao)                   

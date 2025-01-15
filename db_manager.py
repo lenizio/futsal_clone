@@ -4,6 +4,7 @@ import streamlit as st
 
 class DBManager:
     
+    
     def __init__(self):
         try:
             self.conn = psycopg2.connect(
@@ -18,7 +19,8 @@ class DBManager:
         except psycopg2.OperationalError as e:
             print(f"Erro de conexão: {e}")
             raise
-    
+        
+     
     def criar_tabelas(self):
         comandos = [
             """
@@ -312,10 +314,11 @@ class DBManager:
             return False
 
     def fechar_conexao(self):
-        self.cursor.close()
-        self.conn.close()
-        
-        if self.cursor.rowcount > 0:
-            return True
-        else:
-            return False
+        if self.cursor:
+            self.cursor.close()
+        if self.conn:
+            self.conn.close()
+
+@st.cache_resource
+def get_db_manager():
+    return DBManager()   

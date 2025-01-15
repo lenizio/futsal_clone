@@ -1,5 +1,5 @@
 import streamlit as st
-from db_manager import DBManager
+from db_manager import DBManager,get_db_manager
 from utils import listar_opces_jogadores, pegar_dados_pizza_plot, pizza_plot
 import numpy as np
 import pandas as pd
@@ -11,7 +11,7 @@ import atexit
 
 
 
-db_manager = DBManager()
+db_manager = get_db_manager()
 
 # Exemplo de lista de jogos
 lista_jogos = db_manager.listar_jogos()

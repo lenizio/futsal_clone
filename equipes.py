@@ -1,8 +1,10 @@
 import streamlit as st
 import pandas as pd
 import time
-from db_manager import DBManager
-db_manager = DBManager()
+from db_manager import DBManager,get_db_manager
+import atexit
+
+db_manager = get_db_manager()
 
 @st.dialog("Adicionar Jogador")
 def adicionar_jogador_dialog(equipe_id, equipe_nome):
@@ -121,3 +123,9 @@ with botao_adicionar_equipe:
 with botao_excluir_equipe:
     if st.button("Excluir equipe", key="exluir_equipe"):
         excluir_equipe_dialog()
+        
+        
+if hasattr(st, "on_event") and callable(getattr(st, "on_event")):
+    st.on_event("shutdown", db_manager.fechar_conexao)
+else:
+    atexit.register(db_manager.fechar_conexao)         
