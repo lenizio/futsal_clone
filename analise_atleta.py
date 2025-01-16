@@ -50,10 +50,6 @@ with filter_container:
             index=nomes_jogadores_list.index(st.session_state.filtro_jogador) if st.session_state.filtro_jogador else None,
         )
         if filtro_jogador:
-            st.session_state.filtro_partida = None
-            filtro_partida = None
-            st.session_state.filtro_competicao = None
-            filtro_competicao = None
             st.session_state.filtro_jogador = filtro_jogador
             jogador_id = jogadores_dict[filtro_jogador]
             estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict, estatisticas_geral_totais_dict = extrair_estatisticas_gerais(dados_todos_jogadores_df)
@@ -65,6 +61,12 @@ with filter_container:
             historico_fig = plotar_historico(estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict,numero_jogos)
             radar_fig = plotar_radar_chart(estatisticas_totais_dict,estatisticas_geral_totais_dict)
             options_competicao = dados_jogador_df["competicao"].unique().tolist()
+            
+            if st.session_state.filtro_competicao is not None and st.session_state.filtro_competicao not in options_competicao:
+                filtro_competicao = None
+                st.session_state.filtro_competicao = None
+                filtro_partida=None
+                st.session_state.filtro_partida = None
 
     # Filtro por competição
     with col2:
@@ -75,8 +77,8 @@ with filter_container:
                 index=options_competicao.index(st.session_state.filtro_competicao) if st.session_state.filtro_competicao else None,
             )
             if filtro_competicao:
-                filtro_partida = None  
-                st.session_state.filtro_partida = None   
+                if filtro_competicao != st.session_state.filtro_competicao:
+                    st.session_state.filtro_partida = None
                 st.session_state.filtro_competicao = filtro_competicao
                 dados_jogador_df = dados_jogador_df[dados_jogador_df['competicao'] == filtro_competicao]
                 dados_todos_jogadores_df = dados_todos_jogadores_df[dados_todos_jogadores_df['competicao'] == filtro_competicao]
@@ -88,6 +90,10 @@ with filter_container:
                 historico_fig = plotar_historico(estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict,numero_jogos)
                 radar_fig = plotar_radar_chart(estatisticas_totais_dict,estatisticas_geral_totais_dict)               
                 options_partidas = dados_jogador_df["partida"].unique().tolist()
+                
+                if st.session_state.filtro_partida is not None and st.session_state.filtro_partida not in options_partidas:
+                    filtro_partida=None
+                    st.session_state.filtro_partida = None
 
     # Filtro por partida
     with col3:
