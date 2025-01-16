@@ -50,6 +50,10 @@ with filter_container:
             index=nomes_jogadores_list.index(st.session_state.filtro_jogador) if st.session_state.filtro_jogador else None,
         )
         if filtro_jogador:
+            st.session_state.filtro_partida = None
+            filtro_partida = None
+            st.session_state.filtro_competicao = None
+            filtro_competicao = None
             st.session_state.filtro_jogador = filtro_jogador
             jogador_id = jogadores_dict[filtro_jogador]
             estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict, estatisticas_geral_totais_dict = extrair_estatisticas_gerais(dados_todos_jogadores_df)
@@ -71,7 +75,8 @@ with filter_container:
                 index=options_competicao.index(st.session_state.filtro_competicao) if st.session_state.filtro_competicao else None,
             )
             if filtro_competicao:
-                st.session_state.filtro_partida = None  # 
+                filtro_partida = None  
+                st.session_state.filtro_partida = None   
                 st.session_state.filtro_competicao = filtro_competicao
                 dados_jogador_df = dados_jogador_df[dados_jogador_df['competicao'] == filtro_competicao]
                 dados_todos_jogadores_df = dados_todos_jogadores_df[dados_todos_jogadores_df['competicao'] == filtro_competicao]
