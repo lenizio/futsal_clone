@@ -1,6 +1,6 @@
 import streamlit as st
 import pandas as pd
-from db_manager import DBManager, get_db_manager
+from db_manager import DBManager, get_db_manager    
 import plotly.graph_objects as go
 import atexit
 

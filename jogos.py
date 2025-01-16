@@ -82,9 +82,32 @@ def deletar_jogos_dialog(lista_jogos):
                 st.rerun()
             except Exception as e:
                         st.error(f"Erro ao deletar jogo: {e}")
+
+@st.dialog("Baixar Jogadas")
+def baixar_jogadas_dialog(lista_jogos):
+
+        opcoes_jogos = {f"{jogo[2]} x {jogo[4]} - {jogo[6]} - {jogo[7]} - {jogo[8]}" : jogo[0] for jogo in lista_jogos}
+        jogo_selecionado = st.selectbox("Selecinoe um jogo para baixar jogadas", options=opcoes_jogos.keys(), index=None)
+        
+        if jogo_selecionado:
+            jogo_id = opcoes_jogos[jogo_selecionado]
+            lista_jogadas = db_manager.listar_jogadas_por_partida(jogo_id)
+            lista_jogadas_df = pd.DataFrame(lista_jogadas, columns=["equipe_mandante_nome","equipe_visitante_nome","fase","rodada","competicao","jogador_nome","jogada","tempo","x_loc","y_loc"])
+            csv_data = convert_df_to_csv(lista_jogadas_df)
+
+            # Botão para download do CSV
+            if st.download_button(
+                label="Baixar CSV",
+                data=csv_data,
+                file_name= jogo_selecionado + ".csv",
+                mime="text/csv"
+            ):
+                st.rerun()
+
+            
         
     
-column1, column2 = st.columns(2)           
+column1, column2, column3 = st.columns([1,1,3])           
 
 with column1:
     if st.button("Adicionar Jogos", key="adicionar_jogos"):
@@ -92,7 +115,9 @@ with column1:
 with column2:
     if st.button("Excluir Jogos", key="excluir_jogos"):
         deletar_jogos_dialog(lista_jogos)
-
+with column3:
+    if st.button("Baixar Jogadas", key="baixar_jogadas"):
+        baixar_jogadas_dialog(lista_jogos)        
 
 if not lista_jogos:
     st.warning("Sem jogos registrados")  
@@ -100,23 +125,6 @@ else:
     df = pd.DataFrame(lista_jogos, columns=["id",'equipe_mandante_id',"Equipe Mandante","equipe_visitante_id" ,"Equipe Visitante","date" ,"Competição","Fase", "Rodada"])
     df = df.drop(columns=["id","date",'equipe_mandante_id',"equipe_visitante_id"])
     st.dataframe(df, hide_index=True)
-
-    opcoes_jogos = {f"{jogo[2]} x {jogo[4]} - {jogo[6]} - {jogo[7]} - {jogo[8]}" : jogo[0] for jogo in lista_jogos}
-    jogo_selecionado = st.selectbox("Selecinoe um jogo para baixar jogadas", options=opcoes_jogos.keys(), index=None)
-    
-    if jogo_selecionado:
-        jogo_id = opcoes_jogos[jogo_selecionado]
-        lista_jogadas = db_manager.listar_jogadas_por_partida(jogo_id)
-        lista_jogadas_df = pd.DataFrame(lista_jogadas, columns=["equipe_mandante_nome","equipe_visitante_nome","fase","rodada","competicao","jogador_nome","jogada","tempo","x_loc","y_loc"])
-        csv_data = convert_df_to_csv(lista_jogadas_df)
-
-        # Botão para download do CSV
-        st.download_button(
-            label="Baixar CSV",
-            data=csv_data,
-            file_name= jogo_selecionado + ".csv",
-            mime="text/csv"
-        )
 
     
 if hasattr(st, "on_event") and callable(getattr(st, "on_event")):
