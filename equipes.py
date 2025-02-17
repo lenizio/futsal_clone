@@ -11,19 +11,52 @@ def adicionar_jogador_dialog(equipe_id, equipe_nome):
     nome = st.text_input("Nome") 
     posicao = st.selectbox("Selecione a posição", ('Goleiro', "Ala D","Ala E", "Fixo", 'Pivô'),index = None)
     numero_camisa = st.number_input("Número da camisa", value=None)
+    image_id= st.text_input("Adicione o id da foto do jogador", value=None)
     
     # Validação e submissão do formulário
     if st.button("Cadastrar", key=f"adicionar_jogador_dialog"):  # Adicionando um key único
         if not nome or not posicao or not numero_camisa:
             st.error("Por favor, preencha todos os campos.")
         else:
-            resultado = db_manager.adicionar_jogador(nome, equipe_id, equipe_nome, posicao, numero_camisa)
+            resultado = db_manager.adicionar_jogador(nome, equipe_id, equipe_nome, posicao, numero_camisa,image_id)
             if isinstance(resultado, str):  # Se for uma string, é uma mensagem de erro
                 st.error(resultado)  # Exibe a mensagem de erro no Streamlit
             else:
                 st.success(f"Jogador cadastrado com sucesso!")
                 time.sleep(1)  # Pausa de 2 segundos para mostrar a mensagem antes de atualizar a página
                 st.rerun()
+@st.dialog("Editar Jogador")
+def editar_jogador_dialog(equipe_id):
+    lista_jogadores = db_manager.listar_jogadores_por_equipe(equipe_id)
+    dict_jogadores = {jogador[1]:[jogador[0],jogador[2],jogador[3],jogador[4]]for jogador in lista_jogadores}
+    jogador = st.selectbox('Selecione o jogador', options=dict_jogadores.keys(), index=None)
+    
+    if jogador:
+        jogador_id = dict_jogadores[jogador][0]
+        nome = st.text_input("Nome",value=jogador) 
+        posicoes_list = ['Goleiro', "Ala D","Ala E", "Fixo", 'Pivô']
+        posicao = st.selectbox("Selecione a posição", options=posicoes_list,index = posicoes_list.index(dict_jogadores[jogador][1]))
+        numero_camisa = st.number_input("Número da camisa", value=dict_jogadores[jogador][2])
+        image_id= st.text_input("Adicione o id da foto do jogador",value=dict_jogadores[jogador][3])
+        
+        if st.button("Editar", key=f"editar_jogador_dialog"):  # Adicionando um key único
+            if not nome or not posicao or not numero_camisa:
+                st.error("Por favor, preencha todos os campos.")
+            else:
+                resultado = db_manager.editar_jogador(equipe_id,jogador_id,nome,numero_camisa,posicao,image_id)   
+                if isinstance(resultado, str):  # Se for uma string, é uma mensagem de erro
+                    st.error(resultado)  # Exibe a mensagem de erro no Streamlit
+                else:
+                    st.success(f"Jogador editado com sucesso!")
+                    time.sleep(1)  # Pausa de 2 segundos para mostrar a mensagem antes de atualizar a página
+                    st.rerun()
+
+    
+   
+    
+    
+    
+                
 
 @st.dialog("Excluir Jogador")
 def excluir_jogador_dialog(equipe_id):
@@ -63,11 +96,11 @@ else:
             if not jogadores:  # Se não houver jogadores, exibe uma mensagem
                 st.write("Nenhum jogador cadastrado")
             else:
-                df = pd.DataFrame(jogadores, columns=["id", "Nome", "Posição",'Número'])
-                df = df.drop(columns=["id"])
+                df = pd.DataFrame(jogadores, columns=["id", "Nome", "Posição",'Número',"image_id"])
+                df = df.drop(columns=["id","image_id"])
                 st.dataframe(df, hide_index=True)
 
-            botao_adicionar_jogador, botao_excluir_jogador = st.columns(2)
+            botao_adicionar_jogador, botao_excluir_jogador, botao_editar_jogador = st.columns([1,1,3])
 
             with botao_adicionar_jogador:
                 if st.button("Adicionar Jogador", key=f"adicionar_jogador_{clube[0]}"):
@@ -75,7 +108,10 @@ else:
         
             with botao_excluir_jogador:
                 if st.button("Excluir Jogador", key=f"excluir_jogador_{clube[0]}"):
-                    excluir_jogador_dialog(clube[0]) 
+                    excluir_jogador_dialog(clube[0])
+            with botao_editar_jogador:
+                if st.button("Editar Jogador", key=f"editar_jogador_{clube[0]}"):
+                    editar_jogador_dialog(clube[0])
 
 # Adicionar equipe
 @st.dialog("Adicionar equipe")

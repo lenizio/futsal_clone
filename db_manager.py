@@ -38,6 +38,7 @@ class DBManager:
                 equipe_id INT NOT NULL REFERENCES equipes(id) ON DELETE CASCADE,
                 equipe VARCHAR(100) NOT NULL,
                 posicao VARCHAR(50) NOT NULL,
+                image_id VARCHAR(255) DEFAULT NULL,
                 CONSTRAINT unique_numero_camisa_por_equipe UNIQUE (equipe_id, numero_camisa)
 
             )
@@ -66,7 +67,22 @@ class DBManager:
                 x_loc FLOAT NOT NULL,
                 y_loc FLOAT NOT NULL
             )
-            """
+            """,
+            # """
+            # CREATE TABLE IF NOT EXISTS gols (
+            #     id SERIAL PRIMARY KEY,
+            #     equipe_mandante_id INT NOT NULL REFERENCES equipes(id) ON DELETE CASCADE,
+            #     equipe_mandante_nome VARCHAR(100) NOT NULL,
+            #     nome VARCHAR(100) NOT NULL,
+            #     numero_camisa INT NOT NULL,
+            #     equipe_id INT NOT NULL REFERENCES equipes(id) ON DELETE CASCADE,
+            #     equipe VARCHAR(100) NOT NULL,
+            #     posicao VARCHAR(50) NOT NULL,
+            #     image_id VARCHAR(255) DEFAULT NULL,
+            #     CONSTRAINT unique_numero_camisa_por_equipe UNIQUE (equipe_id, numero_camisa)
+
+            # )
+            # """
         ]
         for comando in comandos:
             self.cursor.execute(comando)
@@ -84,23 +100,23 @@ class DBManager:
         )
         return self.cursor.fetchone()  # Retorna None se não encontrar
     
-    def verificar_jogador_por_nome(self, nome, equipe_id):
+    def verificar_jogador_por_nome(self, nome, equipe_id,jogador_id=None):
         self.cursor.execute(
-            """
-            SELECT 1 FROM jogadores WHERE nome = %s AND equipe_id = %s
-            """,
-            (nome, equipe_id)
-        )
+                    """
+                    SELECT 1 FROM jogadores WHERE nome = %s AND equipe_id = %s AND id != %s
+                    """,
+                    (nome, equipe_id, jogador_id)
+                )
         resultado = self.cursor.fetchone()
         if resultado:
             return "Jogador já cadastrado com este nome."
 
-    def verificar_jogador_por_numero_camisa(self, numero_camisa, equipe_id):
+    def verificar_jogador_por_numero_camisa(self, numero_camisa, equipe_id,jogador_id=None):
         self.cursor.execute(
             """
-            SELECT 1 FROM jogadores WHERE numero_camisa = %s AND equipe_id = %s
-            """,
-            (numero_camisa, equipe_id)
+            SELECT 1 FROM jogadores WHERE numero_camisa = %s AND equipe_id = %s AND id != %s
+                    """,
+                (numero_camisa, equipe_id, jogador_id)
         )
         resultado = self.cursor.fetchone()
         if resultado:
@@ -126,8 +142,8 @@ class DBManager:
         return novo_id
 
 
-    def adicionar_jogador(self, nome, equipe_id, equipe_nome, posicao, numero_camisa):
-    # Verificar se o jogador já existe pelo nome
+    def adicionar_jogador(self, nome, equipe_id, equipe_nome, posicao, numero_camisa, image_id=None):
+        # Verificar se o jogador já existe pelo nome
         erro_nome = self.verificar_jogador_por_nome(nome, equipe_id)
         if erro_nome:
             return erro_nome  # Retorna a mensagem de erro se o nome já existir
@@ -137,18 +153,49 @@ class DBManager:
         if erro_numero_camisa:
             return erro_numero_camisa  # Retorna a mensagem de erro se o número da camisa já estiver em uso
 
-
         # Inserir o novo jogador
         self.cursor.execute(
             """
-            INSERT INTO jogadores (nome, equipe_id, equipe, posicao, numero_camisa)
-            VALUES (%s, %s, %s, %s, %s)
+            INSERT INTO jogadores (nome, equipe_id, equipe, posicao, numero_camisa, image_id)
+            VALUES (%s, %s, %s, %s, %s, %s)
             """,
-            (nome, equipe_id, equipe_nome, posicao, numero_camisa)
+            (nome, equipe_id, equipe_nome, posicao, numero_camisa, image_id)
         )
         self.conn.commit()
         novo_id = self.cursor.lastrowid
         return novo_id
+    
+    def editar_jogador(self,equipe_id, jogador_id, nome=None, numero_camisa=None, posicao=None, image_id=None):
+        campos = []
+        valores = []
+
+        if nome:
+            campos.append("nome = %s")
+            valores.append(nome)
+        if numero_camisa:
+            campos.append("numero_camisa = %s")
+            valores.append(numero_camisa)
+        if posicao:
+            campos.append("posicao = %s")
+            valores.append(posicao)
+        if image_id:
+            campos.append("image_id = %s")
+            valores.append(image_id)
+        
+        erro_nome = self.verificar_jogador_por_nome(nome, equipe_id,jogador_id)
+        if erro_nome:
+            return erro_nome
+        
+        erro_numero_camisa = self.verificar_jogador_por_numero_camisa(numero_camisa, equipe_id,jogador_id)
+        if erro_numero_camisa:
+            return erro_numero_camisa    
+
+        valores.append(jogador_id)
+
+        comando = f"UPDATE jogadores SET {', '.join(campos)} WHERE id = %s"
+        self.cursor.execute(comando, tuple(valores))
+        self.conn.commit()
+
 
 
     def adicionar_jogo(self, equipe_mandante_id, equipe_mandante_nome, equipe_visitante_id, equipe_visitante_nome, data, fase, rodada, competicao):
@@ -196,7 +243,7 @@ class DBManager:
 
     # Listar jogadores por equipe
     def listar_jogadores_por_equipe(self, equipe_id):
-        self.cursor.execute("SELECT id, nome, posicao, numero_camisa FROM jogadores WHERE equipe_id = %s", (equipe_id,))
+        self.cursor.execute("SELECT id, nome, posicao, numero_camisa,image_id FROM jogadores WHERE equipe_id = %s", (equipe_id,))
         return self.cursor.fetchall()  # Retorna uma lista de tuplas
     
      # Listar jogadores por equipe
@@ -243,7 +290,7 @@ class DBManager:
                     jogadas.y_loc
                 FROM
                     jogos
-                LEFT JOIN
+                INNER JOIN
                     jogadas
                 ON
                     jogos.id = jogadas.jogo_id 

@@ -7,6 +7,12 @@ import plotly.express as px
 from plotly.subplots import make_subplots
 from plotly.tools import mpl_to_plotly
 import io
+import requests
+import plotly.io as pio
+from reportlab.lib.pagesizes import letter
+from reportlab.pdfgen import canvas
+from PIL import Image
+import os
 
 def convert_df_to_csv(df):
     # Usando StringIO para criar um buffer de string
@@ -163,63 +169,211 @@ def extrair_estatisticas_localizacao(dados_jogador_df,jogada):
     
     return localizacao_jogadas
     
-         
-
-
-def plotar_estatisticas_gerais(estatisticas_totais_dict):
-    
+def plotar_estatisticas_gerais_time(estatisticas_totais_dict,numero_jogos):
     estatisticas_gerais_fig = go.Figure()
-    
+
     if estatisticas_totais_dict['FIN.TOTAL'] == 0:
         efetividade = 0
     else:
         efetividade = estatisticas_totais_dict['FIN.C'] / estatisticas_totais_dict['FIN.TOTAL']
-    # Indicador 1: Finalizações Certas
-    estatisticas_gerais_fig.add_trace(go.Indicator(
-        mode="number",  # Apenas o número será exibido
-        value=estatisticas_totais_dict['GOL'],  # Valor do indicador
-        domain={'row': 0, 'column': 0},  # Posição no grid
-        title={"text": "Gols"}))  # Título
 
-    # Indicador 2: Finalizações Erradas
+    # Indicador 1: Gols
+    estatisticas_gerais_fig.add_trace(go.Indicator(
+        mode="number",
+        value=estatisticas_totais_dict['GOL'],
+        domain={'row': 1, 'column': 0},
+        title={"text": "Gols", "font": {"size": 12}},  # Tamanho do título
+        number={"font": {"size": 20}}  # Tamanho do valor
+    ))
+
+    # Indicador 2: Finalizações
     estatisticas_gerais_fig.add_trace(go.Indicator(
         mode="number",
         value=estatisticas_totais_dict['FIN.TOTAL'],
         domain={'row': 0, 'column': 1},
-        title={"text": "Finalizações"}))
+        title={"text": "Finalizações", "font": {"size": 12}},
+        number={"font": {"size": 20}}
+    ))
 
-    # Indicador 3: Gols
+    # Indicador 3: Assistências
     estatisticas_gerais_fig.add_trace(go.Indicator(
         mode="number",
-        value=estatisticas_totais_dict['ASSIST.'],
-        domain={'row': 1, 'column': 0},
-        title={"text": "Assistências"}))
+        value=numero_jogos,
+        domain={'row': 0, 'column': 0},
+        title={"text": "Jogos", "font": {"size": 12}},
+        number={"font": {"size": 20}}
+    ))
 
-    # Indicador 4: Assistências
+    # Indicador 4: Efetividade
     estatisticas_gerais_fig.add_trace(go.Indicator(
         mode="number",
         value=efetividade,
-        number={"valueformat": ".0%", "suffix": ""},
+        number={"valueformat": ".0%", "font": {"size": 20}},  # Formato e tamanho do valor
         domain={'row': 1, 'column': 1},
-        title={"text": "Efetividade"}))
+        title={"text": "Efetividade", "font": {"size": 12}}
+    ))
+
+    # Indicador 5: Participações em Gols
     estatisticas_gerais_fig.add_trace(go.Indicator(
         mode="number",
-        value=estatisticas_totais_dict['GOL']+estatisticas_totais_dict['ASSIST.'],
+        value=estatisticas_totais_dict['GOL'] / numero_jogos if numero_jogos > 0 else 0,
         domain={'row': 2, 'column': 0},
-        title={"text": "Participações em Gols"}))
+        title={"text": "Gols por Jogo", "font": {"size": 12}},
+        number={"font": {"size": 20}}
+    ))
+
+    # Indicador 6: Finalizações Certas
     estatisticas_gerais_fig.add_trace(go.Indicator(
         mode="number",
         value=estatisticas_totais_dict['FIN.C'],
         domain={'row': 2, 'column': 1},
-        title={"text": "Fin. Certas"}))
+        title={"text": "Fin. Certas", "font": {"size": 12}},
+        number={"font": {"size": 20}}
+    ))
 
     # Configuração do layout
     estatisticas_gerais_fig.update_layout(
-        grid={'rows': 3, 'columns': 2, 'pattern': "independent"},  # Grid 2x2
-        template="plotly_dark"  # Opcional: tema do gráfico
+        grid={'rows': 3, 'columns': 2, 'pattern': "independent"},
+        template="plotly_dark",
+        margin_t=20,
+        margin_b= 0,
+        height= 330
+        # Opcional: tema do gráfico
     )
-    
+
     return estatisticas_gerais_fig
+
+        
+
+
+def plotar_estatisticas_gerais(estatisticas_totais_dict):
+    estatisticas_gerais_fig = go.Figure()
+
+    if estatisticas_totais_dict['FIN.TOTAL'] == 0:
+        efetividade = 0
+    else:
+        efetividade = estatisticas_totais_dict['FIN.C'] / estatisticas_totais_dict['FIN.TOTAL']
+
+    # Indicador 1: Gols
+    estatisticas_gerais_fig.add_trace(go.Indicator(
+        mode="number",
+        value=estatisticas_totais_dict['GOL'],
+        domain={'row': 0, 'column': 0},
+        title={"text": "Gols", "font": {"size": 12}},  # Tamanho do título
+        number={"font": {"size": 20}}  # Tamanho do valor
+    ))
+
+    # Indicador 2: Finalizações
+    estatisticas_gerais_fig.add_trace(go.Indicator(
+        mode="number",
+        value=estatisticas_totais_dict['FIN.TOTAL'],
+        domain={'row': 0, 'column': 1},
+        title={"text": "Finalizações", "font": {"size": 12}},
+        number={"font": {"size": 20}}
+    ))
+
+    # Indicador 3: Assistências
+    estatisticas_gerais_fig.add_trace(go.Indicator(
+        mode="number",
+        value=estatisticas_totais_dict['ASSIST.'],
+        domain={'row': 1, 'column': 0},
+        title={"text": "Assistências", "font": {"size": 12}},
+        number={"font": {"size": 20}}
+    ))
+
+    # Indicador 4: Efetividade
+    estatisticas_gerais_fig.add_trace(go.Indicator(
+        mode="number",
+        value=efetividade,
+        number={"valueformat": ".0%", "font": {"size": 20}},  # Formato e tamanho do valor
+        domain={'row': 1, 'column': 1},
+        title={"text": "Efetividade", "font": {"size": 12}}
+    ))
+
+    # Indicador 5: Participações em Gols
+    estatisticas_gerais_fig.add_trace(go.Indicator(
+        mode="number",
+        value=estatisticas_totais_dict['GOL'] + estatisticas_totais_dict['ASSIST.'],
+        domain={'row': 2, 'column': 0},
+        title={"text": "Participações em Gols", "font": {"size": 12}},
+        number={"font": {"size": 20}}
+    ))
+
+    # Indicador 6: Finalizações Certas
+    estatisticas_gerais_fig.add_trace(go.Indicator(
+        mode="number",
+        value=estatisticas_totais_dict['FIN.C'],
+        domain={'row': 2, 'column': 1},
+        title={"text": "Fin. Certas", "font": {"size": 12}},
+        number={"font": {"size": 20}}
+    ))
+
+    # Configuração do layout
+    estatisticas_gerais_fig.update_layout(
+        grid={'rows': 3, 'columns': 2, 'pattern': "independent"},
+        template="plotly_dark",
+        margin_t=20,
+        margin_b= 0,
+        height= 330
+        # Opcional: tema do gráfico
+    )
+
+    return estatisticas_gerais_fig
+
+def plotar_estatisticas_gerais_1(estatisticas_totais_dict):
+    estatisticas_gerais_fig = go.Figure()
+
+    # Indicador 1: Gols
+    estatisticas_gerais_fig.add_trace(go.Indicator(
+        mode="number",
+        value=estatisticas_totais_dict['DES.C/P.'],
+        domain={'row': 0, 'column': 0},
+        title={"text": "Des. c/ Posse", "font": {"size": 12}},  # Tamanho do título
+        number={"font": {"size": 20}}  # Tamanho do valor
+    ))
+
+    # Indicador 2: Finalizações
+    estatisticas_gerais_fig.add_trace(go.Indicator(
+        mode="number",
+        value=estatisticas_totais_dict['DES.S/P.'],
+        domain={'row': 0, 'column': 1},
+        title={"text": "Des. s/ Posse", "font": {"size": 12}},
+        number={"font": {"size": 20}}
+    ))
+
+    # Indicador 3: Assistências
+    estatisticas_gerais_fig.add_trace(go.Indicator(
+        mode="number",
+        value=estatisticas_totais_dict['PER.P'],
+        domain={'row': 0, 'column': 2},
+        title={"text": "Perda de Posse", "font": {"size": 12}},
+        number={"font": {"size": 20}}
+    ))
+
+    # Indicador 4: Efetividade
+    estatisticas_gerais_fig.add_trace(go.Indicator(
+        mode="number",
+        value=estatisticas_totais_dict['C.A'],
+        number={"font": {"size": 20}},  # Formato e tamanho do valor
+        domain={'row': 0, 'column': 3},
+        title={"text": "C.A Adiversário", "font": {"size": 12}}
+    ))
+
+   
+
+    # Configuração do layout
+    estatisticas_gerais_fig.update_layout(
+        grid={'rows': 1, 'columns': 4, 'pattern': "independent"},
+        template="plotly_dark",
+        height= 100,
+        margin_t = 105,
+        margin_r=5
+    
+        # Opcional: tema do gráfico
+    )
+
+    return estatisticas_gerais_fig
+
 
 
 
@@ -296,7 +450,7 @@ def plotar_historico(estatisticas_primeiro_tempo_dict, estatisticas_segundo_temp
     mean_desempenho_posse=(data_desempenho_posse/numero_jogos).astype(int)
     mean_perda_posse =(data_perda_posse/numero_jogos).astype(int)
 
-    # Criar subplots com 1 linha e 3 colunas
+    # Criar subplots com 1 linha e 3 colunass
     fig = make_subplots(
         rows=1, cols=3,
         specs=[[{'type': 'domain'}, {'type': 'domain'}, {'type': 'domain'}]],
@@ -345,6 +499,79 @@ def plotar_historico(estatisticas_primeiro_tempo_dict, estatisticas_segundo_temp
         )
     )
     
+    return fig
+
+import numpy as np
+import plotly.graph_objects as go
+from plotly.subplots import make_subplots
+
+def plotar_historico_time(estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict, numero_jogos):
+    # Labels para os gráficos
+    labels = ['Primeiro Tempo', 'Segundo Tempo']
+
+    # Dados a serem plotados
+    categorias = {
+        "Média Finalizações Certas": "FIN.C",
+        "Média Finalizações Erradas": "FIN.E",
+        "Média Finalizações Travadas": "FIN.T",
+        "Média Des. c/ Posse": "DES.C/P.",
+        "Média Des. s/ Posse": "DES.S/P.",
+        "Média Perda de Posse": "PER.P",
+    }
+
+    # Criar subplots com 2 linhas e 3 colunas
+    fig = make_subplots(
+        rows=2, cols=3,  
+        specs=[[{'type': 'domain'}] * 3, [{'type': 'domain'}] * 3],  # Define o tipo de gráfico como 'domain' (rosca)
+        subplot_titles=list(categorias.keys())  # Define os títulos automaticamente
+    )
+
+    # Loop para adicionar os gráficos dinamicamente
+    for i, (titulo, chave) in enumerate(categorias.items()):
+        row = (i // 3) + 1  # Calcula a linha correta (1 ou 2)
+        col = (i % 3) + 1    # Calcula a coluna correta (1, 2 ou 3)
+
+        # Calcula a média (evita divisão por zero)
+        valores = np.array([
+            estatisticas_primeiro_tempo_dict[chave], 
+            estatisticas_segundo_tempo_dict[chave]
+        ])
+        mean_valores = (valores / numero_jogos).astype(int) if numero_jogos > 0 else [0, 0]
+
+        # Adiciona o gráfico ao subplot correspondente
+        fig.add_trace(go.Pie(
+            labels=labels,
+            values=mean_valores,
+            name=titulo,
+            hole=0.5,
+            textinfo='percent',
+            texttemplate='%{value} (%{percent})'
+        ), row=row, col=col)
+    
+    fig.update_annotations(
+        font_size=14,  # Tamanho da fonte dos títulos
+        xanchor="center",  # Centraliza horizontalmente
+        yanchor="bottom",
+        yshift=20# Ajusta a posição vertical
+        
+        # Move os títulos um pouco para baixo
+    )
+    
+    # Atualizar layout do gráfico
+    fig.update_layout(
+        title_text="Histórico",
+        title_x=0.45,  # Centraliza o título
+        title_y = 0.98,
+        showlegend=True,
+        height=450,  # Ajusta a altura do gráfico
+        legend=dict(
+            x=0.5, y=-0.2, 
+            xanchor="center", 
+            yanchor="bottom", 
+            orientation="h"
+        )
+    )
+
     return fig
 
 
@@ -512,6 +739,16 @@ def create_futsal_court(titulo,localizacao_jogadas):
             textfont=dict(size=14, color='white')  # Correção: usar textfont ao invés de font
         ))
 
+    fig.add_annotation(
+            x=-180, y=400,  # Aumente o valor de y para subir a seta
+            ax=0, ay=200,  # Ajuste ay para posicionar a ponta da seta
+            showarrow=True,
+            arrowhead=2,
+            font=dict(size=14, color="white"),
+            arrowcolor="white",
+            textangle=90
+        )
+    
     # Ajustar layout
     fig.update_layout(
         title=dict(
@@ -522,8 +759,8 @@ def create_futsal_court(titulo,localizacao_jogadas):
         ),
         xaxis=dict(visible=False),
         yaxis=dict(visible=False, scaleanchor="x", scaleratio=1),
-        width=600,
-        height=800,
+        width=350,
+        height=550,
         showlegend=False,
         plot_bgcolor='#121212',  # Fundo escuro
         template="plotly_dark"
@@ -531,3 +768,76 @@ def create_futsal_court(titulo,localizacao_jogadas):
 
     # Exibir a quadra
     return fig
+
+
+def pegar_imagem_jogador(image_id):
+    if image_id is not None:
+        url = f"https://drive.google.com/uc?export=view&id={image_id}"
+        response = requests.get(url)
+        return response.content
+    else:
+        return None
+    
+def salvar_graficos_pdf(estatisticas_gerais_fig,estatisticas_gerais_fig_1,grafico_barras_fig,historico_fig,radar_fig):
+    """
+    Gera um arquivo PDF com gráficos Plotly e retorna como bytes para download.
+
+    Parâmetros:
+    - figuras (dict): Dicionário onde as chaves são os nomes dos gráficos e os valores são os objetos Plotly.
+
+    Retorna:
+    - pdf_bytes (BytesIO): Arquivo PDF em memória pronto para download.
+    """
+    
+    figuras = {
+    "estatisticas_gerais": estatisticas_gerais_fig,
+    "estatisticas_gerais_1": estatisticas_gerais_fig_1,
+    "grafico_barras": grafico_barras_fig,
+    "historico": historico_fig,
+    "radar": radar_fig
+        }
+    width, height = letter
+    imagens_temp = []
+
+    # Criar buffer de memória para armazenar o PDF
+    pdf_buffer = io.BytesIO()
+
+    # Salvar os gráficos como imagens temporárias
+    for nome, figura in figuras.items():
+        nome_imagem = f"{nome}.png"
+        pio.write_image(figura, nome_imagem, format="png")
+        imagens_temp.append(nome_imagem)
+
+    # Criar o PDF no buffer
+    c = canvas.Canvas(pdf_buffer, pagesize=letter)
+
+    def add_image_to_pdf(canvas, img_path, y_position):
+        img = Image.open(img_path)
+        img_width, img_height = img.size
+        aspect = img_width / img_height
+        new_width = width - 50
+        new_height = new_width / aspect
+        if new_height > height - 50:
+            new_height = height - 50
+            new_width = new_height * aspect
+        canvas.drawImage(img_path, 25, y_position, width=new_width, height=new_height)
+
+    # Adicionar os gráficos ao PDF
+    y_position = height - 250
+    for img_path in imagens_temp:
+        add_image_to_pdf(c, img_path, y_position)
+        y_position -= 250
+        if y_position < 50:
+            c.showPage()
+            y_position = height - 250
+
+    c.save()
+    
+    # Mover o ponteiro do buffer para o início
+    pdf_buffer.seek(0)
+
+    # Remover imagens temporárias
+    for img in imagens_temp:
+        os.remove(img)
+
+    return pdf_buffer
