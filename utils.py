@@ -771,9 +771,15 @@ def create_futsal_court(titulo,localizacao_jogadas):
 def pegar_imagem_jogador(image_id):
     if image_id is not None:
         url = f"https://drive.google.com/uc?export=view&id={image_id}"
-        response = requests.get(url)
-        return response.content
+        try:
+            response = requests.get(url, timeout=10)  # Timeout de 10 segundos
+            response.raise_for_status()  # Levanta um erro para respostas HTTP 4xx ou 5xx
+            return response.content
+        except requests.exceptions.RequestException as e:
+            print(f"Erro ao obter a imagem: {e}")
+            return None
     else:
+        print("ID da imagem é inválido.")
         return None
     
 def salvar_graficos_pdf(estatisticas_gerais_fig,estatisticas_gerais_fig_1,grafico_barras_fig,historico_fig,radar_fig):
