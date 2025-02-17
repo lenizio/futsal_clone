@@ -9,8 +9,6 @@ from plotly.tools import mpl_to_plotly
 import io
 import requests
 import plotly.io as pio
-from reportlab.lib.pagesizes import letter
-from reportlab.pdfgen import canvas
 from PIL import Image
 import os
 
