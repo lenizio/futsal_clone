@@ -499,9 +499,7 @@ def plotar_historico(estatisticas_primeiro_tempo_dict, estatisticas_segundo_temp
     
     return fig
 
-import numpy as np
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
+
 
 def plotar_historico_time(estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict, numero_jogos):
     # Labels para os gráficos
@@ -558,7 +556,7 @@ def plotar_historico_time(estatisticas_primeiro_tempo_dict, estatisticas_segundo
     # Atualizar layout do gráfico
     fig.update_layout(
         title_text="Histórico",
-        title_x=0.45,  # Centraliza o título
+        title_x=0.45,  # Centraliza o   
         title_y = 0.98,
         showlegend=True,
         height=450,  # Ajusta a altura do gráfico
@@ -623,148 +621,71 @@ def create_arc(x_center, y_center, radius, theta1, theta2, color='gray', width=2
     return dict(type='scatter', x=x, y=y, mode='lines', line=dict(color=color, width=width)), (x[0], y[0]), (x[-1], y[-1])
 
 # Função principal para criar a quadra de futsal
-def create_futsal_court(titulo,localizacao_jogadas):
-  
-    # Criar a figura
+def create_futsal_court(titulo, heatmap_data, line_color='white'):
     fig = go.Figure()
+    width, height, radius = 280, 470, 60
+    heatmap_data = np.array(heatmap_data).reshape(6,3)
+    heatmap_data = np.flipud(heatmap_data)
 
-    # Tamanho ajustado da quadra
-    width = 280  # Comprimento da quadra
-    height = 470  # Largura da quadra
-    radius = 60  # Raio dos arcos ajustado
-
-    # Adicionar a quadra
-    # Área de gol inferior
-    arc_left_bottom, left_bottom_start, left_bottom_end = create_arc(-30, 0, radius, 90, 180)
-    arc_right_bottom, right_bottom_start, right_bottom_end = create_arc(30, 0, radius, 0, 90)
-
+    # Adicionar arcos
+    arc_left_bottom, left_bottom_start, left_bottom_end = create_arc(-30, 0, radius, 90, 180, line_color, 2)
+    arc_right_bottom, right_bottom_start, right_bottom_end = create_arc(30, 0, radius, 0, 90, line_color, 2)
     fig.add_trace(arc_left_bottom)
     fig.add_trace(arc_right_bottom)
-
-    # Linha inferior conectando os extremos dos arcos inferiores
-    fig.add_shape(
-        type='line',
-        x0=-30, y0=radius,  # Usar 'left_bottom_end' como ponto de partida
-        x1=30, y1=radius,  # Usar 'right_bottom_start' como ponto final
-        line=dict(color='gray', width=2)
-    )
-
-    # Área de gol superior
-    arc_left_top, left_top_start, left_top_end = create_arc(-30, height, radius, 180, 270)
-    arc_right_top, right_top_start, right_top_end = create_arc(30, height, radius, 270, 360)
-
+    
+    fig.add_shape(type='line', x0=-30, y0=radius, x1=30, y1=radius, line=dict(color=line_color, width=2))
+    
+    arc_left_top, left_top_start, left_top_end = create_arc(-30, height, radius, 180, 270, line_color, 2)
+    arc_right_top, right_top_start, right_top_end = create_arc(30, height, radius, 270, 360, line_color, 2)
     fig.add_trace(arc_left_top)
     fig.add_trace(arc_right_top)
-
-    # Linha superior conectando os extremos dos arcos superiores
-    fig.add_shape(
-        type='line',
-        x0=left_top_end[0], y0=left_top_end[1],  # Usar 'left_top_end' como ponto de partida
-        x1=right_top_start[0], y1=right_top_start[1],  # Usar 'right_top_start' como ponto final
-        line=dict(color='gray', width=2)
-    )
-
-    # Linha central
-    fig.add_shape(type='line', x0=-140, y0=height / 2, x1=140, y1=height / 2, line=dict(color='gray', width=2))
-
+    
+    fig.add_shape(type='line', x0=left_top_end[0], y0=left_top_end[1], x1=right_top_start[0], y1=right_top_start[1], line=dict(color=line_color, width=2))
+    fig.add_shape(type='line', x0=-140, y0=height / 2, x1=140, y1=height / 2, line=dict(color=line_color, width=2))
+    
     # Círculo central
     radius_circle = 40
     theta = np.linspace(0, 2 * np.pi, 100)
     x_center_circle = radius_circle * np.cos(theta)
     y_center_circle = height / 2 + radius_circle * np.sin(theta)
-    fig.add_trace(go.Scatter(x=x_center_circle, y=y_center_circle, mode='lines', line=dict(color='gray', width=2)))
-
-    # Linhas externas (ajustadas para 280 x 470)
-    fig.add_shape(type='rect', x0=-140, y0=0, x1=140, y1=height, line=dict(color='gray', width=2))
-
-    # Adicionar as linhas pontilhadas para dividir a quadra em 3 colunas e 6 linhas
-    # Linhas verticais (colunas)
-    for i in range(1, 3):  # Para as 2 linhas verticais (entre as colunas)
-        fig.add_shape(
-            type='line',
-            x0=-140 + (i * 93.33), y0=0,  # Calculando a posição das colunas
-            x1=-140 + (i * 93.33), y1=height,
-            line=dict(color='gray', width=2, dash='dot')  # Linha pontilhada
-        )
-
-    # Linhas horizontais (linhas)
-    for i in range(1, 6):  # Para as 5 linhas horizontais
-        fig.add_shape(
-            type='line',
-            x0=-140, y0=(i * 78.33),  # Calculando a posição das linhas horizontais
-            x1=140, y1=(i * 78.33),
-            line=dict(color='gray', width=2, dash='dot')  # Linha pontilhada
-        )
-
-    # Adicionar círculos superior e inferior entre a linha central e a linha de fundo
-    radius_small_circle = 1.5
-    y_position_upper = 117.5  # Posição Y para o círculo superior
-    y_position_lower = 352.5  # Posição Y para o círculo inferior
-
-    # Círculo superior
-    x_small_circle_upper = radius_small_circle * np.cos(theta)
-    y_small_circle_upper = y_position_upper + radius_small_circle * np.sin(theta)
-    fig.add_trace(go.Scatter(x=x_small_circle_upper, y=y_small_circle_upper, mode='lines', fill='toself', 
-                             line=dict(color='gray', width=2)))
-
-    # Círculo inferior
-    x_small_circle_lower = radius_small_circle * np.cos(theta)
-    y_small_circle_lower = y_position_lower + radius_small_circle * np.sin(theta)
-    fig.add_trace(go.Scatter(x=x_small_circle_lower, y=y_small_circle_lower, mode='lines', fill='toself', 
-                             line=dict(color='gray', width=2)))
-
-    # Adicionar anotações no meio de cada quadrante com o número de ações
-    for quadrante, quantidade in localizacao_jogadas.items():
-        # Extrair linha e coluna a partir do formato 'linha-coluna'
-        try:
-            linha, coluna = map(float, quadrante.split('-'))
-        except ValueError:
-            print(f"Erro ao processar o quadrante: {quadrante}")
-            continue
-        
-        # Calcular o centro do quadrante
-        x_pos = -140 + (coluna - 1) * 93.33 + 46.67  # Posição x do centro do quadrante
-        y_pos = height - (linha - 1) * 78.33 - 39.17
-  # Posição y do centro do quadrante
-
-        # Adicionar anotação de texto no centro do quadrante
-        fig.add_trace(go.Scatter(
-            x=[x_pos], y=[y_pos],
-            mode='text',
-            text=[str(quantidade)],
-            textposition='middle center',
-            showlegend=False,
-            textfont=dict(size=14, color='white')  # Correção: usar textfont ao invés de font
-        ))
-
-    fig.add_annotation(
-            x=-180, y=400,  # Aumente o valor de y para subir a seta
-            ax=0, ay=200,  # Ajuste ay para posicionar a ponta da seta
-            showarrow=True,
-            arrowhead=2,
-            font=dict(size=14, color="white"),
-            arrowcolor="white",
-            textangle=90
-        )
+    fig.add_trace(go.Scatter(x=x_center_circle, y=y_center_circle, mode='lines', line=dict(color=line_color, width=2)))
     
-    # Ajustar layout
+    fig.add_shape(type='rect', x0=-140, y0=0, x1=140, y1=height, line=dict(color=line_color, width=2))
+    
+    # Criar Heatmap
+    x_edges = np.linspace(-140, 140, 4)  # 3 colunas
+    y_edges = np.linspace(0, 470, 7)  # 6 linhas
+    
+    x_heatmap = [(x_edges[i] + x_edges[i + 1]) / 2 for i in range(len(x_edges) - 1)]
+    y_heatmap = [(y_edges[i] + y_edges[i + 1]) / 2 for i in range(len(y_edges) - 1)]
+    
+    custom_colorscale = [[0.0, "green"], [0.33, "yellow"], [0.66, "orange"], [1.0, "red"]]
+    
+    heatmap_trace = go.Heatmap(
+    z=heatmap_data,
+    x=x_heatmap,
+    y=y_heatmap,
+    colorscale=custom_colorscale,  
+    opacity=0.6,  
+    zmin=0,  
+    zmax=np.max(heatmap_data),  
+    showscale=False,
+    text=heatmap_data.astype(str),  # Mostra os valores
+    texttemplate="%{text}",  # Define o formato dos textos
+    textfont={"size": 14, "color": "white"}  # Ajusta o tamanho e cor dos textos
+)
+    
+    fig.add_trace(heatmap_trace)
+    
     fig.update_layout(
-        title=dict(
-            text=titulo,  # Texto do título
-            x=0.5,        # Centraliza o título no eixo X
-            xanchor='center',  # Âncora centralizada
-            yanchor='top'      # Âncora no topo
-        ),
+        title=dict(text=titulo, x=0.5, xanchor='center', yanchor='top'),
         xaxis=dict(visible=False),
         yaxis=dict(visible=False, scaleanchor="x", scaleratio=1),
-        width=350,
-        height=550,
         showlegend=False,
-        plot_bgcolor='#121212',  # Fundo escuro
+        plot_bgcolor='#121212',
         template="plotly_dark"
-        )
-
-    # Exibir a quadra
+    )
+    
     return fig
 
 

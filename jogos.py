@@ -93,19 +93,21 @@ def baixar_jogadas_dialog(lista_jogos):
             jogo_id = opcoes_jogos[jogo_selecionado]
             lista_jogadas = db_manager.listar_jogadas_por_partida(jogo_id)
             lista_jogadas_df = pd.DataFrame(lista_jogadas, columns=["equipe_mandante_nome","equipe_visitante_nome","fase","rodada","competicao","jogador_nome","jogada","tempo","x_loc","y_loc"])
-            lista_jogadas_df['quadrante'] = lista_jogadas_df.apply(lambda row: calcular_quadrante(row['x_loc'], row['y_loc']), axis=1)
-            lista_jogadas_df.drop(["x_loc","y_loc"],axis=1, inplace=True)
-            csv_data = convert_df_to_csv(lista_jogadas_df)
+            if not lista_jogadas_df.empty:
+                lista_jogadas_df['quadrante'] = lista_jogadas_df.apply(lambda row: calcular_quadrante(row['x_loc'], row['y_loc']), axis=1)
+                lista_jogadas_df.drop(["x_loc","y_loc"],axis=1, inplace=True)
+                csv_data = convert_df_to_csv(lista_jogadas_df)
 
-            # Botão para download do CSV
-            if st.download_button(
-                label="Baixar CSV",
-                data=csv_data,
-                file_name= jogo_selecionado + ".csv",
-                mime="text/csv"
-            ):
-                st.rerun()
-
+                # Botão para download do CSV
+                if st.download_button(
+                    label="Baixar CSV",
+                    data=csv_data,
+                    file_name= jogo_selecionado + ".csv",
+                    mime="text/csv"
+                ):
+                    st.rerun()
+            else:
+                st.warning("Jogo sem jogadas adicionadas")
             
         
     

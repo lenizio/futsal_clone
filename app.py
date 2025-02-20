@@ -8,8 +8,6 @@ st.set_page_config(page_title="Análise Futsal", layout="wide")
 # Inicialização do banco de dados
 db_manager = get_db_manager()
 db_manager.criar_tabelas()
-
-
 # Definição das páginas
 equipes_page = st.Page("equipes.py", title="Times")
 analise_tempo_real_page = st.Page("analise_tempo_real.py", title="Análise Tempo Real")
