@@ -27,20 +27,34 @@ filter_container = st.container()
 dados_todos_jogadores_df = extrair_dataframe_jogador(db_manager)
 options_competicao = []
 options_partidas = []
-estatisticas_gerais_fig = go.Figure()
-estatisticas_gerais_fig_1 = go.Figure()
-grafico_barras_fig = go.Figure()
-historico_fig = go.Figure()
+#Figuras tab total
+estatisticas_gerais_total_fig = go.Figure()
+estatisticas_gerais_total_fig_1 = go.Figure()
+grafico_barras_total_fig = go.Figure()
+historico_total_fig = go.Figure()
+#Figuras tab primeiro tempo
+estatisticas_gerais_pt_fig = go.Figure()
+estatisticas_gerais_pt_fig_1 = go.Figure()
+grafico_barras_pt_fig = go.Figure()
+historico_pt_fig = go.Figure()
+#Figuras tab segundo tempo
+estatisticas_gerais_st_fig = go.Figure()
+estatisticas_gerais_st_fig_1 = go.Figure()
+grafico_barras_st_fig = go.Figure()
+historico_st_fig = go.Figure()
+
 
 if not dados_todos_jogadores_df.empty:
     options_competicao = dados_todos_jogadores_df["competicao"].unique().tolist()
     numero_jogos = int(dados_todos_jogadores_df["jogo_id"].nunique())
     estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict, estatisticas_geral_totais_dict = extrair_estatisticas_gerais(dados_todos_jogadores_df)
-    estatisticas_gerais_fig = plotar_estatisticas_gerais_time(estatisticas_geral_totais_dict,numero_jogos)
-    estatisticas_gerais_fig_1 = plotar_estatisticas_gerais_1(estatisticas_geral_totais_dict)
-    grafico_barras_fig = plotar_grafico_barras(estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict,)
-    historico_fig = plotar_historico_time(estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict,numero_jogos)
-    
+    mean_primeiro_tempo, mean_segundo_tempo,mean_total   = get_mean(estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict,estatisticas_geral_totais_dict,numero_jogos)
+    #Figuras tab total
+    estatisticas_gerais_total_fig, estatisticas_gerais_total_fig_1,  grafico_barras_total_fig, historico_total_fig = get_team_total_figures(estatisticas_geral_totais_dict,estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict,numero_jogos,True) 
+    #Figuras tab primeiro tempo
+    estatisticas_gerais_pt_fig, estatisticas_gerais_pt_fig_1,  grafico_barras_pt_fig = get_team_partial_figures(estatisticas_geral_primeiro_tempo_dict,numero_jogos,mean_primeiro_tempo,False) 
+    #Figuras tab segundo tempo
+    estatisticas_gerais_st_fig, estatisticas_gerais_st_fig_1,  grafico_barras_st_fig = get_team_partial_figures(estatisticas_geral_segundo_tempo_dict,numero_jogos,mean_segundo_tempo,False) 
 
 with filter_container:
     col1, col2 = st.columns([1, 1])
@@ -59,10 +73,13 @@ with filter_container:
                 dados_todos_jogadores_df = dados_todos_jogadores_df[dados_todos_jogadores_df['competicao'] == filtro_competicao_time]
                 numero_jogos = int(dados_todos_jogadores_df["jogo_id"].nunique())
                 estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict, estatisticas_geral_totais_dict = extrair_estatisticas_gerais(dados_todos_jogadores_df)
-                estatisticas_gerais_fig = plotar_estatisticas_gerais_time(estatisticas_geral_totais_dict,numero_jogos)
-                estatisticas_gerais_fig_1 = plotar_estatisticas_gerais_1(estatisticas_geral_totais_dict)
-                grafico_barras_fig = plotar_grafico_barras(estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict,)
-                historico_fig = plotar_historico_time(estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict,numero_jogos)
+                mean_primeiro_tempo, mean_segundo_tempo,mean_total   = get_mean(estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict,estatisticas_geral_totais_dict,numero_jogos)
+                #Figuras tab total
+                estatisticas_gerais_total_fig, estatisticas_gerais_total_fig_1,  grafico_barras_total_fig, historico_total_fig = get_team_total_figures(estatisticas_geral_totais_dict,estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict,numero_jogos,True) 
+                #Figuras tab primeiro tempo
+                estatisticas_gerais_pt_fig, estatisticas_gerais_pt_fig_1,  grafico_barras_pt_fig = get_team_partial_figures(estatisticas_geral_primeiro_tempo_dict,numero_jogos,mean_primeiro_tempo,False) 
+                #Figuras tab segundo tempo
+                estatisticas_gerais_st_fig, estatisticas_gerais_st_fig_1,  grafico_barras_st_fig = get_team_partial_figures(estatisticas_geral_segundo_tempo_dict,numero_jogos,mean_segundo_tempo,False)
                 options_partidas = dados_todos_jogadores_df["partida"].unique().tolist()
                 
                 if st.session_state.filtro_partida_time is not None and st.session_state.filtro_partida_time not in options_partidas:
@@ -81,44 +98,132 @@ with filter_container:
                 st.session_state.filtro_partida_time = filtro_partida_time
                 dados_todos_jogadores_df = dados_todos_jogadores_df[dados_todos_jogadores_df['partida'] == filtro_partida_time]
                 estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict, estatisticas_geral_totais_dict = extrair_estatisticas_gerais(dados_todos_jogadores_df)
-                estatisticas_gerais_fig = plotar_estatisticas_gerais_time(estatisticas_geral_totais_dict,1)
-                estatisticas_gerais_fig_1 = plotar_estatisticas_gerais_1(estatisticas_geral_totais_dict)
-                grafico_barras_fig = plotar_grafico_barras(estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict,)
+                
+                estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict, estatisticas_geral_totais_dict = extrair_estatisticas_gerais(dados_todos_jogadores_df)
+                #Figuras tab total
+                estatisticas_gerais_total_fig, estatisticas_gerais_total_fig_1,  grafico_barras_total_fig, historico_total_fig = get_team_total_figures(estatisticas_geral_totais_dict,estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict,numero_jogos,True) 
+                #Figuras tab primeiro tempo
+                estatisticas_gerais_pt_fig, estatisticas_gerais_pt_fig_1,  grafico_barras_pt_fig = get_team_partial_figures(estatisticas_geral_primeiro_tempo_dict,numero_jogos,mean_primeiro_tempo,False) 
+                #Figuras tab segundo tempo
+                estatisticas_gerais_st_fig, estatisticas_gerais_st_fig_1,  grafico_barras_st_fig = get_team_partial_figures(estatisticas_geral_segundo_tempo_dict,numero_jogos,mean_segundo_tempo,False)
+
 
 if not dados_todos_jogadores_df.empty:
-    col3, col4 = st.columns([1,1])
+    
+    primeiro_tempo_tab, segundo_tempo_tab, total_tab = st.tabs(["Primeiro Tempo", "Segundo Tempo", "Total"])
+    
+    with primeiro_tempo_tab:
+        
+        col3, col4 = st.columns([1,1])
 
-    with col3:
+        with col3:
+            with st.container(border=True,height=500):
+                sub_column1,sub_column2 = st.columns([1,1])
+                with sub_column1:
+                    st.image("logo_minas.png", width=250)
+                with sub_column2:
+                    st.plotly_chart(estatisticas_gerais_pt_fig, use_container_width=False, key="estatisticas_gerais_pt_fig")
+                st.plotly_chart(estatisticas_gerais_pt_fig_1, use_container_width=False,key="estatisticas_gerais_pt_fig_1")
+        
+        with col4:
+            with st.container(border=True,height=500):
+                st.plotly_chart(grafico_barras_pt_fig, use_container_width=True, key="grafico_barras_pt")
+        
+        # with st.container(border=True,height=500):
+            # st.plotly_chart(historico_pt_fig, use_container_width=True, key="grafico_historico_pt")
+        
+        filtro_jogada_time = st.selectbox(
+                    "Selecione uma jogada",
+                    options=['FIN.C', 'FIN.E', 'FIN.T', 'ASSIST.', 'GOL', 'DES.C/P.', 'DES.S/P.', 'PER.P', 'C.A'],
+                    index=None,
+                    key="filtro_jogada_time_tab_pt"
+                )       
+        
+        if filtro_jogada_time:
+            with st.container(border=True, height=550):
+                localizacao_jogadas = extrair_estatisticas_localizacao(dados_todos_jogadores_df,filtro_jogada_time)
+                fig_localizacao_pt = create_futsal_court(filtro_jogada_time,localizacao_jogadas["Primeiro Tempo"])
+                st.plotly_chart(fig_localizacao_pt,key="localizazao_jogada_time_tab_pt")
+                
+    with segundo_tempo_tab:
+        
+        col3, col4 = st.columns([1,1])
+
+        with col3:
+            with st.container(border=True,height=500):
+                sub_column1,sub_column2 = st.columns([1,1])
+                with sub_column1:
+                    st.image("logo_minas.png", width=250)
+                with sub_column2:
+                    st.plotly_chart(estatisticas_gerais_st_fig, use_container_width=False, key="estatisticas_gerais_st_fig")
+                st.plotly_chart(estatisticas_gerais_st_fig_1, use_container_width=False,key="estatisticas_gerais_st_fig_1")
+        
+        with col4:
+            with st.container(border=True,height=500):
+                st.plotly_chart(grafico_barras_st_fig, use_container_width=True, key="grafico_barras_st")
+        
+        # with st.container(border=True,height=500):
+        #     st.plotly_chart(historico_st_fig, use_container_width=True, key="grafico_historico_st")
+        
+        filtro_jogada_time = st.selectbox(
+                    "Selecione uma jogada",
+                    options=['FIN.C', 'FIN.E', 'FIN.T', 'ASSIST.', 'GOL', 'DES.C/P.', 'DES.S/P.', 'PER.P', 'C.A'],
+                    index=None,
+                    key="filtro_jogada_time_tab_st"
+                )       
+        
+        if filtro_jogada_time:
+            with st.container(border=True, height=550):
+                localizacao_jogadas = extrair_estatisticas_localizacao(dados_todos_jogadores_df,filtro_jogada_time)
+                fig_localizacao_st = create_futsal_court(filtro_jogada_time,localizacao_jogadas["Segundo Tempo"])
+                st.plotly_chart(fig_localizacao_st,key="localizazao_jogada_time_tab_st")    
+                    
+    
+    
+    with total_tab:
+    
+        col3, col4 = st.columns([1,1])
+
+        with col3:
+            with st.container(border=True,height=500):
+                sub_column1,sub_column2 = st.columns([1,1])
+                with sub_column1:
+                    st.image("logo_minas.png", width=250)
+                with sub_column2:
+                    st.plotly_chart(estatisticas_gerais_total_fig, use_container_width=False, key="estatisticas_gerais_total_fig")
+                st.plotly_chart(estatisticas_gerais_total_fig_1, use_container_width=False,key="estatisticas_gerais_total_fig_1")
+        
+        with col4:
+            with st.container(border=True,height=500):
+                st.plotly_chart(grafico_barras_total_fig, use_container_width=True, key="grafico_barras_total_fig")
+        
         with st.container(border=True,height=500):
-            sub_column1,sub_column2 = st.columns([1,1])
-            with sub_column1:
-                st.image("logo_minas.png", width=250)
-            with sub_column2:
-                st.plotly_chart(estatisticas_gerais_fig, use_container_width=False, key="grafico_geral")
-            st.plotly_chart(estatisticas_gerais_fig_1, use_container_width=False)
-    
-    with col4:
-        with st.container(border=True,height=500):
-            st.plotly_chart(grafico_barras_fig, use_container_width=True, key="grafico_barras")
-    
-    with st.container(border=True,height=500):
-        st.plotly_chart(historico_fig, use_container_width=True, key="grafico_historico")
-    
-    filtro_jogada_time = st.selectbox(
-                "Selecione uma jogada",
-                options=['FIN.C', 'FIN.E', 'FIN.T', 'ASSIST.', 'GOL', 'DES.C/P.', 'DES.S/P.', 'PER.P', 'C.A'],
-                index=None,
-            )       
-    
-    if filtro_jogada_time:
-        with st.container(border=True, height=550):
-            colunas = st.columns(3) 
-            localizacao_jogadas = extrair_estatisticas_localizacao(dados_todos_jogadores_df,filtro_jogada_time)
-            
-            for i, (chave, valor) in enumerate(localizacao_jogadas.items()):
-                titulo = f"{filtro_jogada_time} - {chave}"
-                fig = create_futsal_court(titulo,valor)
-                colunas[i].plotly_chart(fig)
+            st.plotly_chart(historico_total_fig, use_container_width=True, key="historico_total_fig")
+        
+        filtro_jogada_time = st.selectbox(
+                    "Selecione uma jogada",
+                    options=['FIN.C', 'FIN.E', 'FIN.T', 'ASSIST.', 'GOL', 'DES.C/P.', 'DES.S/P.', 'PER.P', 'C.A'],
+                    index=None,
+                    key="filtro_jogada_time_tab_total"
+                )       
+        
+        if filtro_jogada_time:
+            with st.container(border=True, height=550):
+                colunas = st.columns(3) 
+                localizacao_jogadas = extrair_estatisticas_localizacao(dados_todos_jogadores_df,filtro_jogada_time)
+                
+                for i, (chave, valor) in enumerate(localizacao_jogadas.items()):
+                    titulo = f"{filtro_jogada_time} - {chave}"
+                    fig_localizacao_total = create_futsal_court(titulo,valor)
+                    colunas[i].plotly_chart(fig_localizacao_total)
+
+
+
+
+
+
+
+
 
 if hasattr(st, "on_event") and callable(getattr(st, "on_event")):
     st.on_event("shutdown", db_manager.fechar_conexao)

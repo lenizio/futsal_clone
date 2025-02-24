@@ -244,7 +244,7 @@ def plotar_estatisticas_gerais_time(estatisticas_totais_dict,numero_jogos):
         
 
 
-def plotar_estatisticas_gerais(estatisticas_totais_dict):
+def plotar_estatisticas_gerais(estatisticas_totais_dict,numero_jogos):
     estatisticas_gerais_fig = go.Figure()
 
     if estatisticas_totais_dict['FIN.TOTAL'] == 0:
@@ -291,9 +291,9 @@ def plotar_estatisticas_gerais(estatisticas_totais_dict):
     # Indicador 5: Participações em Gols
     estatisticas_gerais_fig.add_trace(go.Indicator(
         mode="number",
-        value=estatisticas_totais_dict['GOL'] + estatisticas_totais_dict['ASSIST.'],
+        value=numero_jogos,
         domain={'row': 2, 'column': 0},
-        title={"text": "Participações em Gols", "font": {"size": 12}},
+        title={"text": "Jogos", "font": {"size": 12}},
         number={"font": {"size": 20}}
     ))
 
@@ -402,7 +402,9 @@ def plotar_grafico_barras(estatisticas_primeiro_tempo_dict, estatisticas_segundo
         x=categorias,
         y=valores_1T,
         name='1º Tempo',
-        marker_color=cores  # Cor para as barras do 1º tempo
+        marker_color=cores,
+        text=valores_1T,  
+        textposition='outside'# Cor para as barras do 1º tempo
     ), row=1, col=1)
 
     # Adicionar o gráfico de barras para o 2º Tempo no subgráfico (1, 2)
@@ -410,7 +412,9 @@ def plotar_grafico_barras(estatisticas_primeiro_tempo_dict, estatisticas_segundo
         x=categorias,
         y=valores_2T,
         name='2º Tempo',
-        marker_color=cores  # Cor para as barras do 2º tempo
+        marker_color=cores,
+        text=valores_2T,  
+        textposition='outside'# Cor para as barras do 2º tempo
     ), row=1, col=2)
 
     # Atualizar o layout para personalizar a aparência do gráfico
@@ -426,11 +430,70 @@ def plotar_grafico_barras(estatisticas_primeiro_tempo_dict, estatisticas_segundo
         barmode='group',  # Agrupa as barras para comparação direta
         template='plotly_dark',  # Tema visual
         showlegend=False,  # Não mostra a legenda
-        height=400,  # Altura total da figura (ajustável conforme necessário)
+        height=450,  # Altura total da figura (ajustável conforme necessário)
         margin=dict(t=80)  # Ajuste do espaço superior para o título
     )
 
     return fig
+
+def plotar_grafico_barras_parcial(estatisticas_parciais_dict,mean):
+    # Extração das estatísticas
+    
+    # Categorias a serem usadas no gráfico
+    categorias = ['FIN.C', 'FIN.E', 'FIN.T', 'DES.C/P.', 'DES.S/P.', 'PER.P']
+    
+    # Valores para o 1º e 2º tempo
+    valores = np.array([estatisticas_parciais_dict[categoria] for categoria in categorias])
+   
+    
+    cores = ['rgba(0, 255, 0, 0.6)', 'rgba(255, 0, 0, 0.6)', 'rgba(255, 255, 0, 0.6)', 
+         'rgba(0, 0, 255, 0.6)', 'rgba(0, 255, 255, 0.6)', 'rgba(128, 0, 128, 0.6)']
+
+
+    fig = go.Figure()
+    # Adicionar o gráfico de barras 
+    fig.add_trace(go.Bar(
+        x=categorias,
+        y=valores,
+        marker_color=cores,
+        text=valores,  
+        textposition='inside',
+        insidetextanchor='start',
+        textfont=dict(color="black")     
+    ))
+    
+    fig.add_trace(go.Scatter(
+        x=categorias,
+        y=mean,
+        mode="lines+markers+text",  # Exibe linha, pontos e valores
+        text=[f"{m:.2f}" for m in mean],  # Exibir valores da média
+        textposition="top center",  # Posição dos valores da linha
+        marker=dict(size=8, color="white"),  # Personaliza os pontos
+        line=dict(width=2, color="cyan"),  # Personaliza a linha
+        name="Média"  # Nome da legenda
+        
+    ))
+
+    
+    # Atualizar o layout para personalizar a aparência do gráfico
+    fig.update_layout(
+        title={
+            'text': 'Ações',
+            'x': 0.5,  # Centraliza o título
+            'xanchor': 'center',  # Garante que o título fique centralizado
+            'y': 0.95  # Distância do título do topo
+        },
+        xaxis_title='Tipo de Ação',
+        yaxis_title='Quantidade',
+        barmode='group',  # Agrupa as barras para comparação direta
+        template='plotly_dark',  # Tema visual
+        showlegend=False,  # Não mostra a legenda
+        height=450,  # Altura total da figura (ajustável conforme necessário)
+        margin=dict(t=60)  # Ajuste do espaço superior para o título
+    )
+
+    return fig
+
 
 
 
@@ -702,67 +765,80 @@ def pegar_imagem_jogador(image_id):
     else:
         print("ID da imagem é inválido.")
         return None
+
+
+def get_team_total_figures(estatisticas_totais_dict,estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,numero_jogos, get_historico):
     
-def salvar_graficos_pdf(estatisticas_gerais_fig,estatisticas_gerais_fig_1,grafico_barras_fig,historico_fig,radar_fig):
-    """
-    Gera um arquivo PDF com gráficos Plotly e retorna como bytes para download.
-
-    Parâmetros:
-    - figuras (dict): Dicionário onde as chaves são os nomes dos gráficos e os valores são os objetos Plotly.
-
-    Retorna:
-    - pdf_bytes (BytesIO): Arquivo PDF em memória pronto para download.
-    """
+    estatisticas_gerais_fig = plotar_estatisticas_gerais_time(estatisticas_totais_dict,numero_jogos)
+    estatisticas_gerais_fig_1 = plotar_estatisticas_gerais_1(estatisticas_totais_dict)
+    grafico_barras_fig = plotar_grafico_barras(estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,)
     
-    figuras = {
-    "estatisticas_gerais": estatisticas_gerais_fig,
-    "estatisticas_gerais_1": estatisticas_gerais_fig_1,
-    "grafico_barras": grafico_barras_fig,
-    "historico": historico_fig,
-    "radar": radar_fig
-        }
-    width, height = letter
-    imagens_temp = []
-
-    # Criar buffer de memória para armazenar o PDF
-    pdf_buffer = io.BytesIO()
-
-    # Salvar os gráficos como imagens temporárias
-    for nome, figura in figuras.items():
-        nome_imagem = f"{nome}.png"
-        pio.write_image(figura, nome_imagem, format="png")
-        imagens_temp.append(nome_imagem)
-
-    # Criar o PDF no buffer
-    c = canvas.Canvas(pdf_buffer, pagesize=letter)
-
-    def add_image_to_pdf(canvas, img_path, y_position):
-        img = Image.open(img_path)
-        img_width, img_height = img.size
-        aspect = img_width / img_height
-        new_width = width - 50
-        new_height = new_width / aspect
-        if new_height > height - 50:
-            new_height = height - 50
-            new_width = new_height * aspect
-        canvas.drawImage(img_path, 25, y_position, width=new_width, height=new_height)
-
-    # Adicionar os gráficos ao PDF
-    y_position = height - 250
-    for img_path in imagens_temp:
-        add_image_to_pdf(c, img_path, y_position)
-        y_position -= 250
-        if y_position < 50:
-            c.showPage()
-            y_position = height - 250
-
-    c.save()
+    if get_historico:
     
-    # Mover o ponteiro do buffer para o início
-    pdf_buffer.seek(0)
+        historico_fig = plotar_historico_time(estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,numero_jogos)
+        
+        return estatisticas_gerais_fig, estatisticas_gerais_fig_1, grafico_barras_fig,historico_fig
+    else:
+        return estatisticas_gerais_fig, estatisticas_gerais_fig_1, grafico_barras_fig
+    
+def get_team_partial_figures(estatisticas_parciais_dict,numero_jogos,mean, get_historico):
+    
+    estatisticas_gerais_fig = plotar_estatisticas_gerais_time(estatisticas_parciais_dict,numero_jogos)
+    estatisticas_gerais_fig_1 = plotar_estatisticas_gerais_1(estatisticas_parciais_dict)
+    grafico_barras_fig = plotar_grafico_barras_parcial(estatisticas_parciais_dict,mean)
+    
+    if get_historico:
+    
+        historico_fig = plotar_grafico_barras_parcial(estatisticas_parciais_dict)
+        
+        return estatisticas_gerais_fig, estatisticas_gerais_fig_1, grafico_barras_fig,historico_fig
+    else:
+        return estatisticas_gerais_fig, estatisticas_gerais_fig_1, grafico_barras_fig    
+    
+    
+def get_mean(estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,estatisticas_totais_dict,numero_jogos):
+   
+    categorias = ['FIN.C', 'FIN.E', 'FIN.T', 'DES.C/P.', 'DES.S/P.', 'PER.P']
+    
+    valores_totais = np.array([estatisticas_totais_dict[categoria] for categoria in categorias])
+    mean_total = valores_totais/numero_jogos
+    
+    valores_primeiro_tempo = np.array([estatisticas_primeiro_tempo_dict[categoria] for categoria in categorias])
+    mean_primeiro_tempo = valores_primeiro_tempo/numero_jogos
+    
+    valores_segundo_tempo = np.array([estatisticas_segundo_tempo_dict[categoria] for categoria in categorias])
+    mean_segundo_tempo = valores_segundo_tempo/numero_jogos
+    
+    
+    return mean_primeiro_tempo, mean_segundo_tempo,mean_total
 
-    # Remover imagens temporárias
-    for img in imagens_temp:
-        os.remove(img)
 
-    return pdf_buffer
+
+def get_athletes_total_figures(estatisticas_totais_dict,estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,estatisticas_geral_totais_dict,numero_jogos, get_historico):
+    
+    estatisticas_gerais_fig = plotar_estatisticas_gerais(estatisticas_totais_dict,numero_jogos)
+    estatisticas_gerais_fig_1 = plotar_estatisticas_gerais_1(estatisticas_totais_dict)
+    grafico_barras_fig = plotar_grafico_barras(estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,)
+    radar_fig = plotar_radar_chart(estatisticas_totais_dict,estatisticas_geral_totais_dict)
+
+    if get_historico:
+    
+        historico_fig = plotar_historico(estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,numero_jogos)
+        
+        return estatisticas_gerais_fig, estatisticas_gerais_fig_1, grafico_barras_fig,radar_fig,historico_fig
+    else:
+        return estatisticas_gerais_fig, estatisticas_gerais_fig_1, grafico_barras_fig,radar_fig
+    
+def get_athletes_partial_figures(estatisticas_parciais_dict,estatisticas_geral_parciais_dict,numero_jogos,mean, get_historico):
+    
+    estatisticas_gerais_fig = plotar_estatisticas_gerais(estatisticas_parciais_dict,numero_jogos)
+    estatisticas_gerais_fig_1 = plotar_estatisticas_gerais_1(estatisticas_parciais_dict)
+    grafico_barras_fig = plotar_grafico_barras_parcial(estatisticas_parciais_dict,mean)
+    radar_fig = plotar_radar_chart(estatisticas_parciais_dict,estatisticas_geral_parciais_dict)
+    if get_historico:
+    
+        historico_fig = plotar_grafico_barras_parcial(estatisticas_parciais_dict)
+        
+        return estatisticas_gerais_fig, estatisticas_gerais_fig_1, grafico_barras_fig,radar_fig,historico_fig
+    else:
+        return estatisticas_gerais_fig, estatisticas_gerais_fig_1, grafico_barras_fig,radar_fig 
