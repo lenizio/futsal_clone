@@ -71,7 +71,7 @@ else:
                                 # Campos do formulário com valor padrão vazio
                                 jogadas = st.pills(
                                     "Jogada", 
-                                    ['FIN.C', 'FIN.E', 'FIN.T', 'ASSIST.', 'GOL', 'DES.C/P.', 'DES.S/P.', 'PER.P', 'C.A'],
+                                    ['FIN.C', 'FIN.E', 'FIN.T', 'GOL', 'ASSIST.', 'DES.C/P.','C.A.P.', 'DES.S/P.', 'PER.P.', 'C.A.C.'],
                                     selection_mode="multi"
                                 )
                                 jogador = st.pills("Selecione o jogador", options=opcoes_jogadores_list)
@@ -89,13 +89,20 @@ else:
                                         st.error("Por favor, preencha todos os campos.")
                                     else:
                                         try:
-                                            for jogada in jogadas:
-                                                # Extrai as coordenadas (x, y)
-                                                x = float(coordinates["x"])
-                                                y = float(coordinates["y"]) 
-                                                # Recupera os detalhes do jogador
-                                                jogador_id, jogador_nome = opcoes_jogadores_dict[jogador]
+                                            x = float(coordinates["x"])
+                                            y = float(coordinates["y"])
+                                            # Recupera os detalhes do jogador
+                                            jogador_id, jogador_nome = opcoes_jogadores_dict[jogador]
 
+                                            # Se 'GOL' estiver nas jogadas, garantir que 'FIN.C' também seja adicionado
+                                            jogadas_modificadas = jogadas.copy()
+
+                                            # Adicionar 'FIN.C' apenas se 'GOL' estiver presente e 'FIN.C' não estiver
+                                            if 'GOL' in jogadas_modificadas and 'FIN.C' not in jogadas_modificadas:
+                                                jogadas_modificadas.append('FIN.C')
+                                            
+                                            for jogada in jogadas_modificadas:
+                                            
                                                 # Insere cada jogada no banco de dados
                                                 db_manager.adicionar_jogada(
                                                     jogador_id=jogador_id,
@@ -107,7 +114,7 @@ else:
                                                     y_loc=y
                                                 )
                                             st.success(f"Jogada adicionada com sucesso!")    
-                                            
+                                            st.write(jogadas_modificadas)
                                         except Exception as e:
                                             st.error(f"Erro ao adicionar jogadas: {e}")
 

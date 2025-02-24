@@ -842,3 +842,38 @@ def get_athletes_partial_figures(estatisticas_parciais_dict,estatisticas_geral_p
         return estatisticas_gerais_fig, estatisticas_gerais_fig_1, grafico_barras_fig,radar_fig,historico_fig
     else:
         return estatisticas_gerais_fig, estatisticas_gerais_fig_1, grafico_barras_fig,radar_fig 
+    
+    
+def get_plots_plays_localization_partial(filtro_jogada,data,tempo):
+    
+    
+    jogadas= {"Ataque":['FIN.C', 'FIN.E', 'FIN.T'], "Defesa":['DES.C/P.', 'DES.S/P.', 'PER.P', 'C.A']}
+    jogadas = jogadas[filtro_jogada]
+    figs=[]
+    
+    for jogada in jogadas:
+        localizacao_jogadas = extrair_estatisticas_localizacao(data,jogada)
+        fig = create_futsal_court(jogada,localizacao_jogadas[tempo])
+        figs.append(fig)
+        
+    
+    
+    return figs
+
+def get_plots_plays_localization(data,tempo, colunas_ataque, colunas_defesa):
+    
+    
+    ataque=['FIN.C', 'FIN.E', 'FIN.T'] 
+    defesa=['DES.C/P.', 'DES.S/P.', 'PER.P', 'C.A']        
+    
+    for i,jogada in enumerate(ataque):
+        localizacao_jogadas = extrair_estatisticas_localizacao(data,jogada)
+        fig = create_futsal_court(jogada,localizacao_jogadas[tempo])
+        colunas_ataque[i].plotly_chart(fig,key=f"localizazao_{jogada}_time_tab_st")
+    
+    for i,jogada in enumerate(defesa):
+        localizacao_jogadas = extrair_estatisticas_localizacao(data,jogada)
+        fig = create_futsal_court(jogada,localizacao_jogadas[tempo])
+        colunas_defesa[i].plotly_chart(fig,key=f"localizazao_{jogada}_time_tab_st")            
+    
+    

@@ -226,7 +226,7 @@ if filtro_jogador:
             with st.container(border=True, height=550):
                 localizacao_jogadas = extrair_estatisticas_localizacao(dados_todos_jogadores_df,filtro_jogada_pt)
                 fig_localizacao_st = create_futsal_court(filtro_jogada_pt,localizacao_jogadas["Segundo Tempo"])
-                st.plotly_chart(fig_localizacao_pt,key="localizazao_jogada_tab_st")
+                st.plotly_chart(fig_localizacao_st,key="localizazao_jogada_tab_st")
 
     with total_tab:
 
