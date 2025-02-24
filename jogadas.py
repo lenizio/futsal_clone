@@ -114,7 +114,6 @@ else:
                                                     y_loc=y
                                                 )
                                             st.success(f"Jogada adicionada com sucesso!")    
-                                            st.write(jogadas_modificadas)
                                         except Exception as e:
                                             st.error(f"Erro ao adicionar jogadas: {e}")
 
