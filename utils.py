@@ -189,7 +189,7 @@ def plotar_estatisticas_gerais_time(estatisticas_totais_dict,numero_jogos):
         mode="number",
         value=estatisticas_totais_dict['FIN.TOTAL'],
         domain={'row': 0, 'column': 1},
-        title={"text": "Finalizações", "font": {"size": 12}},
+        title={"text": "Fin.", "font": {"size": 12}},
         number={"font": {"size": 20}}
     ))
 
@@ -216,7 +216,7 @@ def plotar_estatisticas_gerais_time(estatisticas_totais_dict,numero_jogos):
         mode="number",
         value=estatisticas_totais_dict['GOL'] / numero_jogos if numero_jogos > 0 else 0,
         domain={'row': 2, 'column': 0},
-        title={"text": "Gols por Jogo", "font": {"size": 12}},
+        title={"text": "Gols/Jogo", "font": {"size": 12}},
         number={"font": {"size": 20}}
     ))
 
@@ -225,7 +225,7 @@ def plotar_estatisticas_gerais_time(estatisticas_totais_dict,numero_jogos):
         mode="number",
         value=estatisticas_totais_dict['FIN.C'],
         domain={'row': 2, 'column': 1},
-        title={"text": "Fin. Certas", "font": {"size": 12}},
+        title={"text": "Fin.C.", "font": {"size": 12}},
         number={"font": {"size": 20}}
     ))
 
@@ -266,7 +266,7 @@ def plotar_estatisticas_gerais(estatisticas_totais_dict,numero_jogos):
         mode="number",
         value=estatisticas_totais_dict['FIN.TOTAL'],
         domain={'row': 0, 'column': 1},
-        title={"text": "Finalizações", "font": {"size": 12}},
+        title={"text": "Fin.", "font": {"size": 12}},
         number={"font": {"size": 20}}
     ))
 
@@ -275,7 +275,7 @@ def plotar_estatisticas_gerais(estatisticas_totais_dict,numero_jogos):
         mode="number",
         value=estatisticas_totais_dict['ASSIST.'],
         domain={'row': 1, 'column': 0},
-        title={"text": "Assistências", "font": {"size": 12}},
+        title={"text": "Assist.", "font": {"size": 12}},
         number={"font": {"size": 20}}
     ))
 
@@ -302,7 +302,7 @@ def plotar_estatisticas_gerais(estatisticas_totais_dict,numero_jogos):
         mode="number",
         value=estatisticas_totais_dict['FIN.C'],
         domain={'row': 2, 'column': 1},
-        title={"text": "Fin. Certas", "font": {"size": 12}},
+        title={"text": "Fin.C.", "font": {"size": 12}},
         number={"font": {"size": 20}}
     ))
 
@@ -326,7 +326,7 @@ def plotar_estatisticas_gerais_1(estatisticas_totais_dict):
         mode="number",
         value=estatisticas_totais_dict['DES.C/P.'],
         domain={'row': 0, 'column': 0},
-        title={"text": "Des. c/ Posse", "font": {"size": 12}},  # Tamanho do título
+        title={"text": "Des.C/P.", "font": {"size": 12}},  # Tamanho do título
         number={"font": {"size": 20}}  # Tamanho do valor
     ))
 
@@ -335,7 +335,7 @@ def plotar_estatisticas_gerais_1(estatisticas_totais_dict):
         mode="number",
         value=estatisticas_totais_dict['DES.S/P.'],
         domain={'row': 0, 'column': 1},
-        title={"text": "Des. s/ Posse", "font": {"size": 12}},
+        title={"text": "Des.S/P.", "font": {"size": 12}},
         number={"font": {"size": 20}}
     ))
 
@@ -344,7 +344,7 @@ def plotar_estatisticas_gerais_1(estatisticas_totais_dict):
         mode="number",
         value=estatisticas_totais_dict['PER.P'],
         domain={'row': 0, 'column': 2},
-        title={"text": "Perda de Posse", "font": {"size": 12}},
+        title={"text": "Per.P.", "font": {"size": 12}},
         number={"font": {"size": 20}}
     ))
 
@@ -354,7 +354,7 @@ def plotar_estatisticas_gerais_1(estatisticas_totais_dict):
         value=estatisticas_totais_dict['C.A.C.'],
         number={"font": {"size": 20}},  # Formato e tamanho do valor
         domain={'row': 0, 'column': 3},
-        title={"text": "C.A Sofrido", "font": {"size": 12}}
+        title={"text": "C.A-Per.P.", "font": {"size": 12}}
     ))
 
    
@@ -865,7 +865,7 @@ def get_plots_plays_localization(data,tempo, colunas_ataque, colunas_defesa):
     
     
     ataque=['FIN.C', 'FIN.E', 'FIN.T'] 
-    defesa=['DES.C/P.', 'DES.S/P.', 'PER.P', 'C.A.C.','C.A.P.']        
+    defesa=['DES.C/P.', 'C.A.C.','DES.S/P.', 'PER.P','C.A.P.']        
     
     for i,jogada in enumerate(ataque):
         localizacao_jogadas = extrair_estatisticas_localizacao(data,jogada)
