@@ -4,10 +4,13 @@ from db_manager import DBManager, get_db_manager
 import plotly.graph_objects as go
 import atexit
 
+
 from utils import *
 
 # Inicialização do gerenciador de banco de dados
 db_manager = get_db_manager()
+
+
 
 # Inicializar session_state para os filtros
 if "filtro_competicao_time" not in st.session_state:
@@ -19,6 +22,7 @@ if "filtro_partida_time" not in st.session_state:
 if st.button("Atualizar Dados"):
     # Apenas redefine os dados, mas mantém os filtros
     st.session_state.dados_atualizados = True
+
 
 # Container para os filtros
 filter_container = st.container()
@@ -122,8 +126,8 @@ if not dados_todos_jogadores_df.empty:
                 with sub_column1:
                     st.image("logo_minas.png", width=250)
                 with sub_column2:
-                    st.plotly_chart(estatisticas_gerais_pt_fig, use_container_width=False, key="estatisticas_gerais_pt_fig")
-                st.plotly_chart(estatisticas_gerais_pt_fig_1, use_container_width=False,key="estatisticas_gerais_pt_fig_1")
+                    st.plotly_chart(estatisticas_gerais_pt_fig, use_container_width=True, key="estatisticas_gerais_pt_fig")
+                st.plotly_chart(estatisticas_gerais_pt_fig_1, use_container_width=True,key="estatisticas_gerais_pt_fig_1")
         
         with col4:
             with st.container(border=True,height=500):
@@ -142,7 +146,7 @@ if not dados_todos_jogadores_df.empty:
         if filtro_jogada_time:
             with st.container(border=True, height=550):
                 colunas_jogadas_ofensivas = st.columns(3)
-                colunas_jogadas_defensivas = st.columns(4)
+                colunas_jogadas_defensivas = st.columns(5)
                 colunas= {"Ataque": colunas_jogadas_ofensivas, "Defesa":colunas_jogadas_defensivas}  
                 figs= get_plots_plays_localization_partial(filtro_jogada_time,dados_todos_jogadores_df,"Primeiro Tempo")
                 
@@ -174,18 +178,22 @@ if not dados_todos_jogadores_df.empty:
         # with st.container(border=True,height=500):
         #     st.plotly_chart(historico_st_fig, use_container_width=True, key="grafico_historico_st")
         
-        # filtro_jogada_time = st.selectbox(
-        #             "Selecione uma jogada",
-        #             options=['FIN.C', 'FIN.E', 'FIN.T', 'ASSIST.', 'GOL', 'DES.C/P.', 'DES.S/P.', 'PER.P', 'C.A'],
-        #             index=None,
-        #             key="filtro_jogada_time_tab_st"
-                # )       
+        filtro_jogada_time = st.selectbox(
+                    "Selecione uma jogada",
+                    options=['FIN.C', 'FIN.E', 'FIN.T', 'ASSIST.', 'GOL', 'DES.C/P.', 'DES.S/P.', 'PER.P', 'C.A'],
+                    index=None,
+                    key="filtro_jogada_time_tab_st"
+                )       
         
         if filtro_jogada_time:
             with st.container(border=True, height=950):
                 colunas_jogadas_ofensivas = st.columns(3)
-                colunas_jogadas_defensivas = st.columns(4)
-                get_plots_plays_localization(dados_todos_jogadores_df,"Segundo Tempo",colunas_jogadas_ofensivas,colunas_jogadas_defensivas)
+                colunas_jogadas_defensivas = st.columns(5)
+                colunas= {"Ataque": colunas_jogadas_ofensivas, "Defesa":colunas_jogadas_defensivas}  
+                figs= get_plots_plays_localization_partial(filtro_jogada_time,dados_todos_jogadores_df,"Segundo Tempo")
+                
+                for i,fig in enumerate(figs):
+                    colunas[filtro_jogada_time][i].plotly_chart(fig,key=f"localizazao_{i}_time_tab_st")
                 
                 
                 # localizacao_jogadas = extrair_estatisticas_localizacao(dados_todos_jogadores_df,filtro_jogada_time)
@@ -216,7 +224,7 @@ if not dados_todos_jogadores_df.empty:
         
         filtro_jogada_time = st.selectbox(
                     "Selecione uma jogada",
-                    options=['FIN.C', 'FIN.E', 'FIN.T', 'ASSIST.', 'GOL', 'DES.C/P.', 'DES.S/P.', 'PER.P', 'C.A'],
+                    options=['FIN.C', 'FIN.E', 'FIN.T', 'ASSIST.', 'GOL', 'DES.C/P.', 'DES.S/P.', 'PER.P', 'C.A.C.','C.A.P.'],
                     index=None,
                     key="filtro_jogada_time_tab_total"
                 )       

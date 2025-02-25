@@ -139,8 +139,8 @@ def extrair_estatisticas_jogadores(dados_jogador_df):
 
 def extrair_estatisticas_gerais(dados_jogador_df):
     
-    primeiro_tempo=dados_jogador_df.jogada.loc[dados_jogador_df["tempo"]=='1ºT'].value_counts().reindex(["FIN.C", "FIN.E", "FIN.T",'DES.C/P.', 'DES.S/P.','PER.P', 'C.A', 'ASSIST.', 'GOL'],fill_value=0)
-    segundo_tempo = dados_jogador_df.jogada.loc[dados_jogador_df["tempo"]=='2ºT'].value_counts().reindex(["FIN.C", "FIN.E", "FIN.T",'DES.C/P.', 'DES.S/P.','PER.P', 'C.A', 'ASSIST.', 'GOL'],fill_value=0)
+    primeiro_tempo=dados_jogador_df.jogada.loc[dados_jogador_df["tempo"]=='1ºT'].value_counts().reindex(["FIN.C", "FIN.E", "FIN.T",'DES.C/P.', 'DES.S/P.','PER.P', 'C.A.C.','C.A.P.', 'ASSIST.', 'GOL'],fill_value=0)
+    segundo_tempo = dados_jogador_df.jogada.loc[dados_jogador_df["tempo"]=='2ºT'].value_counts().reindex(["FIN.C", "FIN.E", "FIN.T",'DES.C/P.', 'DES.S/P.','PER.P', 'C.A.C.','C.A.P.', 'ASSIST.', 'GOL'],fill_value=0)
     estatisticas_jogadores_df = pd.DataFrame({"1ºT": primeiro_tempo, "2ºT": segundo_tempo})
     estatisticas_jogadores_df["Total"] = estatisticas_jogadores_df["1ºT"] + estatisticas_jogadores_df["2ºT"]
     estatisticas_jogadores_df.loc['FIN.TOTAL'] = estatisticas_jogadores_df.loc[['FIN.C', 'FIN.E', 'FIN.T']].sum()
@@ -351,10 +351,10 @@ def plotar_estatisticas_gerais_1(estatisticas_totais_dict):
     # Indicador 4: Efetividade
     estatisticas_gerais_fig.add_trace(go.Indicator(
         mode="number",
-        value=estatisticas_totais_dict['C.A'],
+        value=estatisticas_totais_dict['C.A.C.'],
         number={"font": {"size": 20}},  # Formato e tamanho do valor
         domain={'row': 0, 'column': 3},
-        title={"text": "C.A Adiversário", "font": {"size": 12}}
+        title={"text": "C.A Sofrido", "font": {"size": 12}}
     ))
 
    
@@ -746,7 +746,8 @@ def create_futsal_court(titulo, heatmap_data, line_color='white'):
         yaxis=dict(visible=False, scaleanchor="x", scaleratio=1),
         showlegend=False,
         plot_bgcolor='#121212',
-        template="plotly_dark"
+        template="plotly_dark",
+        height=350
     )
     
     return fig
@@ -847,7 +848,7 @@ def get_athletes_partial_figures(estatisticas_parciais_dict,estatisticas_geral_p
 def get_plots_plays_localization_partial(filtro_jogada,data,tempo):
     
     
-    jogadas= {"Ataque":['FIN.C', 'FIN.E', 'FIN.T'], "Defesa":['DES.C/P.', 'DES.S/P.', 'PER.P', 'C.A']}
+    jogadas= {"Ataque":['FIN.C', 'FIN.E', 'FIN.T'], "Defesa":['DES.C/P.', 'DES.S/P.', 'PER.P', 'C.A.P.','C.A.C.']}
     jogadas = jogadas[filtro_jogada]
     figs=[]
     
@@ -864,7 +865,7 @@ def get_plots_plays_localization(data,tempo, colunas_ataque, colunas_defesa):
     
     
     ataque=['FIN.C', 'FIN.E', 'FIN.T'] 
-    defesa=['DES.C/P.', 'DES.S/P.', 'PER.P', 'C.A']        
+    defesa=['DES.C/P.', 'DES.S/P.', 'PER.P', 'C.A.C.','C.A.P.']        
     
     for i,jogada in enumerate(ataque):
         localizacao_jogadas = extrair_estatisticas_localizacao(data,jogada)
