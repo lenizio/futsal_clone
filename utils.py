@@ -46,7 +46,7 @@ def pegar_dados_pizza_plot(lista_jogadas):
     quantidade_desarmes = df.jogada[df["jogada"].isin(tipos_desarmes)].value_counts().reindex(tipos_desarmes,fill_value=0)
     quantidade_desarmes = quantidade_desarmes.to_numpy()
     
-    percas_de_posse = ['PER.P', 'C.A']
+    percas_de_posse = ['PER.P.', 'C.A']
     quantidade_percas_posse = df.jogada[df["jogada"].isin(percas_de_posse)].value_counts().reindex(percas_de_posse,fill_value=0)
     quantidade_percas_posse = quantidade_percas_posse.to_numpy()
 
@@ -128,8 +128,8 @@ def extrair_dataframe_jogador(db_manager):
 
 def extrair_estatisticas_jogadores(dados_jogador_df):
     
-    primeiro_tempo=dados_jogador_df.jogada.loc[dados_jogador_df["tempo"]=='1ºT'].value_counts().reindex(["FIN.C", "FIN.E", "FIN.T",'DES.C/P.', 'DES.S/P.','PER.P', 'C.A', 'ASSIST.', 'GOL'],fill_value=0)
-    segundo_tempo = dados_jogador_df.jogada.loc[dados_jogador_df["tempo"]=='2ºT'].value_counts().reindex(["FIN.C", "FIN.E", "FIN.T",'DES.C/P.', 'DES.S/P.','PER.P', 'C.A', 'ASSIST.', 'GOL'],fill_value=0)
+    primeiro_tempo=dados_jogador_df.jogada.loc[dados_jogador_df["tempo"]=='1ºT'].value_counts().reindex(["FIN.C", "FIN.E", "FIN.T",'DES.C/P.', 'DES.S/P.','PER.P.', 'C.A', 'ASSIST.', 'GOL'],fill_value=0)
+    segundo_tempo = dados_jogador_df.jogada.loc[dados_jogador_df["tempo"]=='2ºT'].value_counts().reindex(["FIN.C", "FIN.E", "FIN.T",'DES.C/P.', 'DES.S/P.','PER.P.', 'C.A', 'ASSIST.', 'GOL'],fill_value=0)
     estatiscas_jogadores_df = pd.DataFrame({"1ºT": primeiro_tempo, "2ºT": segundo_tempo})
     estatiscas_jogadores_df["Total"] = estatiscas_jogadores_df["1ºT"] + estatiscas_jogadores_df["2ºT"]
     estatiscas_jogadores_df.loc['FIN.TOTAL'] = estatiscas_jogadores_df.loc[['FIN.C', 'FIN.E', 'FIN.T']].sum()
@@ -139,8 +139,8 @@ def extrair_estatisticas_jogadores(dados_jogador_df):
 
 def extrair_estatisticas_gerais(dados_jogador_df):
     
-    primeiro_tempo=dados_jogador_df.jogada.loc[dados_jogador_df["tempo"]=='1ºT'].value_counts().reindex(["FIN.C", "FIN.E", "FIN.T",'DES.C/P.', 'DES.S/P.','PER.P', 'C.A.C.','C.A.P.', 'ASSIST.', 'GOL'],fill_value=0)
-    segundo_tempo = dados_jogador_df.jogada.loc[dados_jogador_df["tempo"]=='2ºT'].value_counts().reindex(["FIN.C", "FIN.E", "FIN.T",'DES.C/P.', 'DES.S/P.','PER.P', 'C.A.C.','C.A.P.', 'ASSIST.', 'GOL'],fill_value=0)
+    primeiro_tempo=dados_jogador_df.jogada.loc[dados_jogador_df["tempo"]=='1ºT'].value_counts().reindex(['FIN.C', 'FIN.E', 'FIN.T', 'GOL', 'ASSIST.', 'DES.C/P.','C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra'],fill_value=0)
+    segundo_tempo = dados_jogador_df.jogada.loc[dados_jogador_df["tempo"]=='2ºT'].value_counts().reindex(['FIN.C', 'FIN.E', 'FIN.T', 'GOL', 'ASSIST.', 'DES.C/P.','C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra'],fill_value=0)
     estatisticas_jogadores_df = pd.DataFrame({"1ºT": primeiro_tempo, "2ºT": segundo_tempo})
     estatisticas_jogadores_df["Total"] = estatisticas_jogadores_df["1ºT"] + estatisticas_jogadores_df["2ºT"]
     estatisticas_jogadores_df.loc['FIN.TOTAL'] = estatisticas_jogadores_df.loc[['FIN.C', 'FIN.E', 'FIN.T']].sum()
@@ -342,7 +342,7 @@ def plotar_estatisticas_gerais_1(estatisticas_totais_dict):
     # Indicador 3: Assistências
     estatisticas_gerais_fig.add_trace(go.Indicator(
         mode="number",
-        value=estatisticas_totais_dict['PER.P'],
+        value=estatisticas_totais_dict['PER.P.'],
         domain={'row': 0, 'column': 2},
         title={"text": "Per.P.", "font": {"size": 12}},
         number={"font": {"size": 20}}
@@ -351,10 +351,10 @@ def plotar_estatisticas_gerais_1(estatisticas_totais_dict):
     # Indicador 4: Efetividade
     estatisticas_gerais_fig.add_trace(go.Indicator(
         mode="number",
-        value=estatisticas_totais_dict['C.A.C.'],
+        value=estatisticas_totais_dict['C.A.-Contra'],
         number={"font": {"size": 20}},  # Formato e tamanho do valor
         domain={'row': 0, 'column': 3},
-        title={"text": "C.A-Per.P.", "font": {"size": 12}}
+        title={"text": "C.A Sofrido", "font": {"size": 12}}
     ))
 
    
@@ -380,7 +380,7 @@ def plotar_grafico_barras(estatisticas_primeiro_tempo_dict, estatisticas_segundo
     # Extração das estatísticas
     
     # Categorias a serem usadas no gráfico
-    categorias = ['FIN.C', 'FIN.E', 'FIN.T', 'DES.C/P.', 'DES.S/P.', 'PER.P']
+    categorias = ['FIN.C', 'FIN.E', 'FIN.T', 'DES.C/P.', 'DES.S/P.', 'PER.P.']
     
     # Valores para o 1º e 2º tempo
     valores_1T = [estatisticas_primeiro_tempo_dict[categoria] for categoria in categorias]
@@ -440,7 +440,7 @@ def plotar_grafico_barras_parcial(estatisticas_parciais_dict,mean):
     # Extração das estatísticas
     
     # Categorias a serem usadas no gráfico
-    categorias = ['FIN.C', 'FIN.E', 'FIN.T', 'DES.C/P.', 'DES.S/P.', 'PER.P']
+    categorias = ['FIN.C', 'FIN.E', 'FIN.T', 'DES.C/P.', 'DES.S/P.', 'PER.P.']
     
     # Valores para o 1º e 2º tempo
     valores = np.array([estatisticas_parciais_dict[categoria] for categoria in categorias])
@@ -505,7 +505,7 @@ def plotar_historico(estatisticas_primeiro_tempo_dict, estatisticas_segundo_temp
     # Dados para cada gráfico
     data_finalizacoes =np.array([estatisticas_primeiro_tempo_dict['FIN.TOTAL'], estatisticas_segundo_tempo_dict['FIN.TOTAL']])
     data_desempenho_posse = np.array([estatisticas_primeiro_tempo_dict['DES.C/P.'], estatisticas_segundo_tempo_dict['DES.C/P.']])
-    data_perda_posse = np.array([estatisticas_primeiro_tempo_dict['PER.P'], estatisticas_segundo_tempo_dict['PER.P']])
+    data_perda_posse = np.array([estatisticas_primeiro_tempo_dict['PER.P.'], estatisticas_segundo_tempo_dict['PER.P.']])
     
     mean_finalizacoes = (data_finalizacoes/numero_jogos).astype(int)
     mean_desempenho_posse=(data_desempenho_posse/numero_jogos).astype(int)
@@ -575,7 +575,7 @@ def plotar_historico_time(estatisticas_primeiro_tempo_dict, estatisticas_segundo
         "Média Finalizações Travadas": "FIN.T",
         "Média Des. c/ Posse": "DES.C/P.",
         "Média Des. s/ Posse": "DES.S/P.",
-        "Média Perda de Posse": "PER.P",
+        "Média Perda de Posse": "PER.P.",
     }
 
     # Criar subplots com 2 linhas e 3 colunas
@@ -636,7 +636,7 @@ def plotar_historico_time(estatisticas_primeiro_tempo_dict, estatisticas_segundo
 
 def plotar_radar_chart(estatisticas_totais_dict, estatisticas_geral_totais_dict):
     # Dados para o gráfico
-    theta = ['FIN.C', 'FIN.E', 'FIN.T', 'DES.C/P.', 'DES.S/P.', 'PER.P']
+    theta = ['FIN.C', 'FIN.E', 'FIN.T', 'DES.C/P.', 'DES.S/P.', 'PER.P.']
     
     numerador = [estatisticas_totais_dict[i] for i in theta]
     denominador = [estatisticas_geral_totais_dict[i] for i in theta]
@@ -747,7 +747,8 @@ def create_futsal_court(titulo, heatmap_data, line_color='white'):
         showlegend=False,
         plot_bgcolor='#121212',
         template="plotly_dark",
-        height=350
+        height=350,
+
     )
     
     return fig
@@ -799,7 +800,7 @@ def get_team_partial_figures(estatisticas_parciais_dict,numero_jogos,mean, get_h
     
 def get_mean(estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,estatisticas_totais_dict,numero_jogos):
    
-    categorias = ['FIN.C', 'FIN.E', 'FIN.T', 'DES.C/P.', 'DES.S/P.', 'PER.P']
+    categorias = ['FIN.C', 'FIN.E', 'FIN.T', 'DES.C/P.', 'DES.S/P.', 'PER.P.']
     
     valores_totais = np.array([estatisticas_totais_dict[categoria] for categoria in categorias])
     mean_total = valores_totais/numero_jogos
@@ -848,7 +849,7 @@ def get_athletes_partial_figures(estatisticas_parciais_dict,estatisticas_geral_p
 def get_plots_plays_localization_partial(filtro_jogada,data,tempo):
     
     
-    jogadas= {"Ataque":['FIN.C', 'FIN.E', 'FIN.T'], "Defesa":['DES.C/P.', 'DES.S/P.', 'PER.P', 'C.A.P.','C.A.C.']}
+    jogadas= {"Ataque":['FIN.C', 'FIN.E', 'FIN.T'], "Defesa":['DES.C/P.','C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra']}
     jogadas = jogadas[filtro_jogada]
     figs=[]
     
@@ -865,7 +866,7 @@ def get_plots_plays_localization(data,tempo, colunas_ataque, colunas_defesa):
     
     
     ataque=['FIN.C', 'FIN.E', 'FIN.T'] 
-    defesa=['DES.C/P.', 'C.A.C.','DES.S/P.', 'PER.P','C.A.P.']        
+    defesa=['DES.C/P.','C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra']        
     
     for i,jogada in enumerate(ataque):
         localizacao_jogadas = extrair_estatisticas_localizacao(data,jogada)
@@ -878,3 +879,35 @@ def get_plots_plays_localization(data,tempo, colunas_ataque, colunas_defesa):
         colunas_defesa[i].plotly_chart(fig,key=f"localizazao_{jogada}_time_tab_st")            
     
     
+def create_futsal_subplots(tipo, data, tempo, rows, cols):
+    titulos = {"Ataque": ['FIN.C', 'FIN.E', 'FIN.T'], "Defesa": ['DES.C/P.','C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra']}
+    titulos = titulos[tipo]
+    fig = make_subplots(rows=rows, cols=cols, subplot_titles=titulos)
+
+    for i, titulo in enumerate(titulos):
+        row = (i // cols) + 1
+        col = (i % cols) + 1
+        heatmap_data = extrair_estatisticas_localizacao(data, titulo)
+        court_fig = create_futsal_court(titulo, heatmap_data[tempo])
+        for trace in court_fig.data:
+            fig.add_trace(trace, row=row, col=col)
+        for shape in court_fig.layout.shapes:
+            fig.add_shape(shape, row=row, col=col)
+
+        # Atualizar os eixos x e y para cada subplot
+        # fig.update_yaxes(visible=False, scaleanchor="x", scaleratio=1, row=row, col=col)
+        fig.update_xaxes(visible=False, row=row, col=col)
+
+    fig.update_layout(
+        # height=rows * 350,
+        showlegend=False,
+        plot_bgcolor='#121212',
+        template="plotly_dark",
+        yaxis=dict(visible=False),
+        yaxis2=dict(visible=False, scaleanchor="x", scaleratio=1),
+        yaxis3=dict(visible=False, scaleanchor="x", scaleratio=1)
+
+
+    )
+
+    return fig

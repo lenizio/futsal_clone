@@ -126,12 +126,12 @@ if not dados_todos_jogadores_df.empty:
                 with sub_column1:
                     st.image("logo_minas.png", width=250)
                 with sub_column2:
-                    st.plotly_chart(estatisticas_gerais_pt_fig, use_container_width=True, key="estatisticas_gerais_pt_fig")
-                st.plotly_chart(estatisticas_gerais_pt_fig_1, use_container_width=True,key="estatisticas_gerais_pt_fig_1")
+                    st.plotly_chart(estatisticas_gerais_pt_fig, use_container_width=True, key="estatisticas_gerais_pt_fig",config={'displayModeBar': False})
+                st.plotly_chart(estatisticas_gerais_pt_fig_1, use_container_width=True,key="estatisticas_gerais_pt_fig_1",config={'displayModeBar': False})
         
         with col4:
             with st.container(border=True,height=500):
-                st.plotly_chart(grafico_barras_pt_fig, use_container_width=True, key="grafico_barras_pt")
+                st.plotly_chart(grafico_barras_pt_fig, use_container_width=True, key="grafico_barras_pt",config={'displayModeBar': False})
         
         # with st.container(border=True,height=500):
             # st.plotly_chart(historico_pt_fig, use_container_width=True, key="grafico_historico_pt")
@@ -145,13 +145,16 @@ if not dados_todos_jogadores_df.empty:
         
         if filtro_jogada_time:
             with st.container(border=True, height=550):
+                
+                # fig = create_futsal_subplots(filtro_jogada_time,dados_todos_jogadores_df,"Primeiro Tempo",1,3)
+                # st.plotly_chart(fig,key=f"localizazao_time_tab_pt")
                 colunas_jogadas_ofensivas = st.columns(3)
                 colunas_jogadas_defensivas = st.columns(5)
                 colunas= {"Ataque": colunas_jogadas_ofensivas, "Defesa":colunas_jogadas_defensivas}  
                 figs= get_plots_plays_localization_partial(filtro_jogada_time,dados_todos_jogadores_df,"Primeiro Tempo")
                 
                 for i,fig in enumerate(figs):
-                    colunas[filtro_jogada_time][i].plotly_chart(fig,key=f"localizazao_{i}_time_tab_pt")
+                    colunas[filtro_jogada_time][i].plotly_chart(fig,key=f"localizazao_{i}_time_tab_pt",config={'displayModeBar': False})
 
                     
                 # localizacao_jogadas = extrair_estatisticas_localizacao(dados_todos_jogadores_df,filtro_jogada_time)
@@ -168,22 +171,22 @@ if not dados_todos_jogadores_df.empty:
                 with sub_column1:
                     st.image("logo_minas.png", width=250)
                 with sub_column2:
-                    st.plotly_chart(estatisticas_gerais_st_fig, use_container_width=False, key="estatisticas_gerais_st_fig")
-                st.plotly_chart(estatisticas_gerais_st_fig_1, use_container_width=False,key="estatisticas_gerais_st_fig_1")
+                    st.plotly_chart(estatisticas_gerais_st_fig, use_container_width=False, key="estatisticas_gerais_st_fig",config={'displayModeBar': False})
+                st.plotly_chart(estatisticas_gerais_st_fig_1, use_container_width=False,key="estatisticas_gerais_st_fig_1",config={'displayModeBar': False})
         
         with col4:
             with st.container(border=True,height=500):
-                st.plotly_chart(grafico_barras_st_fig, use_container_width=True, key="grafico_barras_st")
+                st.plotly_chart(grafico_barras_st_fig, use_container_width=True, key="grafico_barras_st",config={'displayModeBar': False})
         
         # with st.container(border=True,height=500):
         #     st.plotly_chart(historico_st_fig, use_container_width=True, key="grafico_historico_st")
         
         filtro_jogada_time = st.selectbox(
-                    "Selecione uma jogada",
-                    options=['FIN.C', 'FIN.E', 'FIN.T', 'ASSIST.', 'GOL', 'DES.C/P.', 'DES.S/P.', 'PER.P', 'C.A'],
+                    "Selecione o tipo de jogada",
+                    options=["Ataque","Defesa"],
                     index=None,
                     key="filtro_jogada_time_tab_st"
-                )       
+                )        
         
         if filtro_jogada_time:
             with st.container(border=True, height=950):
@@ -193,7 +196,7 @@ if not dados_todos_jogadores_df.empty:
                 figs= get_plots_plays_localization_partial(filtro_jogada_time,dados_todos_jogadores_df,"Segundo Tempo")
                 
                 for i,fig in enumerate(figs):
-                    colunas[filtro_jogada_time][i].plotly_chart(fig,key=f"localizazao_{i}_time_tab_st")
+                    colunas[filtro_jogada_time][i].plotly_chart(fig,key=f"localizazao_{i}_time_tab_st",config={'displayModeBar': False})
                 
                 
                 # localizacao_jogadas = extrair_estatisticas_localizacao(dados_todos_jogadores_df,filtro_jogada_time)
@@ -212,19 +215,19 @@ if not dados_todos_jogadores_df.empty:
                 with sub_column1:
                     st.image("logo_minas.png", width=250)
                 with sub_column2:
-                    st.plotly_chart(estatisticas_gerais_total_fig, use_container_width=False, key="estatisticas_gerais_total_fig")
-                st.plotly_chart(estatisticas_gerais_total_fig_1, use_container_width=False,key="estatisticas_gerais_total_fig_1")
+                    st.plotly_chart(estatisticas_gerais_total_fig, use_container_width=False, key="estatisticas_gerais_total_fig",config={'displayModeBar': False})
+                st.plotly_chart(estatisticas_gerais_total_fig_1, use_container_width=False,key="estatisticas_gerais_total_fig_1",config={'displayModeBar': False})
         
         with col4:
             with st.container(border=True,height=500):
-                st.plotly_chart(grafico_barras_total_fig, use_container_width=True, key="grafico_barras_total_fig")
+                st.plotly_chart(grafico_barras_total_fig, use_container_width=True, key="grafico_barras_total_fig",config={'displayModeBar': False})
         
         with st.container(border=True,height=500):
             st.plotly_chart(historico_total_fig, use_container_width=True, key="historico_total_fig")
         
         filtro_jogada_time = st.selectbox(
                     "Selecione uma jogada",
-                    options=['FIN.C', 'FIN.E', 'FIN.T', 'ASSIST.', 'GOL', 'DES.C/P.', 'DES.S/P.', 'PER.P', 'C.A.C.','C.A.P.'],
+                    options=['FIN.C', 'FIN.E', 'FIN.T', 'ASSIST.', 'GOL','DES.C/P.','C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra'],
                     index=None,
                     key="filtro_jogada_time_tab_total"
                 )       
@@ -237,7 +240,7 @@ if not dados_todos_jogadores_df.empty:
                 for i, (chave, valor) in enumerate(localizacao_jogadas.items()):
                     titulo = f"{filtro_jogada_time} - {chave}"
                     fig_localizacao_total = create_futsal_court(titulo,valor)
-                    colunas[i].plotly_chart(fig_localizacao_total)
+                    colunas[i].plotly_chart(fig_localizacao_total,config={'displayModeBar': False})
 
 
 

@@ -168,17 +168,17 @@ if filtro_jogador:
                     if image_jogador is not None:
                         st.image(image_jogador, width=250)
                 with sub_column2_pt:
-                    st.plotly_chart(estatisticas_gerais_pt_fig, use_container_width=False, key="estatisticas_gerais_pt_fig")
-                st.plotly_chart(estatisticas_gerais_pt_fig_1, use_container_width=False, key="estatisticas_gerais_pt_fig_1")
+                    st.plotly_chart(estatisticas_gerais_pt_fig, use_container_width=False, key="estatisticas_gerais_pt_fig",config={'displayModeBar': False})
+                st.plotly_chart(estatisticas_gerais_pt_fig_1, use_container_width=False, key="estatisticas_gerais_pt_fig_1",config={'displayModeBar': False})
 
         with col4_pt:
             with st.container(border=True, height=500):
-                st.plotly_chart(grafico_barras_pt_fig, use_container_width=True, key="grafico_barras_pt")
+                st.plotly_chart(grafico_barras_pt_fig, use_container_width=True, key="grafico_barras_pt",config={'displayModeBar': False})
 
         col5_pt, col6_pt = st.columns(2)
         with col5_pt:
             with st.container(border=True, height=500):
-                st.plotly_chart(radar_pt_fig, use_container_width=True, key="grafico_radar_pt")
+                st.plotly_chart(radar_pt_fig, use_container_width=True, key="grafico_radar_pt",config={'displayModeBar': False})
 
         filtro_jogada_pt = st.selectbox(
             "Selecione o tipo de jogada",
@@ -195,7 +195,7 @@ if filtro_jogador:
                 figs= get_plots_plays_localization_partial(filtro_jogada_pt,dados_todos_jogadores_df,"Primeiro Tempo")
                 
                 for i,fig in enumerate(figs):
-                    colunas[filtro_jogada_pt][i].plotly_chart(fig,key=f"localizazao_{i}_time_tab_pt")
+                    colunas[filtro_jogada_pt][i].plotly_chart(fig,key=f"localizazao_{i}_time_tab_pt",config={'displayModeBar': False})
 
     with segundo_tempo_tab:
         col3_st, col4_st = st.columns([1, 1])
@@ -207,17 +207,17 @@ if filtro_jogador:
                     if image_jogador is not None:
                         st.image(image_jogador, width=250)
                 with sub_column2_st:
-                    st.plotly_chart(estatisticas_gerais_st_fig, use_container_width=False, key="estatisticas_gerais_st_fig")
-                st.plotly_chart(estatisticas_gerais_st_fig_1, use_container_width=False, key="estatisticas_gerais_st_fig_1")
+                    st.plotly_chart(estatisticas_gerais_st_fig, use_container_width=False, key="estatisticas_gerais_st_fig",config={'displayModeBar': False})
+                st.plotly_chart(estatisticas_gerais_st_fig_1, use_container_width=False, key="estatisticas_gerais_st_fig_1",config={'displayModeBar': False})
 
         with col4_st:
             with st.container(border=True, height=500):
-                st.plotly_chart(grafico_barras_st_fig, use_container_width=True, key="grafico_barras_st")
+                st.plotly_chart(grafico_barras_st_fig, use_container_width=True, key="grafico_barras_st",config={'displayModeBar': False})
 
         col5_st, col6_st = st.columns(2)
         with col5_st:
             with st.container(border=True, height=500):
-                st.plotly_chart(radar_st_fig, use_container_width=True, key="grafico_radar_st")
+                st.plotly_chart(radar_st_fig, use_container_width=True, key="grafico_radar_st",config={'displayModeBar': False})
 
         filtro_jogada_st = st.selectbox(
             "Selecione o tipo de  jogada",
@@ -234,7 +234,7 @@ if filtro_jogador:
                 figs= get_plots_plays_localization_partial(filtro_jogada_st,dados_todos_jogadores_df,"Segundo Tempo")
                 
                 for i,fig in enumerate(figs):
-                    colunas[filtro_jogada_st][i].plotly_chart(fig,key=f"localizazao_{i}_time_tab_st")
+                    colunas[filtro_jogada_st][i].plotly_chart(fig,key=f"localizazao_{i}_time_tab_st",config={'displayModeBar': False})
 
     with total_tab:
 
@@ -251,29 +251,29 @@ if filtro_jogador:
                 with sub_column2:
                     # Adiciona um espaçamento antes do gráfico, se necessário
                     # Renderiza o gráfico de estatísticas gerais
-                    st.plotly_chart(estatisticas_gerais_total_fig, use_container_width=False, key="estatisticas_gerais_total_fig")
-                st.plotly_chart(estatisticas_gerais_total_fig_1, use_container_width=False,key="estatisticas_gerais_pt_total_1")
+                    st.plotly_chart(estatisticas_gerais_total_fig, use_container_width=False, key="estatisticas_gerais_total_fig",config={'displayModeBar': False})
+                st.plotly_chart(estatisticas_gerais_total_fig_1, use_container_width=False,key="estatisticas_gerais_pt_total_1",config={'displayModeBar': False})
         
         with col4:
             with st.container(border=True,height=500):
-                st.plotly_chart(grafico_barras_total_fig, use_container_width=True, key="grafico_barras_total")          
+                st.plotly_chart(grafico_barras_total_fig, use_container_width=True, key="grafico_barras_total",config={'displayModeBar': False})          
                     
         col5, col6 = st.columns(2)
         with col5:
             with st.container(border=True,height=500):
-                st.plotly_chart(historico_total_fig, use_container_width=True, key="grafico_historico_total")
+                st.plotly_chart(historico_total_fig, use_container_width=True, key="grafico_historico_total",config={'displayModeBar': False})
 
         with col6:
             with st.container(border=True, height=500):
                 
-                st.plotly_chart(radar_total_fig, use_container_width=True, key="grafico_radar_total")
+                st.plotly_chart(radar_total_fig, use_container_width=True, key="grafico_radar_total",config={'displayModeBar': False})
         
         
         
         
         filtro_jogada = st.selectbox(
                     "Selecione uma jogada",
-                    options=['FIN.C', 'FIN.E', 'FIN.T', 'ASSIST.', 'GOL', 'DES.C/P.', 'DES.S/P.', 'PER.P', 'C.A'],
+                    options=['FIN.C', 'FIN.E', 'FIN.T', 'ASSIST.', 'GOL', 'DES.C/P.','C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra'],
                     index=None,
                     key="localizacao_jogada_total"
                 )       
@@ -286,7 +286,7 @@ if filtro_jogador:
                 for i, (chave, valor) in enumerate(localizacao_jogadas.items()):
                     titulo = f"{filtro_jogada} - {chave}"
                     fig = create_futsal_court(titulo,valor)
-                    colunas[i].plotly_chart(fig)
+                    colunas[i].plotly_chart(fig,config={'displayModeBar': False})
                 
    
     
