@@ -10,7 +10,7 @@ from utils import *
 db_manager = get_db_manager()
 
 # Obter lista de jogadores
-lista_atletas = db_manager.listar_jogadores_por_equipe(1)
+lista_atletas = db_manager.listar_jogadores_por_equipe(7)
 jogadores_dict = {jogador[1]: [jogador[0],jogador[4]] for jogador in lista_atletas}
 nomes_jogadores_list = list(jogadores_dict.keys())
 
