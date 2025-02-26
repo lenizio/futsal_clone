@@ -11,6 +11,8 @@ import requests
 import plotly.io as pio
 from PIL import Image
 import os
+from io import BytesIO
+
 
 def convert_df_to_csv(df):
     # Usando StringIO para criar um buffer de string
@@ -755,17 +757,33 @@ def create_futsal_court(titulo, heatmap_data, line_color='white'):
 
 
 def pegar_imagem_jogador(image_id):
-    if image_id is not None:
-        url = f"https://drive.google.com/uc?export=view&id={image_id}"
-        try:
-            response = requests.get(url, timeout=10)  # Timeout de 10 segundos
-            response.raise_for_status()  # Levanta um erro para respostas HTTP 4xx ou 5xx
-            return response.content
-        except requests.exceptions.RequestException as e:
-            print(f"Erro ao obter a imagem: {e}")
+    if not image_id:
+        return None
+    
+    # URL direta para imagens no Google Drive
+    url = f"https://drive.google.com/uc?id={image_id}"
+    
+    try:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()  # Verifica erros HTTP
+        
+        # Verifica se o conteúdo é uma imagem
+        content_type = response.headers.get('Content-Type', '')
+        if 'image' not in content_type:
+            print(f"Conteúdo não é uma imagem. Tipo: {content_type}")
             return None
-    else:
-        print("ID da imagem é inválido.")
+        
+        # Tenta abrir a imagem com Pillow para validar o formato
+        try:
+            Image.open(BytesIO(response.content)).verify()
+        except Exception as e:
+            print(f"Imagem inválida: {e}")
+            return None
+            
+        return response.content
+        
+    except requests.exceptions.RequestException as e:
+        print(f"Erro ao buscar imagem: {e}")
         return None
 
 
