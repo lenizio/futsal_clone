@@ -210,7 +210,7 @@ def plotar_estatisticas_gerais_time(estatisticas_totais_dict,numero_jogos):
         value=efetividade_finalizacoes,
         number={"valueformat": ".0%", "font": {"size": 20}},  # Formato e tamanho do valor
         domain={'row': 1, 'column': 2},
-        title={"text": "Efetividade Fin.", "font": {"size": 12}}
+        title={"text": "Efet.Fin.", "font": {"size": 12}}
     ))
     
     # Indicador: Gols/jogos
@@ -237,7 +237,7 @@ def plotar_estatisticas_gerais_time(estatisticas_totais_dict,numero_jogos):
         value=efetividade_finalizacoes_certas,
         number={"valueformat": ".0%", "font": {"size": 20}},  # Formato e tamanho do valor
         domain={'row': 2, 'column': 2},
-        title={"text": "Efetividade Fin.C.", "font": {"size": 12}}
+        title={"text": "Efet.Fin.C.", "font": {"size": 12}}
     ))
 
    
@@ -297,7 +297,7 @@ def plotar_estatisticas_gerais(estatisticas_totais_dict,numero_jogos):
         value=efetividade_finalizacoes,
         number={"valueformat": ".0%", "font": {"size": 20}},  # Formato e tamanho do valor
         domain={'row': 1, 'column': 2},
-        title={"text": "Efetividade Fin.", "font": {"size": 12}}
+        title={"text": "Efet.Fin.", "font": {"size": 12}}
     ))
     
     # Indicador: Assist
@@ -324,7 +324,7 @@ def plotar_estatisticas_gerais(estatisticas_totais_dict,numero_jogos):
         value=efetividade_finalizacoes_certas,
         number={"valueformat": ".0%", "font": {"size": 20}},  # Formato e tamanho do valor
         domain={'row': 2, 'column': 2},
-        title={"text": "Efetividade Fin.C.", "font": {"size": 12}}
+        title={"text": "Efet.Fin.C.", "font": {"size": 12}}
     ))
 
    
