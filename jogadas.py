@@ -55,16 +55,16 @@ else:
                     # Container para os elementos abaixo do botão de tempo
                     with st.container():
                         opcoes_jogadores_dict, opcoes_jogadores_list = listar_opces_jogadores(lista_jogadores)
-                        col2, col1 = st.columns(2)
+                        col1, col2 = st.columns(2)
 
                         # Coluna 1: Exibir a imagem e capturar as coordenadas
-                        with col1:
-                            coordinates = streamlit_image_coordinates("futasl_court.jpg", key="local", 
+                        with col2:
+                            coordinates = streamlit_image_coordinates("futsal_court_dotted.png", key="local", 
                                                                     width=280,height=470
                                                                     )
 
                         # Coluna 2: Formulário
-                        with col2:
+                        with col1:
                             with st.form("my_form", clear_on_submit=True):  # Limpar formulário ao submeter
                                 st.write("Adicionar evento")
 
@@ -117,6 +117,15 @@ else:
                                         except Exception as e:
                                             st.error(f"Erro ao adicionar jogadas: {e}")
 
+                
+                with right_div:
+                    st.markdown("<br><br><br><br><br><br><br><br>", unsafe_allow_html=True)
+                    st.markdown("<p style='font-size:50px;'>&nbsp;🢁</p>", unsafe_allow_html=True)
+                    st.markdown("<p style='font-size:20px; font-weight:bold;'>ATAQUE</p>", unsafe_allow_html=True)
+
+
+                
+                
 if hasattr(st, "on_event") and callable(getattr(st, "on_event")):
     st.on_event("shutdown", db_manager.fechar_conexao)
 else:

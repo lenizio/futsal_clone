@@ -54,7 +54,7 @@ if not dados_todos_jogadores_df.empty:
     estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict, estatisticas_geral_totais_dict = extrair_estatisticas_gerais(dados_todos_jogadores_df)
     mean_primeiro_tempo, mean_segundo_tempo,mean_total   = get_mean(estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict,estatisticas_geral_totais_dict,numero_jogos)
     #Figuras tab total
-    estatisticas_gerais_total_fig, estatisticas_gerais_total_fig_1,  grafico_barras_total_fig, historico_total_fig = get_team_total_figures(estatisticas_geral_totais_dict,estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict,numero_jogos,True) 
+    estatisticas_gerais_total_fig, estatisticas_gerais_total_fig_1,  grafico_barras_total_fig, historico_total_fig = get_team_total_figures(estatisticas_geral_totais_dict,estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict,numero_jogos,mean_primeiro_tempo, mean_segundo_tempo,True) 
     #Figuras tab primeiro tempo
     estatisticas_gerais_pt_fig, estatisticas_gerais_pt_fig_1,  grafico_barras_pt_fig = get_team_partial_figures(estatisticas_geral_primeiro_tempo_dict,numero_jogos,mean_primeiro_tempo,False) 
     #Figuras tab segundo tempo
@@ -79,7 +79,7 @@ with filter_container:
                 estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict, estatisticas_geral_totais_dict = extrair_estatisticas_gerais(dados_todos_jogadores_df)
                 mean_primeiro_tempo, mean_segundo_tempo,mean_total   = get_mean(estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict,estatisticas_geral_totais_dict,numero_jogos)
                 #Figuras tab total
-                estatisticas_gerais_total_fig, estatisticas_gerais_total_fig_1,  grafico_barras_total_fig, historico_total_fig = get_team_total_figures(estatisticas_geral_totais_dict,estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict,numero_jogos,True) 
+                estatisticas_gerais_total_fig, estatisticas_gerais_total_fig_1,  grafico_barras_total_fig, historico_total_fig = get_team_total_figures(estatisticas_geral_totais_dict,estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict,numero_jogos,mean_primeiro_tempo, mean_segundo_tempo,True) 
                 #Figuras tab primeiro tempo
                 estatisticas_gerais_pt_fig, estatisticas_gerais_pt_fig_1,  grafico_barras_pt_fig = get_team_partial_figures(estatisticas_geral_primeiro_tempo_dict,numero_jogos,mean_primeiro_tempo,False) 
                 #Figuras tab segundo tempo
@@ -105,7 +105,7 @@ with filter_container:
                 
                 estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict, estatisticas_geral_totais_dict = extrair_estatisticas_gerais(dados_todos_jogadores_df)
                 #Figuras tab total
-                estatisticas_gerais_total_fig, estatisticas_gerais_total_fig_1,  grafico_barras_total_fig, historico_total_fig = get_team_total_figures(estatisticas_geral_totais_dict,estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict,numero_jogos,True) 
+                estatisticas_gerais_total_fig, estatisticas_gerais_total_fig_1,  grafico_barras_total_fig, historico_total_fig = get_team_total_figures(estatisticas_geral_totais_dict,estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict,numero_jogos,mean_primeiro_tempo, mean_segundo_tempo,True) 
                 #Figuras tab primeiro tempo
                 estatisticas_gerais_pt_fig, estatisticas_gerais_pt_fig_1,  grafico_barras_pt_fig = get_team_partial_figures(estatisticas_geral_primeiro_tempo_dict,numero_jogos,mean_primeiro_tempo,False) 
                 #Figuras tab segundo tempo
@@ -122,12 +122,14 @@ if not dados_todos_jogadores_df.empty:
 
         with col3:
             with st.container(border=True,height=500):
-                sub_column1,sub_column2 = st.columns([1,1])
+                sub_column1,sub_column2 = st.columns([1,1.5])
                 with sub_column1:
-                    st.image("logo_minas.png", width=250)
+                    st.image("minas-tenis-clube-logo-png.png",output_format="PNG", width=300)
                 with sub_column2:
-                    st.plotly_chart(estatisticas_gerais_pt_fig, use_container_width=True, key="estatisticas_gerais_pt_fig",config={'displayModeBar': False})
-                st.plotly_chart(estatisticas_gerais_pt_fig_1, use_container_width=True,key="estatisticas_gerais_pt_fig_1",config={'displayModeBar': False})
+                    with st.container(border=True, height=220):
+                        st.plotly_chart(estatisticas_gerais_pt_fig, use_container_width=True, key="estatisticas_gerais_pt_fig",config={'displayModeBar': False})
+                with st.container(border=True, height=230):
+                    st.plotly_chart(estatisticas_gerais_pt_fig_1, use_container_width=True,key="estatisticas_gerais_pt_fig_1",config={'displayModeBar': False})
         
         with col4:
             with st.container(border=True,height=500):
@@ -144,7 +146,7 @@ if not dados_todos_jogadores_df.empty:
                 )       
         
         if filtro_jogada_time:
-            with st.container(border=True, height=550):
+            with st.container(border=True, height=400):
                 
                 # fig = create_futsal_subplots(filtro_jogada_time,dados_todos_jogadores_df,"Primeiro Tempo",1,3)
                 # st.plotly_chart(fig,key=f"localizazao_time_tab_pt")
@@ -167,12 +169,14 @@ if not dados_todos_jogadores_df.empty:
 
         with col3:
             with st.container(border=True,height=500):
-                sub_column1,sub_column2 = st.columns([1,1])
+                sub_column1,sub_column2 = st.columns([1,1.5])
                 with sub_column1:
-                    st.image("logo_minas.png", width=250)
+                    st.image("minas-tenis-clube-logo-png.png",output_format="PNG", width=300)
                 with sub_column2:
-                    st.plotly_chart(estatisticas_gerais_st_fig, use_container_width=False, key="estatisticas_gerais_st_fig",config={'displayModeBar': False})
-                st.plotly_chart(estatisticas_gerais_st_fig_1, use_container_width=False,key="estatisticas_gerais_st_fig_1",config={'displayModeBar': False})
+                    with st.container(border=True, height=220):
+                        st.plotly_chart(estatisticas_gerais_st_fig, use_container_width=False, key="estatisticas_gerais_st_fig",config={'displayModeBar': False})
+                with st.container(border=True, height=230):
+                    st.plotly_chart(estatisticas_gerais_st_fig_1, use_container_width=False,key="estatisticas_gerais_st_fig_1",config={'displayModeBar': False})
         
         with col4:
             with st.container(border=True,height=500):
@@ -189,7 +193,7 @@ if not dados_todos_jogadores_df.empty:
                 )        
         
         if filtro_jogada_time:
-            with st.container(border=True, height=950):
+            with st.container(border=True, height=400):
                 colunas_jogadas_ofensivas = st.columns(3)
                 colunas_jogadas_defensivas = st.columns(5)
                 colunas= {"Ataque": colunas_jogadas_ofensivas, "Defesa":colunas_jogadas_defensivas}  
@@ -207,16 +211,18 @@ if not dados_todos_jogadores_df.empty:
     
     with total_tab:
     
-        col3, col4 = st.columns([1,1])
+        col3, col4 = st.columns([1,1.6])
 
         with col3:
             with st.container(border=True,height=500):
-                sub_column1,sub_column2 = st.columns([1,1])
+                sub_column1,sub_column2 = st.columns([1,1.5])
                 with sub_column1:
-                    st.image("logo_minas.png", width=250)
+                    st.image("minas-tenis-clube-logo-png.png",output_format="PNG", width=300)
                 with sub_column2:
-                    st.plotly_chart(estatisticas_gerais_total_fig, use_container_width=False, key="estatisticas_gerais_total_fig",config={'displayModeBar': False})
-                st.plotly_chart(estatisticas_gerais_total_fig_1, use_container_width=False,key="estatisticas_gerais_total_fig_1",config={'displayModeBar': False})
+                    with st.container(border=True, height=220):
+                        st.plotly_chart(estatisticas_gerais_total_fig, use_container_width=False, key="estatisticas_gerais_total_fig",config={'displayModeBar': False})
+                with st.container(border=True, height=230):
+                    st.plotly_chart(estatisticas_gerais_total_fig_1, use_container_width=False,key="estatisticas_gerais_total_fig_1",config={'displayModeBar': False})
         
         with col4:
             with st.container(border=True,height=500):
@@ -233,7 +239,7 @@ if not dados_todos_jogadores_df.empty:
                 )       
         
         if filtro_jogada_time:
-            with st.container(border=True, height=550):
+            with st.container(border=True, height=400):
                 colunas = st.columns(3) 
                 localizacao_jogadas = extrair_estatisticas_localizacao(dados_todos_jogadores_df,filtro_jogada_time)
                 

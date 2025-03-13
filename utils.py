@@ -172,12 +172,21 @@ def extrair_estatisticas_localizacao(dados_jogador_df,jogada):
 def plotar_estatisticas_gerais_time(estatisticas_totais_dict,numero_jogos):
     estatisticas_gerais_fig = go.Figure()
 
-    if estatisticas_totais_dict['FIN.TOTAL'] == 0:
-        efetividade = 0
-    else:
-        efetividade = estatisticas_totais_dict['FIN.C'] / estatisticas_totais_dict['FIN.TOTAL']
+    
+    efetividade_finalizacoes = estatisticas_totais_dict['FIN.C'] / estatisticas_totais_dict['FIN.TOTAL'] if estatisticas_totais_dict['FIN.TOTAL'] > 0 else 0
+    efetividade_finalizacoes_certas = estatisticas_totais_dict['GOL'] / estatisticas_totais_dict['FIN.C'] if estatisticas_totais_dict['FIN.C'] > 0 else 0
+    
+     
+     # Indicador 3: Jogos
+    estatisticas_gerais_fig.add_trace(go.Indicator(
+        mode="number",
+        value=numero_jogos,
+        domain={'row': 0, 'column': 1},
+        title={"text": "Jogos", "font": {"size": 12}},
+        number={"font": {"size": 20}}
+    ))
 
-    # Indicador 1: Gols
+    # Indicador: Gols
     estatisticas_gerais_fig.add_trace(go.Indicator(
         mode="number",
         value=estatisticas_totais_dict['GOL'],
@@ -185,35 +194,26 @@ def plotar_estatisticas_gerais_time(estatisticas_totais_dict,numero_jogos):
         title={"text": "Gols", "font": {"size": 12}},  # Tamanho do título
         number={"font": {"size": 20}}  # Tamanho do valor
     ))
-
-    # Indicador 2: Finalizações
+    
+    # Indicador: Finalizações totais
     estatisticas_gerais_fig.add_trace(go.Indicator(
         mode="number",
         value=estatisticas_totais_dict['FIN.TOTAL'],
-        domain={'row': 0, 'column': 1},
+        domain={'row': 1, 'column': 1},
         title={"text": "Fin.", "font": {"size": 12}},
         number={"font": {"size": 20}}
     ))
 
-    # Indicador 3: Assistências
+    # Indicador: Efetividade Fin.
     estatisticas_gerais_fig.add_trace(go.Indicator(
         mode="number",
-        value=numero_jogos,
-        domain={'row': 0, 'column': 0},
-        title={"text": "Jogos", "font": {"size": 12}},
-        number={"font": {"size": 20}}
-    ))
-
-    # Indicador 4: Efetividade
-    estatisticas_gerais_fig.add_trace(go.Indicator(
-        mode="number",
-        value=efetividade,
+        value=efetividade_finalizacoes,
         number={"valueformat": ".0%", "font": {"size": 20}},  # Formato e tamanho do valor
-        domain={'row': 1, 'column': 1},
-        title={"text": "Efetividade", "font": {"size": 12}}
+        domain={'row': 1, 'column': 2},
+        title={"text": "Efetividade Fin.", "font": {"size": 12}}
     ))
-
-    # Indicador 5: Participações em Gols
+    
+    # Indicador: Gols/jogos
     estatisticas_gerais_fig.add_trace(go.Indicator(
         mode="number",
         value=estatisticas_totais_dict['GOL'] / numero_jogos if numero_jogos > 0 else 0,
@@ -221,8 +221,8 @@ def plotar_estatisticas_gerais_time(estatisticas_totais_dict,numero_jogos):
         title={"text": "Gols/Jogo", "font": {"size": 12}},
         number={"font": {"size": 20}}
     ))
-
-    # Indicador 6: Finalizações Certas
+    
+     # Indicador: Finalizações Certas
     estatisticas_gerais_fig.add_trace(go.Indicator(
         mode="number",
         value=estatisticas_totais_dict['FIN.C'],
@@ -231,13 +231,25 @@ def plotar_estatisticas_gerais_time(estatisticas_totais_dict,numero_jogos):
         number={"font": {"size": 20}}
     ))
 
+    # Indicador : Efetividade Gols
+    estatisticas_gerais_fig.add_trace(go.Indicator(
+        mode="number",
+        value=efetividade_finalizacoes_certas,
+        number={"valueformat": ".0%", "font": {"size": 20}},  # Formato e tamanho do valor
+        domain={'row': 2, 'column': 2},
+        title={"text": "Efetividade Fin.C.", "font": {"size": 12}}
+    ))
+
+   
     # Configuração do layout
     estatisticas_gerais_fig.update_layout(
-        grid={'rows': 3, 'columns': 2, 'pattern': "independent"},
+        grid={'rows': 3, 'columns': 3, 'pattern': "independent"},
         template="plotly_dark",
-        margin_t=20,
+        margin_t=7,
         margin_b= 0,
-        height= 330
+        height= 180,
+        margin_l=0
+        
         # Opcional: tema do gráfico
     )
 
@@ -249,57 +261,55 @@ def plotar_estatisticas_gerais_time(estatisticas_totais_dict,numero_jogos):
 def plotar_estatisticas_gerais(estatisticas_totais_dict,numero_jogos):
     estatisticas_gerais_fig = go.Figure()
 
-    if estatisticas_totais_dict['FIN.TOTAL'] == 0:
-        efetividade = 0
-    else:
-        efetividade = estatisticas_totais_dict['FIN.C'] / estatisticas_totais_dict['FIN.TOTAL']
-
-    # Indicador 1: Gols
-    estatisticas_gerais_fig.add_trace(go.Indicator(
-        mode="number",
-        value=estatisticas_totais_dict['GOL'],
-        domain={'row': 0, 'column': 0},
-        title={"text": "Gols", "font": {"size": 12}},  # Tamanho do título
-        number={"font": {"size": 20}}  # Tamanho do valor
-    ))
-
-    # Indicador 2: Finalizações
-    estatisticas_gerais_fig.add_trace(go.Indicator(
-        mode="number",
-        value=estatisticas_totais_dict['FIN.TOTAL'],
-        domain={'row': 0, 'column': 1},
-        title={"text": "Fin.", "font": {"size": 12}},
-        number={"font": {"size": 20}}
-    ))
-
-    # Indicador 3: Assistências
-    estatisticas_gerais_fig.add_trace(go.Indicator(
-        mode="number",
-        value=estatisticas_totais_dict['ASSIST.'],
-        domain={'row': 1, 'column': 0},
-        title={"text": "Assist.", "font": {"size": 12}},
-        number={"font": {"size": 20}}
-    ))
-
-    # Indicador 4: Efetividade
-    estatisticas_gerais_fig.add_trace(go.Indicator(
-        mode="number",
-        value=efetividade,
-        number={"valueformat": ".0%", "font": {"size": 20}},  # Formato e tamanho do valor
-        domain={'row': 1, 'column': 1},
-        title={"text": "Efetividade", "font": {"size": 12}}
-    ))
-
-    # Indicador 5: Participações em Gols
+    efetividade_finalizacoes = estatisticas_totais_dict['FIN.C'] / estatisticas_totais_dict['FIN.TOTAL'] if estatisticas_totais_dict['FIN.TOTAL'] > 0 else 0
+    efetividade_finalizacoes_certas = estatisticas_totais_dict['GOL'] / estatisticas_totais_dict['FIN.C'] if estatisticas_totais_dict['FIN.C'] > 0 else 0
+     
+     # Indicador 3: Jogos
     estatisticas_gerais_fig.add_trace(go.Indicator(
         mode="number",
         value=numero_jogos,
-        domain={'row': 2, 'column': 0},
+        domain={'row': 0, 'column': 1},
         title={"text": "Jogos", "font": {"size": 12}},
         number={"font": {"size": 20}}
     ))
 
-    # Indicador 6: Finalizações Certas
+    # Indicador: Gols
+    estatisticas_gerais_fig.add_trace(go.Indicator(
+        mode="number",
+        value=estatisticas_totais_dict['GOL'],
+        domain={'row': 1, 'column': 0},
+        title={"text": "Gols", "font": {"size": 12}},  # Tamanho do título
+        number={"font": {"size": 20}}  # Tamanho do valor
+    ))
+    
+    # Indicador: Finalizações totais
+    estatisticas_gerais_fig.add_trace(go.Indicator(
+        mode="number",
+        value=estatisticas_totais_dict['FIN.TOTAL'],
+        domain={'row': 1, 'column': 1},
+        title={"text": "Fin.", "font": {"size": 12}},
+        number={"font": {"size": 20}}
+    ))
+
+    # Indicador: Efetividade Fin.
+    estatisticas_gerais_fig.add_trace(go.Indicator(
+        mode="number",
+        value=efetividade_finalizacoes,
+        number={"valueformat": ".0%", "font": {"size": 20}},  # Formato e tamanho do valor
+        domain={'row': 1, 'column': 2},
+        title={"text": "Efetividade Fin.", "font": {"size": 12}}
+    ))
+    
+    # Indicador: Assist
+    estatisticas_gerais_fig.add_trace(go.Indicator(
+        mode="number",
+        value=estatisticas_totais_dict['ASSIST.'],
+        domain={'row': 2, 'column': 0},
+        title={"text": "Assist.", "font": {"size": 12}},
+        number={"font": {"size": 20}}
+    ))
+    
+     # Indicador: Finalizações Certas
     estatisticas_gerais_fig.add_trace(go.Indicator(
         mode="number",
         value=estatisticas_totais_dict['FIN.C'],
@@ -308,13 +318,25 @@ def plotar_estatisticas_gerais(estatisticas_totais_dict,numero_jogos):
         number={"font": {"size": 20}}
     ))
 
+    # Indicador : Efetividade Gols
+    estatisticas_gerais_fig.add_trace(go.Indicator(
+        mode="number",
+        value=efetividade_finalizacoes_certas,
+        number={"valueformat": ".0%", "font": {"size": 20}},  # Formato e tamanho do valor
+        domain={'row': 2, 'column': 2},
+        title={"text": "Efetividade Fin.C.", "font": {"size": 12}}
+    ))
+
+   
     # Configuração do layout
     estatisticas_gerais_fig.update_layout(
-        grid={'rows': 3, 'columns': 2, 'pattern': "independent"},
+        grid={'rows': 3, 'columns': 3, 'pattern': "independent"},
         template="plotly_dark",
-        margin_t=20,
+        margin_t=7,
         margin_b= 0,
-        height= 330
+        height= 180,
+        margin_l=0
+        
         # Opcional: tema do gráfico
     )
 
@@ -322,8 +344,18 @@ def plotar_estatisticas_gerais(estatisticas_totais_dict,numero_jogos):
 
 def plotar_estatisticas_gerais_1(estatisticas_totais_dict):
     estatisticas_gerais_fig = go.Figure()
+    
+    percentual_perda_de_posse = (
+    estatisticas_totais_dict['C.A.-Contra'] / estatisticas_totais_dict['PER.P.'] 
+    if estatisticas_totais_dict['PER.P.'] > 0 else 0
+                                    )
 
-    # Indicador 1: Gols
+    efetividade_desarme_com_posse = (
+    estatisticas_totais_dict['C.A.-Pró'] / estatisticas_totais_dict['DES.C/P.'] 
+    if estatisticas_totais_dict['DES.C/P.'] > 0 else 0
+                                                            )
+
+    # Indicador: DES.C/P
     estatisticas_gerais_fig.add_trace(go.Indicator(
         mode="number",
         value=estatisticas_totais_dict['DES.C/P.'],
@@ -331,43 +363,65 @@ def plotar_estatisticas_gerais_1(estatisticas_totais_dict):
         title={"text": "Des.C/P.", "font": {"size": 12}},  # Tamanho do título
         number={"font": {"size": 20}}  # Tamanho do valor
     ))
-
-    # Indicador 2: Finalizações
+    
+    # Indicador: C.A.-Pró
+    estatisticas_gerais_fig.add_trace(go.Indicator(
+        mode="number",
+        value=estatisticas_totais_dict['C.A.-Pró'],
+        domain={'row': 1, 'column': 0},
+        title={"text": "C.A. - Pró", "font": {"size": 12}},  # Tamanho do título
+        number={"font": {"size": 20}}  # Tamanho do valor
+    ))
+    # Indicador: Efetividade desarme com posse
+    estatisticas_gerais_fig.add_trace(go.Indicator(
+        mode="number",
+        value=efetividade_desarme_com_posse,
+        number={"valueformat": ".0%", "font": {"size": 20}},  # Formato e tamanho do valor
+        domain={'row': 2, 'column': 0},
+        title={"text": "Efetividade", "font": {"size": 12}}
+    ))
+        
+    # Indicador: Desarme sem posse
     estatisticas_gerais_fig.add_trace(go.Indicator(
         mode="number",
         value=estatisticas_totais_dict['DES.S/P.'],
-        domain={'row': 0, 'column': 1},
+        domain={'row': 1, 'column': 1},
         title={"text": "Des.S/P.", "font": {"size": 12}},
         number={"font": {"size": 20}}
     ))
-
-    # Indicador 3: Assistências
+    # Indicador: Perda de posse
     estatisticas_gerais_fig.add_trace(go.Indicator(
         mode="number",
         value=estatisticas_totais_dict['PER.P.'],
         domain={'row': 0, 'column': 2},
         title={"text": "Per.P.", "font": {"size": 12}},
         number={"font": {"size": 20}}
-    ))
-
-    # Indicador 4: Efetividade
+    ))  
+    # Indicador: C.A. Contra
     estatisticas_gerais_fig.add_trace(go.Indicator(
         mode="number",
         value=estatisticas_totais_dict['C.A.-Contra'],
         number={"font": {"size": 20}},  # Formato e tamanho do valor
-        domain={'row': 0, 'column': 3},
+        domain={'row': 1, 'column': 2},
         title={"text": "C.A Sofrido", "font": {"size": 12}}
     ))
 
-   
+   # Indicador: Percentual C.A. sofrido
+    estatisticas_gerais_fig.add_trace(go.Indicator(
+        mode="number",
+        value=percentual_perda_de_posse,
+        number={"valueformat": ".0%", "font": {"size": 20}},  # Formato e tamanho do valor
+        domain={'row': 2, 'column': 2},
+        title={"text": "Percentual", "font": {"size": 12}}
+    ))
 
     # Configuração do layout
     estatisticas_gerais_fig.update_layout(
-        grid={'rows': 1, 'columns': 4, 'pattern': "independent"},
+        grid={'rows': 3, 'columns': 3, 'pattern': "independent"},
         template="plotly_dark",
-        height= 100,
-        margin_t = 105,
-        margin_r=5
+        height= 270,
+        margin_t = 20,
+        margin_r=5,
     
         # Opcional: tema do gráfico
     )
@@ -378,18 +432,17 @@ def plotar_estatisticas_gerais_1(estatisticas_totais_dict):
 
 
 
-def plotar_grafico_barras(estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict):
-    # Extração das estatísticas
+def plotar_grafico_barras(estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,mean_primeiro_tempo, mean_segundo_tempo):
     
     # Categorias a serem usadas no gráfico
-    categorias = ['FIN.C', 'FIN.E', 'FIN.T', 'DES.C/P.', 'DES.S/P.', 'PER.P.']
+    categorias = ['FIN.C', 'FIN.E', 'FIN.T', 'DES.C/P.', 'C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra']
     
     # Valores para o 1º e 2º tempo
     valores_1T = [estatisticas_primeiro_tempo_dict[categoria] for categoria in categorias]
     valores_2T = [estatisticas_segundo_tempo_dict[categoria] for categoria in categorias]
     
     cores = ['rgba(0, 255, 0, 0.6)', 'rgba(255, 0, 0, 0.6)', 'rgba(255, 255, 0, 0.6)', 
-         'rgba(0, 0, 255, 0.6)', 'rgba(0, 255, 255, 0.6)', 'rgba(128, 0, 128, 0.6)']
+         'rgba(0, 0, 255, 0.6)', 'rgba(0, 255, 255, 0.6)', 'rgba(128, 0, 128, 0.6)', 'rgba(0, 60, 0, 1.0)','rgba(255, 165, 0, 1.0)' ]
 
 
     # Criar a figura com 2 subgráficos (um para o 1º tempo e outro para o 2º tempo)
@@ -406,7 +459,9 @@ def plotar_grafico_barras(estatisticas_primeiro_tempo_dict, estatisticas_segundo
         name='1º Tempo',
         marker_color=cores,
         text=valores_1T,  
-        textposition='outside'# Cor para as barras do 1º tempo
+        textposition='inside',
+        insidetextanchor='start',
+        textfont=dict(color="black")# Cor para as barras do 1º tempo
     ), row=1, col=1)
 
     # Adicionar o gráfico de barras para o 2º Tempo no subgráfico (1, 2)
@@ -416,9 +471,35 @@ def plotar_grafico_barras(estatisticas_primeiro_tempo_dict, estatisticas_segundo
         name='2º Tempo',
         marker_color=cores,
         text=valores_2T,  
-        textposition='outside'# Cor para as barras do 2º tempo
+        textposition='inside',
+        insidetextanchor='start',
+        textfont=dict(color="black")# Cor para as barras do 2º tempo
     ), row=1, col=2)
-
+    
+    #Adicionar média
+    fig.add_trace(go.Scatter(
+        x=categorias,
+        y=mean_primeiro_tempo,
+        mode="lines+markers+text",  # Exibe linha, pontos e valores
+        text=[f"{m:.2f}" for m in mean_primeiro_tempo],  # Exibir valores da média
+        textposition="top center",  # Posição dos valores da linha
+        marker=dict(size=8, color="white"),  # Personaliza os pontos
+        line=dict(width=2, color="cyan"),  # Personaliza a linha
+        name="Média Primeiro Tempo"  # Nome da legenda
+        
+    ),row=1, col=1)
+    
+    fig.add_trace(go.Scatter(
+        x=categorias,
+        y=mean_segundo_tempo,
+        mode="lines+markers+text",  # Exibe linha, pontos e valores
+        text=[f"{m:.2f}" for m in mean_segundo_tempo],  # Exibir valores da média
+        textposition="top center",  # Posição dos valores da linha
+        marker=dict(size=8, color="white"),  # Personaliza os pontos
+        line=dict(width=2, color="cyan"),  # Personaliza a linha
+        name="Média Segundo Tempo"  # Nome da legenda
+        
+    ),row=1, col=2)    
     # Atualizar o layout para personalizar a aparência do gráfico
     fig.update_layout(
         title={
@@ -442,14 +523,14 @@ def plotar_grafico_barras_parcial(estatisticas_parciais_dict,mean):
     # Extração das estatísticas
     
     # Categorias a serem usadas no gráfico
-    categorias = ['FIN.C', 'FIN.E', 'FIN.T', 'DES.C/P.', 'DES.S/P.', 'PER.P.']
+    categorias = ['FIN.C', 'FIN.E', 'FIN.T', 'DES.C/P.', 'C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra']
     
     # Valores para o 1º e 2º tempo
     valores = np.array([estatisticas_parciais_dict[categoria] for categoria in categorias])
    
     
-    cores = ['rgba(0, 255, 0, 0.6)', 'rgba(255, 0, 0, 0.6)', 'rgba(255, 255, 0, 0.6)', 
-         'rgba(0, 0, 255, 0.6)', 'rgba(0, 255, 255, 0.6)', 'rgba(128, 0, 128, 0.6)']
+    cores = ['rgba(0, 255, 0, 0.6)', 'rgba(255, 0, 0, 0.6)', 'rgba(255, 255, 0, 0.6)',
+             'rgba(0, 0, 255, 0.6)', 'rgba(0, 255, 255, 0.6)', 'rgba(128, 0, 128, 0.6)', 'rgba(0, 60, 0, 1.0)','rgba(255, 165, 0, 1.0)']
 
 
     fig = go.Figure()
@@ -527,7 +608,9 @@ def plotar_historico(estatisticas_primeiro_tempo_dict, estatisticas_segundo_temp
         name="Finalizações", 
         hole=0.5, 
         textinfo='percent',
-        texttemplate='%{value} (%{percent})'
+        texttemplate='%{value} (%{percent})',
+        rotation=180,
+        sort=False,
     ), 1, 1)
 
     fig.add_trace(go.Pie(
@@ -536,7 +619,9 @@ def plotar_historico(estatisticas_primeiro_tempo_dict, estatisticas_segundo_temp
         name="Des. c/ Posse", 
         hole=0.5, 
         textinfo='percent',
-        texttemplate='%{value} (%{percent})'
+        texttemplate='%{value} (%{percent})',
+        rotation=180,
+        sort=False,
     ), 1, 2)
 
     fig.add_trace(go.Pie(
@@ -545,7 +630,10 @@ def plotar_historico(estatisticas_primeiro_tempo_dict, estatisticas_segundo_temp
         name="Perda de Posse", 
         hole=0.5, 
         textinfo='percent',
-        texttemplate='%{value} (%{percent})'
+        texttemplate='%{value} (%{percent})',
+        rotation=180,
+        sort=False,  
+        textposition="inside",
     ), 1, 3)
 
     # Atualizar layout
@@ -606,7 +694,10 @@ def plotar_historico_time(estatisticas_primeiro_tempo_dict, estatisticas_segundo
             name=titulo,
             hole=0.5,
             textinfo='percent',
-            texttemplate='%{value} (%{percent})'
+            texttemplate='%{value} (%{percent})',
+            rotation=180,
+            sort=False,
+            textposition="outside"
         ), row=row, col=col)
     
     fig.update_annotations(
@@ -787,11 +878,11 @@ def pegar_imagem_jogador(image_id):
         return None
 
 
-def get_team_total_figures(estatisticas_totais_dict,estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,numero_jogos, get_historico):
+def get_team_total_figures(estatisticas_totais_dict,estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,numero_jogos,mean_primeiro_tempo, mean_segundo_tempo, get_historico):
     
     estatisticas_gerais_fig = plotar_estatisticas_gerais_time(estatisticas_totais_dict,numero_jogos)
     estatisticas_gerais_fig_1 = plotar_estatisticas_gerais_1(estatisticas_totais_dict)
-    grafico_barras_fig = plotar_grafico_barras(estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,)
+    grafico_barras_fig = plotar_grafico_barras(estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,mean_primeiro_tempo, mean_segundo_tempo)
     
     if get_historico:
     
@@ -818,7 +909,7 @@ def get_team_partial_figures(estatisticas_parciais_dict,numero_jogos,mean, get_h
     
 def get_mean(estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,estatisticas_totais_dict,numero_jogos):
    
-    categorias = ['FIN.C', 'FIN.E', 'FIN.T', 'DES.C/P.', 'DES.S/P.', 'PER.P.']
+    categorias = ['FIN.C', 'FIN.E', 'FIN.T', 'DES.C/P.', 'C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra']
     
     valores_totais = np.array([estatisticas_totais_dict[categoria] for categoria in categorias])
     mean_total = valores_totais/numero_jogos
@@ -834,11 +925,11 @@ def get_mean(estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,e
 
 
 
-def get_athletes_total_figures(estatisticas_totais_dict,estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,estatisticas_geral_totais_dict,numero_jogos, get_historico):
+def get_athletes_total_figures(estatisticas_totais_dict,estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,estatisticas_geral_totais_dict,numero_jogos,mean_primeiro_tempo, mean_segundo_tempo, get_historico):
     
     estatisticas_gerais_fig = plotar_estatisticas_gerais(estatisticas_totais_dict,numero_jogos)
     estatisticas_gerais_fig_1 = plotar_estatisticas_gerais_1(estatisticas_totais_dict)
-    grafico_barras_fig = plotar_grafico_barras(estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,)
+    grafico_barras_fig = plotar_grafico_barras(estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,mean_primeiro_tempo, mean_segundo_tempo,)
     radar_fig = plotar_radar_chart(estatisticas_totais_dict,estatisticas_geral_totais_dict)
 
     if get_historico:

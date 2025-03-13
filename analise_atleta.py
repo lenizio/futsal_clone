@@ -77,7 +77,7 @@ with filter_container:
             
             mean_primeiro_tempo, mean_segundo_tempo,mean_total   = get_mean(estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,estatisticas_totais_dict,numero_jogos)
             #Figuras tab total
-            estatisticas_gerais_total_fig, estatisticas_gerais_total_fig_1,  grafico_barras_total_fig,radar_total_fig, historico_total_fig = get_athletes_total_figures(estatisticas_totais_dict,estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,estatisticas_geral_totais_dict,numero_jogos,True) 
+            estatisticas_gerais_total_fig, estatisticas_gerais_total_fig_1,  grafico_barras_total_fig,radar_total_fig, historico_total_fig = get_athletes_total_figures(estatisticas_totais_dict,estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,estatisticas_geral_totais_dict,numero_jogos,mean_primeiro_tempo, mean_segundo_tempo,True) 
             #Figuras tab primeiro tempo
             estatisticas_gerais_pt_fig, estatisticas_gerais_pt_fig_1,  grafico_barras_pt_fig, radar_pt_fig= get_athletes_partial_figures(estatisticas_primeiro_tempo_dict,estatisticas_geral_pt_dict,numero_jogos,mean_primeiro_tempo,False) 
             #Figuras tab segundo tempo
@@ -112,7 +112,7 @@ with filter_container:
                 
                 mean_primeiro_tempo, mean_segundo_tempo,mean_total   = get_mean(estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,estatisticas_totais_dict,numero_jogos)
                 #Figuras tab total
-                estatisticas_gerais_total_fig, estatisticas_gerais_total_fig_1,  grafico_barras_total_fig,radar_total_fig, historico_total_fig = get_athletes_total_figures(estatisticas_totais_dict,estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,estatisticas_geral_totais_dict,numero_jogos,True) 
+                estatisticas_gerais_total_fig, estatisticas_gerais_total_fig_1,  grafico_barras_total_fig,radar_total_fig, historico_total_fig = get_athletes_total_figures(estatisticas_totais_dict,estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,estatisticas_geral_totais_dict,numero_jogos,mean_primeiro_tempo, mean_segundo_tempo,True) 
                 #Figuras tab primeiro tempo
                 estatisticas_gerais_pt_fig, estatisticas_gerais_pt_fig_1,  grafico_barras_pt_fig, radar_pt_fig= get_athletes_partial_figures(estatisticas_primeiro_tempo_dict,estatisticas_geral_pt_dict,numero_jogos,mean_primeiro_tempo,False) 
                 #Figuras tab segundo tempo
@@ -140,7 +140,7 @@ with filter_container:
                 estatisticas_geral_pt_dict,estatisticas_geral_st_dict, estatisticas_geral_totais_dict = extrair_estatisticas_gerais(dados_todos_jogadores_df)
                 estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict, estatisticas_totais_dict = extrair_estatisticas_gerais(dados_jogador_df)
                 #Figuras tab total
-                estatisticas_gerais_total_fig, estatisticas_gerais_total_fig_1,  grafico_barras_total_fig,radar_total_fig, historico_total_fig = get_athletes_total_figures(estatisticas_totais_dict,estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,estatisticas_geral_totais_dict,1,True) 
+                estatisticas_gerais_total_fig, estatisticas_gerais_total_fig_1,  grafico_barras_total_fig,radar_total_fig, historico_total_fig = get_athletes_total_figures(estatisticas_totais_dict,estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,estatisticas_geral_totais_dict,1,mean_primeiro_tempo, mean_segundo_tempo,True) 
                 #Figuras tab primeiro tempo
                 estatisticas_gerais_pt_fig, estatisticas_gerais_pt_fig_1,  grafico_barras_pt_fig, radar_pt_fig= get_athletes_partial_figures(estatisticas_primeiro_tempo_dict,estatisticas_geral_pt_dict,1,mean_primeiro_tempo,False) 
                 #Figuras tab segundo tempo
@@ -163,13 +163,15 @@ if filtro_jogador:
 
         with col3_pt:
             with st.container(border=True, height=500):
-                sub_column1_pt, sub_column2_pt = st.columns([1, 1])
+                sub_column0_pt,sub_column1_pt,sub_column2_pt = st.columns([0.2,1,1.5])
                 with sub_column1_pt:
                     if image_jogador is not None:
-                        st.image(image_jogador, width=250)
+                        st.image(image_jogador, width=150)
                 with sub_column2_pt:
-                    st.plotly_chart(estatisticas_gerais_pt_fig, use_container_width=False, key="estatisticas_gerais_pt_fig",config={'displayModeBar': False})
-                st.plotly_chart(estatisticas_gerais_pt_fig_1, use_container_width=False, key="estatisticas_gerais_pt_fig_1",config={'displayModeBar': False})
+                    with st.container(border=True, height=220):
+                       st.plotly_chart(estatisticas_gerais_pt_fig, use_container_width=False, key="estatisticas_gerais_pt_fig",config={'displayModeBar': False})
+                with st.container(border=True, height=230):       
+                    st.plotly_chart(estatisticas_gerais_pt_fig_1, use_container_width=False, key="estatisticas_gerais_pt_fig_1",config={'displayModeBar': False})
 
         with col4_pt:
             with st.container(border=True, height=500):
@@ -202,13 +204,15 @@ if filtro_jogador:
 
         with col3_st:
             with st.container(border=True, height=500):
-                sub_column1_st, sub_column2_st = st.columns([1, 1])
+                sub_column0_st,sub_column1_st,sub_column2_st = st.columns([0.2,1,1.5])
                 with sub_column1_st:
                     if image_jogador is not None:
-                        st.image(image_jogador, width=250)
+                        st.image(image_jogador, width=150)
                 with sub_column2_st:
-                    st.plotly_chart(estatisticas_gerais_st_fig, use_container_width=False, key="estatisticas_gerais_st_fig",config={'displayModeBar': False})
-                st.plotly_chart(estatisticas_gerais_st_fig_1, use_container_width=False, key="estatisticas_gerais_st_fig_1",config={'displayModeBar': False})
+                    with st.container(border=True, height=220):
+                        st.plotly_chart(estatisticas_gerais_st_fig, use_container_width=False, key="estatisticas_gerais_st_fig",config={'displayModeBar': False})
+                with st.container(border=True, height=230):        
+                    st.plotly_chart(estatisticas_gerais_st_fig_1, use_container_width=False, key="estatisticas_gerais_st_fig_1",config={'displayModeBar': False})
 
         with col4_st:
             with st.container(border=True, height=500):
@@ -242,17 +246,19 @@ if filtro_jogador:
 
         with col3:
             with st.container(border=True,height=500):
-                sub_column1,sub_column2 = st.columns([1,1])
+                sub_column0,sub_column1,sub_column2 = st.columns([0.2,1,1.5])
                 with sub_column1:
                 # Exibe a imagem do jogador na primeira coluna
                     if image_jogador is not None:
-                        st.image(image_jogador, width=250)
+                        st.image(image_jogador, width=150)
 
                 with sub_column2:
                     # Adiciona um espaçamento antes do gráfico, se necessário
                     # Renderiza o gráfico de estatísticas gerais
-                    st.plotly_chart(estatisticas_gerais_total_fig, use_container_width=False, key="estatisticas_gerais_total_fig",config={'displayModeBar': False})
-                st.plotly_chart(estatisticas_gerais_total_fig_1, use_container_width=False,key="estatisticas_gerais_pt_total_1",config={'displayModeBar': False})
+                    with st.container(border=True, height=220):
+                        st.plotly_chart(estatisticas_gerais_total_fig, use_container_width=False, key="estatisticas_gerais_total_fig",config={'displayModeBar': False})
+                with st.container(border=True, height=230):
+                    st.plotly_chart(estatisticas_gerais_total_fig_1, use_container_width=False,key="estatisticas_gerais_pt_total_1",config={'displayModeBar': False})
         
         with col4:
             with st.container(border=True,height=500):
