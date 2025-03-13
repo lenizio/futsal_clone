@@ -30,7 +30,7 @@ def adicionar_jogos_dialog(lista_equipes):
         
         if equipe_mandante and equipe_visitante:  # Verifica se ambas as equipes foram selecionadas
             data = st.date_input("Data do Jogo", value=datetime.today())
-            competicao = st.selectbox("Competição",('Liga','Metropolitano','Mineiro',"Amistoso"),index=None)
+            competicao = st.selectbox("Competição",('Liga','Metropolitano','Mineiro',"Amistoso","Copa Gramado"),index=None)
             fase = st.selectbox("Fase", ('Classificação','Final'), index = None)
             opcoes_rodada=[]
             if fase == "Classificação":

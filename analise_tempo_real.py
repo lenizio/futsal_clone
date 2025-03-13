@@ -11,7 +11,7 @@ from utils import *
 db_manager = get_db_manager()
 
 
-
+filtro_competicao_time = st.selectbox()
 # Inicializar session_state para os filtros
 if "filtro_competicao_time" not in st.session_state:
     st.session_state.filtro_competicao_time = None
@@ -22,6 +22,7 @@ if "filtro_partida_time" not in st.session_state:
 if st.button("Atualizar Dados"):
     # Apenas redefine os dados, mas mantém os filtros
     st.session_state.dados_atualizados = True
+
 
 
 # Container para os filtros
