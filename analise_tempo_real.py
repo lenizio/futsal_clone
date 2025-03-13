@@ -11,7 +11,6 @@ from utils import *
 db_manager = get_db_manager()
 
 
-filtro_competicao_time = st.selectbox()
 # Inicializar session_state para os filtros
 if "filtro_competicao_time" not in st.session_state:
     st.session_state.filtro_competicao_time = None
