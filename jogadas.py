@@ -120,7 +120,15 @@ else:
                 
                 with right_div:
                     st.markdown("<br><br><br><br><br><br><br><br>", unsafe_allow_html=True)
-                    st.markdown("<p style='font-size:50px;'>&nbsp;🢁</p>", unsafe_allow_html=True)
+                    st.markdown("""
+                                <style>
+                                    .arrow {
+                                        font-size: 50px;
+                                        text-align: center;
+                                    }
+                                </style>
+                                <div class="arrow">↑</div>
+                                """, unsafe_allow_html=True)
                     st.markdown("<p style='font-size:20px; font-weight:bold;'>ATAQUE</p>", unsafe_allow_html=True)
 
 
