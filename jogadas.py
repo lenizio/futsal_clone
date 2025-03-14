@@ -71,7 +71,7 @@ else:
                                 # Campos do formulário com valor padrão vazio
                                 jogadas = st.pills(
                                     "Jogada", 
-                                    ['FIN.C', 'FIN.E', 'FIN.T', 'GOL', 'ASSIST.', 'DES.C/P.','C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra'],
+                                    ['FIN.C', 'FIN.E', 'FIN.T', 'GOL', 'ASSIST.', 'DES.C/P.','C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra',"FIN.S"],
                                     selection_mode="multi"
                                 )
                                 jogador = st.pills("Selecione o jogador", options=opcoes_jogadores_list)

@@ -141,8 +141,8 @@ def extrair_estatisticas_jogadores(dados_jogador_df):
 
 def extrair_estatisticas_gerais(dados_jogador_df):
     
-    primeiro_tempo=dados_jogador_df.jogada.loc[dados_jogador_df["tempo"]=='1ºT'].value_counts().reindex(['FIN.C', 'FIN.E', 'FIN.T', 'GOL', 'ASSIST.', 'DES.C/P.','C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra'],fill_value=0)
-    segundo_tempo = dados_jogador_df.jogada.loc[dados_jogador_df["tempo"]=='2ºT'].value_counts().reindex(['FIN.C', 'FIN.E', 'FIN.T', 'GOL', 'ASSIST.', 'DES.C/P.','C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra'],fill_value=0)
+    primeiro_tempo=dados_jogador_df.jogada.loc[dados_jogador_df["tempo"]=='1ºT'].value_counts().reindex(['FIN.C', 'FIN.E', 'FIN.T', 'GOL', 'ASSIST.', 'DES.C/P.','C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra',"FIN.S"],fill_value=0)
+    segundo_tempo = dados_jogador_df.jogada.loc[dados_jogador_df["tempo"]=='2ºT'].value_counts().reindex(['FIN.C', 'FIN.E', 'FIN.T', 'GOL', 'ASSIST.', 'DES.C/P.','C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra',"FIN.S"],fill_value=0)
     estatisticas_jogadores_df = pd.DataFrame({"1ºT": primeiro_tempo, "2ºT": segundo_tempo})
     estatisticas_jogadores_df["Total"] = estatisticas_jogadores_df["1ºT"] + estatisticas_jogadores_df["2ºT"]
     estatisticas_jogadores_df.loc['FIN.TOTAL'] = estatisticas_jogadores_df.loc[['FIN.C', 'FIN.E', 'FIN.T']].sum()
@@ -437,6 +437,93 @@ def plotar_estatisticas_gerais_1(estatisticas_totais_dict):
 def plotar_grafico_barras(estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,mean_primeiro_tempo, mean_segundo_tempo):
     
     # Categorias a serem usadas no gráfico
+    categorias = ['FIN.C', 'FIN.E', 'FIN.T', 'DES.C/P.', 'C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra',"FIN.S"]
+    
+    # Valores para o 1º e 2º tempo
+    valores_1T = [estatisticas_primeiro_tempo_dict[categoria] for categoria in categorias]
+    valores_2T = [estatisticas_segundo_tempo_dict[categoria] for categoria in categorias]
+    
+    cores = ['rgba(0, 255, 0, 0.6)', 'rgba(255, 0, 0, 0.6)', 'rgba(255, 255, 0, 0.6)', 
+         'rgba(0, 0, 255, 0.6)', 'rgba(0, 255, 255, 0.6)', 'rgba(128, 0, 128, 0.6)', 'rgba(0, 60, 0, 1.0)','rgba(255, 165, 0, 1.0)','rgba(0, 255, 255, 0.6)' ]
+
+
+    # Criar a figura com 2 subgráficos (um para o 1º tempo e outro para o 2º tempo)
+    fig = make_subplots(
+        rows=1, cols=2,  # Definir a quantidade de linhas e colunas
+        subplot_titles=('1º Tempo', '2º Tempo'),  # Títulos para os subgráficos
+        shared_yaxes=True  # Eixo Y compartilhado para comparação
+    )
+
+    # Adicionar o gráfico de barras para o 1º Tempo no subgráfico (1, 1)
+    fig.add_trace(go.Bar(
+        x=categorias,
+        y=valores_1T,
+        name='1º Tempo',
+        marker_color=cores,
+        text=valores_1T,  
+        textposition='inside',
+        insidetextanchor='start',
+        textfont=dict(color="black")# Cor para as barras do 1º tempo
+    ), row=1, col=1)
+
+    # Adicionar o gráfico de barras para o 2º Tempo no subgráfico (1, 2)
+    fig.add_trace(go.Bar(
+        x=categorias,
+        y=valores_2T,
+        name='2º Tempo',
+        marker_color=cores,
+        text=valores_2T,  
+        textposition='inside',
+        insidetextanchor='start',
+        textfont=dict(color="black")# Cor para as barras do 2º tempo
+    ), row=1, col=2)
+    
+    #Adicionar média
+    fig.add_trace(go.Scatter(
+        x=categorias,
+        y=mean_primeiro_tempo,
+        mode="lines+markers+text",  # Exibe linha, pontos e valores
+        text=[f"{m:.2f}" for m in mean_primeiro_tempo],  # Exibir valores da média
+        textposition="top center",  # Posição dos valores da linha
+        marker=dict(size=8, color="white"),  # Personaliza os pontos
+        line=dict(width=2, color="cyan"),  # Personaliza a linha
+        name="Média Primeiro Tempo"  # Nome da legenda
+        
+    ),row=1, col=1)
+    
+    fig.add_trace(go.Scatter(
+        x=categorias,
+        y=mean_segundo_tempo,
+        mode="lines+markers+text",  # Exibe linha, pontos e valores
+        text=[f"{m:.2f}" for m in mean_segundo_tempo],  # Exibir valores da média
+        textposition="top center",  # Posição dos valores da linha
+        marker=dict(size=8, color="white"),  # Personaliza os pontos
+        line=dict(width=2, color="cyan"),  # Personaliza a linha
+        name="Média Segundo Tempo"  # Nome da legenda
+        
+    ),row=1, col=2)    
+    # Atualizar o layout para personalizar a aparência do gráfico
+    fig.update_layout(
+        title={
+            'text': 'Comparação de Ações por Tempo',
+            'x': 0.5,  # Centraliza o título
+            'xanchor': 'center',  # Garante que o título fique centralizado
+            'y': 0.95  # Distância do título do topo
+        },
+        xaxis_title='Tipo de Ação',
+        yaxis_title='Quantidade',
+        barmode='group',  # Agrupa as barras para comparação direta
+        template='plotly_dark',  # Tema visual
+        showlegend=False,  # Não mostra a legenda
+        height=450,  # Altura total da figura (ajustável conforme necessário)
+        margin=dict(t=80)  # Ajuste do espaço superior para o título
+    )
+
+    return fig
+
+def plotar_grafico_barras_jogador(estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,mean_primeiro_tempo, mean_segundo_tempo):
+    
+    # Categorias a serem usadas no gráfico
     categorias = ['FIN.C', 'FIN.E', 'FIN.T', 'DES.C/P.', 'C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra']
     
     # Valores para o 1º e 2º tempo
@@ -525,6 +612,64 @@ def plotar_grafico_barras_parcial(estatisticas_parciais_dict,mean):
     # Extração das estatísticas
     
     # Categorias a serem usadas no gráfico
+    categorias = ['FIN.C', 'FIN.E', 'FIN.T', 'DES.C/P.', 'C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra',"FIN.S"]
+    
+    # Valores para o 1º e 2º tempo
+    valores = np.array([estatisticas_parciais_dict[categoria] for categoria in categorias])
+   
+    
+    cores = ['rgba(0, 255, 0, 0.6)', 'rgba(255, 0, 0, 0.6)', 'rgba(255, 255, 0, 0.6)',
+             'rgba(0, 0, 255, 0.6)', 'rgba(0, 255, 255, 0.6)', 'rgba(128, 0, 128, 0.6)', 'rgba(0, 60, 0, 1.0)','rgba(255, 165, 0, 1.0)','rgba(0, 255, 255, 0.6)']
+
+
+    fig = go.Figure()
+    # Adicionar o gráfico de barras 
+    fig.add_trace(go.Bar(
+        x=categorias,
+        y=valores,
+        marker_color=cores,
+        text=valores,  
+        textposition='inside',
+        insidetextanchor='start',
+        textfont=dict(color="black")     
+    ))
+    
+    fig.add_trace(go.Scatter(
+        x=categorias,
+        y=mean,
+        mode="lines+markers+text",  # Exibe linha, pontos e valores
+        text=[f"{m:.2f}" for m in mean],  # Exibir valores da média
+        textposition="top center",  # Posição dos valores da linha
+        marker=dict(size=9, color="white"),  # Personaliza os pontos
+        line=dict(width=2, color="cyan"),  # Personaliza a linha
+        name="Média"  # Nome da legenda
+        
+    ))
+
+    
+    # Atualizar o layout para personalizar a aparência do gráfico
+    fig.update_layout(
+        title={
+            'text': 'Ações',
+            'x': 0.5,  # Centraliza o título
+            'xanchor': 'center',  # Garante que o título fique centralizado
+            'y': 0.95  # Distância do título do topo
+        },
+        xaxis_title='Tipo de Ação',
+        yaxis_title='Quantidade',
+        barmode='group',  # Agrupa as barras para comparação direta
+        template='plotly_dark',  # Tema visual
+        showlegend=False,  # Não mostra a legenda
+        height=450,  # Altura total da figura (ajustável conforme necessário)
+        margin=dict(t=60)  # Ajuste do espaço superior para o título
+    )
+
+    return fig
+
+def plotar_grafico_barras_parcial_jogador(estatisticas_parciais_dict,mean):
+    # Extração das estatísticas
+    
+    # Categorias a serem usadas no gráfico
     categorias = ['FIN.C', 'FIN.E', 'FIN.T', 'DES.C/P.', 'C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra']
     
     # Valores para o 1º e 2º tempo
@@ -578,8 +723,6 @@ def plotar_grafico_barras_parcial(estatisticas_parciais_dict,mean):
     )
 
     return fig
-
-
 
 
 def plotar_historico(estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,numero_jogos):
@@ -911,7 +1054,7 @@ def get_team_partial_figures(estatisticas_parciais_dict,numero_jogos,mean, get_h
     
 def get_mean(estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,estatisticas_totais_dict,numero_jogos):
    
-    categorias = ['FIN.C', 'FIN.E', 'FIN.T', 'DES.C/P.', 'C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra']
+    categorias = ['FIN.C', 'FIN.E', 'FIN.T', 'DES.C/P.', 'C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra',"FIN.S"]
     
     valores_totais = np.array([estatisticas_totais_dict[categoria] for categoria in categorias])
     mean_total = valores_totais/numero_jogos
@@ -931,7 +1074,7 @@ def get_athletes_total_figures(estatisticas_totais_dict,estatisticas_primeiro_te
     
     estatisticas_gerais_fig = plotar_estatisticas_gerais(estatisticas_totais_dict,numero_jogos)
     estatisticas_gerais_fig_1 = plotar_estatisticas_gerais_1(estatisticas_totais_dict)
-    grafico_barras_fig = plotar_grafico_barras(estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,mean_primeiro_tempo, mean_segundo_tempo,)
+    grafico_barras_fig = plotar_grafico_barras_jogador(estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,mean_primeiro_tempo, mean_segundo_tempo,)
     radar_fig = plotar_radar_chart(estatisticas_totais_dict,estatisticas_geral_totais_dict)
 
     if get_historico:
@@ -946,7 +1089,7 @@ def get_athletes_partial_figures(estatisticas_parciais_dict,estatisticas_geral_p
     
     estatisticas_gerais_fig = plotar_estatisticas_gerais(estatisticas_parciais_dict,numero_jogos)
     estatisticas_gerais_fig_1 = plotar_estatisticas_gerais_1(estatisticas_parciais_dict)
-    grafico_barras_fig = plotar_grafico_barras_parcial(estatisticas_parciais_dict,mean)
+    grafico_barras_fig = plotar_grafico_barras_parcial_jogador(estatisticas_parciais_dict,mean)
     radar_fig = plotar_radar_chart(estatisticas_parciais_dict,estatisticas_geral_parciais_dict)
     if get_historico:
     
