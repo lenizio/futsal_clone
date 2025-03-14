@@ -211,7 +211,7 @@ if not dados_todos_jogadores_df.empty:
     
     with total_tab:
     
-        col3, col4 = st.columns([1,1.6])
+        col3, col4 = st.columns([1,1.2])
 
         with col3:
             with st.container(border=True,height=500):

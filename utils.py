@@ -248,7 +248,8 @@ def plotar_estatisticas_gerais_time(estatisticas_totais_dict,numero_jogos):
         margin_t=7,
         margin_b= 0,
         height= 180,
-        margin_l=0
+        margin_l=10,
+        margin_r=10
         
         # Opcional: tema do gráfico
     )
@@ -335,7 +336,8 @@ def plotar_estatisticas_gerais(estatisticas_totais_dict,numero_jogos):
         margin_t=7,
         margin_b= 0,
         height= 180,
-        margin_l=0
+        margin_l=10,
+        margin_r=10
         
         # Opcional: tema do gráfico
     )
@@ -697,7 +699,7 @@ def plotar_historico_time(estatisticas_primeiro_tempo_dict, estatisticas_segundo
             texttemplate='%{value} (%{percent})',
             rotation=180,
             sort=False,
-            textposition="outside"
+            textposition="inside"
         ), row=row, col=col)
     
     fig.update_annotations(
