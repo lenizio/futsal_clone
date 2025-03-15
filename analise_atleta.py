@@ -194,7 +194,7 @@ if filtro_jogador:
                 colunas_jogadas_ofensivas = st.columns(3)
                 colunas_jogadas_defensivas = st.columns(5)
                 colunas= {"Ataque": colunas_jogadas_ofensivas, "Defesa":colunas_jogadas_defensivas}  
-                figs= get_plots_plays_localization_partial(filtro_jogada_pt,dados_todos_jogadores_df,"Primeiro Tempo")
+                figs= get_plots_plays_localization_partial(filtro_jogada_pt,dados_jogador_df,"Primeiro Tempo")
                 
                 for i,fig in enumerate(figs):
                     colunas[filtro_jogada_pt][i].plotly_chart(fig,key=f"localizazao_{i}_time_tab_pt",config={'displayModeBar': False})
@@ -235,7 +235,7 @@ if filtro_jogador:
                 colunas_jogadas_ofensivas = st.columns(3)
                 colunas_jogadas_defensivas = st.columns(5)
                 colunas= {"Ataque": colunas_jogadas_ofensivas, "Defesa":colunas_jogadas_defensivas}  
-                figs= get_plots_plays_localization_partial(filtro_jogada_st,dados_todos_jogadores_df,"Segundo Tempo")
+                figs= get_plots_plays_localization_partial(filtro_jogada_st,dados_jogador_df,"Segundo Tempo")
                 
                 for i,fig in enumerate(figs):
                     colunas[filtro_jogada_st][i].plotly_chart(fig,key=f"localizazao_{i}_time_tab_st",config={'displayModeBar': False})
