@@ -7,7 +7,6 @@ import atexit
 
 
 db_manager = get_db_manager()
-
 lista_equipes = db_manager.listar_equipes()
 lista_jogos = db_manager.listar_jogos()
 

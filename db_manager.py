@@ -256,7 +256,7 @@ class DBManager:
         self.cursor.execute(
             """
             SELECT * FROM jogos
-            WHERE (equipe_mandante_id = %s OR equipe_visitante_id = %s) AND competicao = %s
+            WHERE (equipe_mandante_id = %s OR equipe_visitante_id = %s) AND competicao = %s lksdjfkldsfj
             """,
             (equipe_id, equipe_id, competicao)
         )
@@ -290,7 +290,7 @@ class DBManager:
                     jogadas.y_loc
                 FROM
                     jogos
-                INNER JOIN
+                LEFT JOIN
                     jogadas
                 ON
                     jogos.id = jogadas.jogo_id 
