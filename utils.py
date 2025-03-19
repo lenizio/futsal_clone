@@ -973,7 +973,7 @@ def create_futsal_court(titulo, heatmap_data, line_color='white'):
     showscale=False,
     text=heatmap_data.astype(str),  # Mostra os valores
     texttemplate="%{text}",  # Define o formato dos textos
-    textfont={"size": 14, "color": "white"}  # Ajusta o tamanho e cor dos textos
+    textfont={"size": 17, "color": "white"}  # Ajusta o tamanho e cor dos textos
 )
     
     fig.add_trace(heatmap_trace)
@@ -986,6 +986,8 @@ def create_futsal_court(titulo, heatmap_data, line_color='white'):
         plot_bgcolor='#121212',
         template="plotly_dark",
         height=350,
+        margin_t=10,
+        margin_b= 10,
 
     )
     

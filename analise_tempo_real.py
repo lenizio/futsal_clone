@@ -195,14 +195,37 @@ if not dados_time_df.empty:
                 )        
         
         if filtro_jogada_time:
-            with st.container(border=True, height=400):
-                colunas_jogadas_ofensivas = st.columns(3)
-                colunas_jogadas_defensivas = st.columns(6)
-                colunas= {"Ataque": colunas_jogadas_ofensivas, "Defesa":colunas_jogadas_defensivas}  
-                figs= get_plots_plays_localization_partial(filtro_jogada_time,dados_time_df,"Segundo Tempo")
+            # with st.container(border=True, height=400):
+                # colunas_jogadas_ofensivas = st.columns(3)
+                # colunas_jogadas_defensivas = st.columns(6)
+                # colunas= {"Ataque": colunas_jogadas_ofensivas, "Defesa":colunas_jogadas_defensivas}  
+                # figs= get_plots_plays_localization_partial(filtro_jogada_time,dados_time_df,"Segundo Tempo")
                 
-                for i,fig in enumerate(figs):
-                    colunas[filtro_jogada_time][i].plotly_chart(fig,key=f"localizazao_{i}_time_tab_st",config={'displayModeBar': False})
+                # for i,fig in enumerate(figs):
+                #     colunas[filtro_jogada_time][i].plotly_chart(fig,key=f"localizazao_{i}_time_tab_st",config={'displayModeBar': False})
+                    
+                if filtro_jogada_time == "Ataque":
+                    with st.container(border=True, height=400):
+                        colunas_jogadas_ofensivas = st.columns(3)
+                        figs= get_plots_plays_localization_partial(filtro_jogada_time,dados_time_df,"Segundo Tempo")
+                        for i,fig in enumerate(figs):
+                            colunas_jogadas_ofensivas[i].plotly_chart(fig,key=f"localizazao_{i}_time_tab_st",config={'displayModeBar': False})
+                if filtro_jogada_time == "Defesa":
+                    with st.container(border=True, height=750):
+                        colunas_jogadas_defensivas_1 = st.columns(3)
+                        colunas_jogadas_defensivas_2 = st.columns(3)
+                        figs= get_plots_plays_localization_partial(filtro_jogada_time,dados_time_df,"Segundo Tempo")
+                        
+                        for i in range(3):
+                            colunas_jogadas_defensivas_1[i].plotly_chart(figs[i],key=f"localizazao_{i}_time_tab_st",config={'displayModeBar': False})
+                            colunas_jogadas_defensivas_2[i].plotly_chart(figs[i+3],key=f"localizazao_1{i}_time_tab_st",config={'displayModeBar': False})
+                        
+
+                    
+
+                     
+
+                        
                 
                 
                 # localizacao_jogadas = extrair_estatisticas_localizacao(dados_time_df,filtro_jogada_time)
