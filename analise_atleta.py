@@ -39,21 +39,18 @@ options_partidas = []
 estatisticas_gerais_total_fig = go.Figure()
 estatisticas_gerais_total_fig_1 = go.Figure()
 grafico_barras_total_fig = go.Figure()
-historico_total_fig = go.Figure()
 radar_total_fig = go.Figure()
 
 #Figuras tab primeiro tempo
 estatisticas_gerais_pt_fig = go.Figure()
 estatisticas_gerais_pt_fig_1 = go.Figure()
 grafico_barras_pt_fig = go.Figure()
-historico_pt_fig = go.Figure()
 radar_pt_fig = go.Figure()
 
 #Figuras tab segundo tempo
 estatisticas_gerais_st_fig = go.Figure()
 estatisticas_gerais_st_fig_1 = go.Figure()
 grafico_barras_st_fig = go.Figure()
-historico_st_fig = go.Figure()
 radar_st_fig = go.Figure()
 
 with filter_container:
@@ -75,13 +72,14 @@ with filter_container:
             dados_jogador_df = dados_jogador_df[dados_jogador_df['jogador_nome'] == filtro_jogador]
             estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict, estatisticas_totais_dict = extrair_estatisticas_gerais(dados_jogador_df)
             
-            mean_primeiro_tempo, mean_segundo_tempo,mean_total   = get_mean(estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,estatisticas_totais_dict,numero_jogos)
+            #Extraindo média
+            mean_pt, mean_st,mean_total   = get_mean(dados_jogador_df)
             #Figuras tab total
-            estatisticas_gerais_total_fig, estatisticas_gerais_total_fig_1,  grafico_barras_total_fig,radar_total_fig, historico_total_fig = get_athletes_total_figures(estatisticas_totais_dict,estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,estatisticas_geral_totais_dict,numero_jogos,mean_primeiro_tempo, mean_segundo_tempo,True) 
+            estatisticas_gerais_total_fig, estatisticas_gerais_total_fig_1,  grafico_barras_total_fig,radar_total_fig = get_athletes_total_figures(estatisticas_totais_dict,estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,estatisticas_geral_totais_dict,numero_jogos,mean_pt, mean_st) 
             #Figuras tab primeiro tempo
-            estatisticas_gerais_pt_fig, estatisticas_gerais_pt_fig_1,  grafico_barras_pt_fig, radar_pt_fig= get_athletes_partial_figures(estatisticas_primeiro_tempo_dict,estatisticas_geral_pt_dict,numero_jogos,mean_primeiro_tempo,False) 
+            estatisticas_gerais_pt_fig, estatisticas_gerais_pt_fig_1,  grafico_barras_pt_fig, radar_pt_fig= get_athletes_partial_figures(estatisticas_primeiro_tempo_dict,estatisticas_geral_pt_dict,numero_jogos,mean_pt) 
             #Figuras tab segundo tempo
-            estatisticas_gerais_st_fig, estatisticas_gerais_st_fig_1,  grafico_barras_st_fig,radar_st_fig = get_athletes_partial_figures(estatisticas_segundo_tempo_dict,estatisticas_geral_st_dict,numero_jogos,mean_segundo_tempo,False)
+            estatisticas_gerais_st_fig, estatisticas_gerais_st_fig_1,  grafico_barras_st_fig,radar_st_fig = get_athletes_partial_figures(estatisticas_segundo_tempo_dict,estatisticas_geral_st_dict,numero_jogos,mean_st)
             
             
             options_competicao = dados_jogador_df["competicao"].unique().tolist()
@@ -110,13 +108,14 @@ with filter_container:
                 estatisticas_geral_pt_dict,estatisticas_geral_st_dict,  estatisticas_geral_totais_dict = extrair_estatisticas_gerais(dados_todos_jogadores_df)
                 estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict, estatisticas_totais_dict = extrair_estatisticas_gerais(dados_jogador_df)
                 
-                mean_primeiro_tempo, mean_segundo_tempo,mean_total   = get_mean(estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,estatisticas_totais_dict,numero_jogos)
+                #Extraindo média
+                mean_pt, mean_st,mean_total   = get_mean(dados_jogador_df)
                 #Figuras tab total
-                estatisticas_gerais_total_fig, estatisticas_gerais_total_fig_1,  grafico_barras_total_fig,radar_total_fig, historico_total_fig = get_athletes_total_figures(estatisticas_totais_dict,estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,estatisticas_geral_totais_dict,numero_jogos,mean_primeiro_tempo, mean_segundo_tempo,True) 
+                estatisticas_gerais_total_fig, estatisticas_gerais_total_fig_1,  grafico_barras_total_fig,radar_total_fig = get_athletes_total_figures(estatisticas_totais_dict,estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,estatisticas_geral_totais_dict,numero_jogos,mean_pt, mean_st) 
                 #Figuras tab primeiro tempo
-                estatisticas_gerais_pt_fig, estatisticas_gerais_pt_fig_1,  grafico_barras_pt_fig, radar_pt_fig= get_athletes_partial_figures(estatisticas_primeiro_tempo_dict,estatisticas_geral_pt_dict,numero_jogos,mean_primeiro_tempo,False) 
+                estatisticas_gerais_pt_fig, estatisticas_gerais_pt_fig_1,  grafico_barras_pt_fig, radar_pt_fig= get_athletes_partial_figures(estatisticas_primeiro_tempo_dict,estatisticas_geral_pt_dict,numero_jogos,mean_pt) 
                 #Figuras tab segundo tempo
-                estatisticas_gerais_st_fig, estatisticas_gerais_st_fig_1,  grafico_barras_st_fig,radar_st_fig = get_athletes_partial_figures(estatisticas_segundo_tempo_dict,estatisticas_geral_st_dict,numero_jogos,mean_segundo_tempo,False)
+                estatisticas_gerais_st_fig, estatisticas_gerais_st_fig_1,  grafico_barras_st_fig,radar_st_fig = get_athletes_partial_figures(estatisticas_segundo_tempo_dict,estatisticas_geral_st_dict,numero_jogos,mean_st)
                           
                 
                 options_partidas = dados_jogador_df["partida"].unique().tolist()
@@ -135,16 +134,18 @@ with filter_container:
             )
             if filtro_partida:
                 st.session_state.filtro_partida = filtro_partida
+                #Extraindo média sem o jogo atual
+                mean_pt_sem_jogo_atual, mean_st_sem_jogo_atual,mean_total_sem_jogo_atual  = get_mean(dados_jogador_df[dados_jogador_df['partida'] != filtro_partida])
                 dados_jogador_df = dados_jogador_df[dados_jogador_df['partida'] == filtro_partida]
                 dados_todos_jogadores_df = dados_todos_jogadores_df[dados_todos_jogadores_df['partida'] == filtro_partida]
                 estatisticas_geral_pt_dict,estatisticas_geral_st_dict, estatisticas_geral_totais_dict = extrair_estatisticas_gerais(dados_todos_jogadores_df)
                 estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict, estatisticas_totais_dict = extrair_estatisticas_gerais(dados_jogador_df)
                 #Figuras tab total
-                estatisticas_gerais_total_fig, estatisticas_gerais_total_fig_1,  grafico_barras_total_fig,radar_total_fig, historico_total_fig = get_athletes_total_figures(estatisticas_totais_dict,estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,estatisticas_geral_totais_dict,1,mean_primeiro_tempo, mean_segundo_tempo,True) 
+                estatisticas_gerais_total_fig, estatisticas_gerais_total_fig_1,  grafico_barras_total_fig,radar_total_fig = get_athletes_total_figures(estatisticas_totais_dict,estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,estatisticas_geral_totais_dict,1,mean_pt, mean_st) 
                 #Figuras tab primeiro tempo
-                estatisticas_gerais_pt_fig, estatisticas_gerais_pt_fig_1,  grafico_barras_pt_fig, radar_pt_fig= get_athletes_partial_figures(estatisticas_primeiro_tempo_dict,estatisticas_geral_pt_dict,1,mean_primeiro_tempo,False) 
+                estatisticas_gerais_pt_fig, estatisticas_gerais_pt_fig_1,  grafico_barras_pt_fig, radar_pt_fig= get_athletes_partial_figures(estatisticas_primeiro_tempo_dict,estatisticas_geral_pt_dict,1,mean_pt_sem_jogo_atual) 
                 #Figuras tab segundo tempo
-                estatisticas_gerais_st_fig, estatisticas_gerais_st_fig_1,  grafico_barras_st_fig,radar_st_fig = get_athletes_partial_figures(estatisticas_segundo_tempo_dict,estatisticas_geral_st_dict,1,mean_segundo_tempo,False)
+                estatisticas_gerais_st_fig, estatisticas_gerais_st_fig_1,  grafico_barras_st_fig,radar_st_fig = get_athletes_partial_figures(estatisticas_segundo_tempo_dict,estatisticas_geral_st_dict,1,mean_st_sem_jogo_atual)
             
 
 
@@ -265,11 +266,9 @@ if filtro_jogador:
                 st.plotly_chart(grafico_barras_total_fig, use_container_width=True, key="grafico_barras_total",config={'displayModeBar': False})          
                     
         col5, col6 = st.columns(2)
-        with col5:
-            with st.container(border=True,height=500):
-                st.plotly_chart(historico_total_fig, use_container_width=True, key="grafico_historico_total",config={'displayModeBar': False})
+       
 
-        with col6:
+        with col5:
             with st.container(border=True, height=500):
                 
                 st.plotly_chart(radar_total_fig, use_container_width=True, key="grafico_radar_total",config={'displayModeBar': False})

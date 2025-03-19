@@ -218,8 +218,8 @@ def plotar_estatisticas_gerais_time(estatisticas_totais_dict,numero_jogos):
         mode="number",
         value=estatisticas_totais_dict['GOL'] / numero_jogos if numero_jogos > 0 else 0,
         domain={'row': 2, 'column': 0},
-        title={"text": "Gols/Jogo", "font": {"size": 12}},
-        number={"font": {"size": 20}}
+        title={"text": "Média Gols", "font": {"size": 12}},
+        number={"font": {"size": 20}, "valueformat": ".1f"}
     ))
     
      # Indicador: Finalizações Certas
@@ -1023,37 +1023,27 @@ def pegar_imagem_jogador(image_id):
         return None
 
 
-def get_team_total_figures(estatisticas_totais_dict,estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,numero_jogos,mean_primeiro_tempo, mean_segundo_tempo, get_historico):
+def get_team_total_figures(estatisticas_totais_dict,estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,numero_jogos,mean_primeiro_tempo, mean_segundo_tempo):
     
     estatisticas_gerais_fig = plotar_estatisticas_gerais_time(estatisticas_totais_dict,numero_jogos)
     estatisticas_gerais_fig_1 = plotar_estatisticas_gerais_1(estatisticas_totais_dict)
     grafico_barras_fig = plotar_grafico_barras(estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,mean_primeiro_tempo, mean_segundo_tempo)
-    
-    if get_historico:
-    
-        historico_fig = plotar_historico_time(estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,numero_jogos)
         
-        return estatisticas_gerais_fig, estatisticas_gerais_fig_1, grafico_barras_fig,historico_fig
-    else:
-        return estatisticas_gerais_fig, estatisticas_gerais_fig_1, grafico_barras_fig
+    return estatisticas_gerais_fig, estatisticas_gerais_fig_1, grafico_barras_fig
     
-def get_team_partial_figures(estatisticas_parciais_dict,numero_jogos,mean, get_historico):
+def get_team_partial_figures(estatisticas_parciais_dict,numero_jogos,mean):
     
     estatisticas_gerais_fig = plotar_estatisticas_gerais_time(estatisticas_parciais_dict,numero_jogos)
     estatisticas_gerais_fig_1 = plotar_estatisticas_gerais_1(estatisticas_parciais_dict)
     grafico_barras_fig = plotar_grafico_barras_parcial(estatisticas_parciais_dict,mean)
     
-    if get_historico:
-    
-        historico_fig = plotar_grafico_barras_parcial(estatisticas_parciais_dict)
-        
-        return estatisticas_gerais_fig, estatisticas_gerais_fig_1, grafico_barras_fig,historico_fig
-    else:
-        return estatisticas_gerais_fig, estatisticas_gerais_fig_1, grafico_barras_fig    
+    return estatisticas_gerais_fig, estatisticas_gerais_fig_1, grafico_barras_fig    
     
     
-def get_mean(estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,estatisticas_totais_dict,numero_jogos):
-   
+def get_mean(df):
+    
+    numero_jogos = int(df["jogo_id"].nunique()) 
+    estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,estatisticas_totais_dict= extrair_estatisticas_gerais(df)
     categorias = ['FIN.C', 'FIN.E', 'FIN.T', 'DES.C/P.', 'C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra',"FIN.S"]
     
     valores_totais = np.array([estatisticas_totais_dict[categoria] for categoria in categorias])
@@ -1070,40 +1060,29 @@ def get_mean(estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,e
 
 
 
-def get_athletes_total_figures(estatisticas_totais_dict,estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,estatisticas_geral_totais_dict,numero_jogos,mean_primeiro_tempo, mean_segundo_tempo, get_historico):
+def get_athletes_total_figures(estatisticas_totais_dict,estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,estatisticas_geral_totais_dict,numero_jogos,mean_primeiro_tempo, mean_segundo_tempo):
     
     estatisticas_gerais_fig = plotar_estatisticas_gerais(estatisticas_totais_dict,numero_jogos)
     estatisticas_gerais_fig_1 = plotar_estatisticas_gerais_1(estatisticas_totais_dict)
     grafico_barras_fig = plotar_grafico_barras_jogador(estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,mean_primeiro_tempo, mean_segundo_tempo,)
     radar_fig = plotar_radar_chart(estatisticas_totais_dict,estatisticas_geral_totais_dict)
 
-    if get_historico:
+    return estatisticas_gerais_fig, estatisticas_gerais_fig_1, grafico_barras_fig,radar_fig
     
-        historico_fig = plotar_historico(estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,numero_jogos)
-        
-        return estatisticas_gerais_fig, estatisticas_gerais_fig_1, grafico_barras_fig,radar_fig,historico_fig
-    else:
-        return estatisticas_gerais_fig, estatisticas_gerais_fig_1, grafico_barras_fig,radar_fig
-    
-def get_athletes_partial_figures(estatisticas_parciais_dict,estatisticas_geral_parciais_dict,numero_jogos,mean, get_historico):
+def get_athletes_partial_figures(estatisticas_parciais_dict,estatisticas_geral_parciais_dict,numero_jogos,mean):
     
     estatisticas_gerais_fig = plotar_estatisticas_gerais(estatisticas_parciais_dict,numero_jogos)
     estatisticas_gerais_fig_1 = plotar_estatisticas_gerais_1(estatisticas_parciais_dict)
     grafico_barras_fig = plotar_grafico_barras_parcial_jogador(estatisticas_parciais_dict,mean)
     radar_fig = plotar_radar_chart(estatisticas_parciais_dict,estatisticas_geral_parciais_dict)
-    if get_historico:
     
-        historico_fig = plotar_grafico_barras_parcial(estatisticas_parciais_dict)
-        
-        return estatisticas_gerais_fig, estatisticas_gerais_fig_1, grafico_barras_fig,radar_fig,historico_fig
-    else:
-        return estatisticas_gerais_fig, estatisticas_gerais_fig_1, grafico_barras_fig,radar_fig 
+    return estatisticas_gerais_fig, estatisticas_gerais_fig_1, grafico_barras_fig,radar_fig 
     
     
 def get_plots_plays_localization_partial(filtro_jogada,data,tempo):
     
     
-    jogadas= {"Ataque":['FIN.C', 'FIN.E', 'FIN.T'], "Defesa":['DES.C/P.','C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra']}
+    jogadas= {"Ataque":['FIN.C', 'FIN.E', 'FIN.T'], "Defesa":['DES.C/P.','C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra','FIN.S']}
     jogadas = jogadas[filtro_jogada]
     figs=[]
     
