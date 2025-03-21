@@ -179,10 +179,9 @@ if filtro_jogador:
             with st.container(border=True, height=500):
                 st.plotly_chart(grafico_barras_pt_fig, use_container_width=True, key="grafico_barras_pt",config={'displayModeBar': False})
 
-        col5_pt, col6_pt = st.columns(2)
-        with col5_pt:
-            with st.container(border=True, height=500):
-                st.plotly_chart(radar_pt_fig, use_container_width=True, key="grafico_radar_pt",config={'displayModeBar': False})
+      
+        with st.container(border=True, height=500):
+            st.plotly_chart(radar_pt_fig, use_container_width=True, key="grafico_radar_pt",config={'displayModeBar': False})
 
         filtro_jogada_pt = st.selectbox(
             "Selecione o tipo de jogada",
@@ -224,10 +223,9 @@ if filtro_jogador:
             with st.container(border=True, height=500):
                 st.plotly_chart(grafico_barras_st_fig, use_container_width=True, key="grafico_barras_st",config={'displayModeBar': False})
 
-        col5_st, col6_st = st.columns(2)
-        with col5_st:
-            with st.container(border=True, height=500):
-                st.plotly_chart(radar_st_fig, use_container_width=True, key="grafico_radar_st",config={'displayModeBar': False})
+    
+        with st.container(border=True, height=500):
+            st.plotly_chart(radar_st_fig, use_container_width=True, key="grafico_radar_st",config={'displayModeBar': False})
 
         filtro_jogada_st = st.selectbox(
             "Selecione o tipo de  jogada",
@@ -273,13 +271,8 @@ if filtro_jogador:
             with st.container(border=True,height=500):
                 st.plotly_chart(grafico_barras_total_fig, use_container_width=True, key="grafico_barras_total",config={'displayModeBar': False})          
                     
-        col5, col6 = st.columns(2)
-       
-
-        with col5:
-            with st.container(border=True, height=500):
-                
-                st.plotly_chart(radar_total_fig, use_container_width=True, key="grafico_radar_total",config={'displayModeBar': False})
+        with st.container(border=True, height=500):
+            st.plotly_chart(radar_total_fig, use_container_width=True, key="grafico_radar_total",config={'displayModeBar': False})
         
         
         

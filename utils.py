@@ -910,7 +910,8 @@ def plotar_radar_chart(estatisticas_totais_dict, estatisticas_geral_totais_dict)
             ),
         ),
         showlegend=False,
-        template="plotly_dark"  # Tema visual
+        template="plotly_dark",  # Tema visual
+        
     )
     
     return fig
