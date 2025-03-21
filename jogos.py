@@ -37,7 +37,7 @@ def adicionar_jogos_dialog(lista_equipes):
                 opcoes_rodada = [f"{i}ª Rodada" for i in range(1, 24)]
             elif fase == "Final":
                 # Opções específicas para a fase final
-                opcoes_rodada = ["Oitavas","Quartas","Semifinal", "Final"]
+                opcoes_rodada = ["Primeira Fase","Segunda Fase","Oitavas","Quartas","Semifinal", "Final"]
 
                 # Selectbox para escolher a rodada
             rodada = st.selectbox("Rodada", opcoes_rodada, index = None)
