@@ -985,7 +985,7 @@ def create_futsal_court(titulo, heatmap_data, line_color='white'):
         showlegend=False,
         plot_bgcolor='#121212',
         template="plotly_dark",
-        height=350,
+        height=250,
         margin_t=10,
         margin_b= 10,
 
@@ -1081,7 +1081,7 @@ def get_athletes_partial_figures(estatisticas_parciais_dict,estatisticas_geral_p
     return estatisticas_gerais_fig, estatisticas_gerais_fig_1, grafico_barras_fig,radar_fig 
     
     
-def get_plots_plays_localization_partial(filtro_jogada,data,tempo):
+def get_plots_plays_localization_team(filtro_jogada,data,tempo):
     
     
     jogadas= {"Ataque":['FIN.C', 'FIN.E', 'FIN.T'], "Defesa":['DES.C/P.','C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra','FIN.S']}
@@ -1097,21 +1097,22 @@ def get_plots_plays_localization_partial(filtro_jogada,data,tempo):
     
     return figs
 
-def get_plots_plays_localization(data,tempo, colunas_ataque, colunas_defesa):
+def get_plots_plays_localization_athletes(filtro_jogada,data,tempo):
     
     
-    ataque=['FIN.C', 'FIN.E', 'FIN.T'] 
-    defesa=['DES.C/P.','C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra']        
+    jogadas= {"Ataque":['FIN.C', 'FIN.E', 'FIN.T'], "Defesa":['DES.C/P.','C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra']}
+    jogadas = jogadas[filtro_jogada]
+    figs=[]
     
-    for i,jogada in enumerate(ataque):
+    for jogada in jogadas:
         localizacao_jogadas = extrair_estatisticas_localizacao(data,jogada)
         fig = create_futsal_court(jogada,localizacao_jogadas[tempo])
-        colunas_ataque[i].plotly_chart(fig,key=f"localizazao_{jogada}_time_tab_st")
+        figs.append(fig)
+        
     
-    for i,jogada in enumerate(defesa):
-        localizacao_jogadas = extrair_estatisticas_localizacao(data,jogada)
-        fig = create_futsal_court(jogada,localizacao_jogadas[tempo])
-        colunas_defesa[i].plotly_chart(fig,key=f"localizazao_{jogada}_time_tab_st")            
+    
+    return figs
+   
     
     
 def create_futsal_subplots(tipo, data, tempo, rows, cols):

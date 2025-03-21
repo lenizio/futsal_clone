@@ -83,6 +83,7 @@ with filter_container:
                 #Figuras tab segundo tempo
                 estatisticas_gerais_st_fig, estatisticas_gerais_st_fig_1,  grafico_barras_st_fig = get_team_partial_figures(estatisticas_geral_segundo_tempo_dict,numero_jogos,mean_st)
                 options_partidas = dados_time_df["partida"].unique().tolist()
+                options_partidas.reverse()
                 
                 if st.session_state.filtro_partida_time is not None and st.session_state.filtro_partida_time not in options_partidas:
                     filtro_partida_time = None
@@ -147,24 +148,32 @@ if not dados_time_df.empty:
                     key="filtro_jogada_time_tab_pt"
                 )       
         
-        if filtro_jogada_time:
-            with st.container(border=True, height=400):
+        # if filtro_jogada_time:
+            # with st.container(border=True, height=400):
+            #     colunas_jogadas_ofensivas = st.columns(3)
+            #     colunas_jogadas_defensivas = st.columns(6)
+            #     colunas= {"Ataque": colunas_jogadas_ofensivas, "Defesa":colunas_jogadas_defensivas}  
+            #     figs= get_plots_plays_localization_partial(filtro_jogada_time,dados_time_df,"Primeiro Tempo")
                 
-                # fig = create_futsal_subplots(filtro_jogada_time,dados_time_df,"Primeiro Tempo",1,3)
-                # st.plotly_chart(fig,key=f"localizazao_time_tab_pt")
+            #     for i,fig in enumerate(figs):
+            #         colunas[filtro_jogada_time][i].plotly_chart(fig,key=f"localizazao_{i}_time_tab_pt",config={'displayModeBar': False})
+        if filtro_jogada_time == "Ataque":
+            with st.container(border=True, height=300):
                 colunas_jogadas_ofensivas = st.columns(3)
-                colunas_jogadas_defensivas = st.columns(6)
-                colunas= {"Ataque": colunas_jogadas_ofensivas, "Defesa":colunas_jogadas_defensivas}  
-                figs= get_plots_plays_localization_partial(filtro_jogada_time,dados_time_df,"Primeiro Tempo")
-                
+                figs= get_plots_plays_localization_team(filtro_jogada_time,dados_time_df,"Primeiro Tempo")
                 for i,fig in enumerate(figs):
-                    colunas[filtro_jogada_time][i].plotly_chart(fig,key=f"localizazao_{i}_time_tab_pt",config={'displayModeBar': False})
-
-                    
-                # localizacao_jogadas = extrair_estatisticas_localizacao(dados_time_df,filtro_jogada_time)
-                # fig_localizacao_pt = create_futsal_court(filtro_jogada_time,localizacao_jogadas["Primeiro Tempo"])
-                # st.plotly_chart(fig_localizacao_pt,key="localizazao_jogada_time_tab_pt")
+                    colunas_jogadas_ofensivas[i].plotly_chart(fig,key=f"localizazao_{i}_time_tab_pt",config={'displayModeBar': False})
+        if filtro_jogada_time == "Defesa":
+            with st.container(border=True, height=600):
+                colunas_jogadas_defensivas_1 = st.columns(3)
+                colunas_jogadas_defensivas_2 = st.columns(3)
+                figs= get_plots_plays_localization_team(filtro_jogada_time,dados_time_df,"Primeiro Tempo")
                 
+                for i in range(3):
+                            colunas_jogadas_defensivas_1[i].plotly_chart(figs[i],key=f"localizazao_{i}_time_tab_pt",config={'displayModeBar': False})
+                            colunas_jogadas_defensivas_2[i].plotly_chart(figs[i+3],key=f"localizazao_1{i}_time_tab_pt",config={'displayModeBar': False})
+                        
+              
     with segundo_tempo_tab:
         
         col3, col4 = st.columns([1,1])
@@ -205,16 +214,16 @@ if not dados_time_df.empty:
                 #     colunas[filtro_jogada_time][i].plotly_chart(fig,key=f"localizazao_{i}_time_tab_st",config={'displayModeBar': False})
                     
                 if filtro_jogada_time == "Ataque":
-                    with st.container(border=True, height=400):
+                    with st.container(border=True, height=300):
                         colunas_jogadas_ofensivas = st.columns(3)
-                        figs= get_plots_plays_localization_partial(filtro_jogada_time,dados_time_df,"Segundo Tempo")
+                        figs= get_plots_plays_localization_team(filtro_jogada_time,dados_time_df,"Segundo Tempo")
                         for i,fig in enumerate(figs):
                             colunas_jogadas_ofensivas[i].plotly_chart(fig,key=f"localizazao_{i}_time_tab_st",config={'displayModeBar': False})
                 if filtro_jogada_time == "Defesa":
-                    with st.container(border=True, height=750):
+                    with st.container(border=True, height=600):
                         colunas_jogadas_defensivas_1 = st.columns(3)
                         colunas_jogadas_defensivas_2 = st.columns(3)
-                        figs= get_plots_plays_localization_partial(filtro_jogada_time,dados_time_df,"Segundo Tempo")
+                        figs= get_plots_plays_localization_team(filtro_jogada_time,dados_time_df,"Segundo Tempo")
                         
                         for i in range(3):
                             colunas_jogadas_defensivas_1[i].plotly_chart(figs[i],key=f"localizazao_{i}_time_tab_st",config={'displayModeBar': False})
@@ -261,7 +270,7 @@ if not dados_time_df.empty:
                 )       
         
         if filtro_jogada_time:
-            with st.container(border=True, height=400):
+            with st.container(border=True, height=300):
                 colunas = st.columns(3) 
                 localizacao_jogadas = extrair_estatisticas_localizacao(dados_time_df,filtro_jogada_time)
                 
