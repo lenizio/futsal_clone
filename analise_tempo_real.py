@@ -29,6 +29,7 @@ filter_container = st.container()
 
 # Inicialização das variáveis
 dados_time_df = extrair_dataframe_jogador(db_manager)
+dados_time_total_df = dados_time_df.copy()
 
 options_competicao = []
 options_partidas = []
@@ -75,7 +76,6 @@ with filter_container:
                 dados_time_df = dados_time_df[dados_time_df['competicao'] == filtro_competicao_time]
                 numero_jogos = int(dados_time_df["jogo_id"].nunique()) if int(dados_time_df["jogo_id"].nunique())>0 else 1
                 estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict, estatisticas_geral_totais_dict = extrair_estatisticas_gerais(dados_time_df)
-                mean_pt, mean_st,mean_total   = get_mean(dados_time_df)
                 #Figuras tab total
                 estatisticas_gerais_total_fig, estatisticas_gerais_total_fig_1,  grafico_barras_total_fig = get_team_total_figures(estatisticas_geral_totais_dict,estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict,numero_jogos,mean_pt, mean_st) 
                 #Figuras tab primeiro tempo
@@ -100,7 +100,7 @@ with filter_container:
             if filtro_partida_time:
                 st.session_state.filtro_partida_time = filtro_partida_time
                 #Extraindo média sem o jogo atual
-                mean_pt_sem_jogo_atual, mean_st_sem_jogo_atual,mean_total_sem_jogo_atual   = get_mean(dados_time_df[dados_time_df['partida'] != filtro_partida_time])
+                mean_pt_sem_jogo_atual, mean_st_sem_jogo_atual,mean_total_sem_jogo_atual   = get_mean(dados_time_total_df[dados_time_total_df['partida'] != filtro_partida_time])
                 
                 dados_time_df = dados_time_df[dados_time_df['partida'] == filtro_partida_time]
                
@@ -121,7 +121,7 @@ if not dados_time_df.empty:
     
     with primeiro_tempo_tab:
         
-        col3, col4 = st.columns([1,1])
+        col3, col4 = st.columns([1,1.3])
 
         with col3:
             with st.container(border=True,height=500):
@@ -159,7 +159,7 @@ if not dados_time_df.empty:
             #         colunas[filtro_jogada_time][i].plotly_chart(fig,key=f"localizazao_{i}_time_tab_pt",config={'displayModeBar': False})
         if filtro_jogada_time == "Ataque":
             with st.container(border=True, height=300):
-                colunas_jogadas_ofensivas = st.columns(3)
+                colunas_jogadas_ofensivas = st.columns(5)
                 figs= get_plots_plays_localization_team(filtro_jogada_time,dados_time_df,"Primeiro Tempo")
                 for i,fig in enumerate(figs):
                     colunas_jogadas_ofensivas[i].plotly_chart(fig,key=f"localizazao_{i}_time_tab_pt",config={'displayModeBar': False})
@@ -176,7 +176,7 @@ if not dados_time_df.empty:
               
     with segundo_tempo_tab:
         
-        col3, col4 = st.columns([1,1])
+        col3, col4 = st.columns([1,1.3])
 
         with col3:
             with st.container(border=True,height=500):
@@ -215,7 +215,7 @@ if not dados_time_df.empty:
                     
                 if filtro_jogada_time == "Ataque":
                     with st.container(border=True, height=300):
-                        colunas_jogadas_ofensivas = st.columns(3)
+                        colunas_jogadas_ofensivas = st.columns(5)
                         figs= get_plots_plays_localization_team(filtro_jogada_time,dados_time_df,"Segundo Tempo")
                         for i,fig in enumerate(figs):
                             colunas_jogadas_ofensivas[i].plotly_chart(fig,key=f"localizazao_{i}_time_tab_st",config={'displayModeBar': False})
@@ -245,7 +245,7 @@ if not dados_time_df.empty:
     
     with total_tab:
     
-        col3, col4 = st.columns([1,1.2])
+        col3, col4 = st.columns([1,1.4])
 
         with col3:
             with st.container(border=True,height=500):
@@ -264,7 +264,7 @@ if not dados_time_df.empty:
         
         filtro_jogada_time = st.selectbox(
                     "Selecione uma jogada",
-                    options=['FIN.C', 'FIN.E', 'FIN.T', 'ASSIST.', 'GOL','DES.C/P.','C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra','FIN.S'],
+                    options=['FIN.C', 'FIN.E', 'FIN.T', 'ASSIST.', 'GOL','DES.C/P.','C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra',"FIN.S.C", "FIN.S.E", "FIN.S.T"],
                     index=None,
                     key="filtro_jogada_time_tab_total"
                 )       

@@ -38,73 +38,7 @@ def listar_opces_jogadores(lista_jogadores):
     
     return opcoes_jogadores_dict, opcoes_jogadores_list
 
-def pegar_dados_pizza_plot(lista_jogadas):
-    df = pd.DataFrame(lista_jogadas,columns=["id","jogador_id","jogador_nome","jogo_id","jogada","tempo","x_loc","y_loc"])
-    tipos_finalizacoes = ["FIN.C", "FIN.E", "FIN.T"]    
-    quantidade_finalizacoes = df.jogada[df["jogada"].isin( tipos_finalizacoes)].value_counts().reindex( tipos_finalizacoes, fill_value=0)
-    quantidade_finalizacoes = quantidade_finalizacoes.to_numpy()
-    
-    tipos_desarmes = ['DES.C/P.', 'DES.S/P.']
-    quantidade_desarmes = df.jogada[df["jogada"].isin(tipos_desarmes)].value_counts().reindex(tipos_desarmes,fill_value=0)
-    quantidade_desarmes = quantidade_desarmes.to_numpy()
-    
-    percas_de_posse = ['PER.P.', 'C.A']
-    quantidade_percas_posse = df.jogada[df["jogada"].isin(percas_de_posse)].value_counts().reindex(percas_de_posse,fill_value=0)
-    quantidade_percas_posse = quantidade_percas_posse.to_numpy()
 
-    dados_grafico_pizza = [
-        {
-            "data": quantidade_finalizacoes,
-            "labels": tipos_finalizacoes,
-            "title": "Distribuição de Finalizações"
-        },
-        {
-            "data": [quantidade_finalizacoes[0], sum(quantidade_finalizacoes)],  # Finalização certa / errada
-            "labels": ["Certas", "Erradas"],
-            "title": "Eficiência de Finalizações"
-        },
-        {
-            "data": quantidade_desarmes,
-            "labels": tipos_desarmes ,
-            "title": "Distribuição de Desarmes"
-        },
-        {
-            "data": quantidade_percas_posse,
-            "labels":  percas_de_posse,
-            "title": "Distribuição de Perdas de Posse"
-        }
-    ]
-    
-    return dados_grafico_pizza
-
-def pizza_plot(dados_grafico_pizza):
-    # Criar uma lista de figuras do Plotly
-    figs = []
-
-    # Iterar sobre os dados e gerar gráficos de pizza
-    for dado in dados_grafico_pizza:
-        data = dado["data"]
-        labels = dado["labels"]
-        title = dado["title"]
-
-        # Criar gráfico de pizza
-        fig = go.Figure(data=[go.Pie(
-            labels=labels,
-            values=data,
-            textinfo="percent+value",  # Exibir porcentagem e valor absoluto
-            pull=[0.1] * len(labels),  # Se quiser destacar um pedaço, use esse parâmetro
-            marker=dict(line=dict(color="white", width=1)),  # Bordas brancas
-        )])
-        
-        fig.update_layout(
-            title=title,
-            showlegend=True
-        )
-        
-        # Adicionar a figura gerada à lista de figuras
-        figs.append(fig)
-    
-    return figs
 def calcular_quadrante(x, y):
     
     num_colunas = 3
@@ -141,11 +75,12 @@ def extrair_estatisticas_jogadores(dados_jogador_df):
 
 def extrair_estatisticas_gerais(dados_jogador_df):
     
-    primeiro_tempo=dados_jogador_df.jogada.loc[dados_jogador_df["tempo"]=='1ºT'].value_counts().reindex(['FIN.C', 'FIN.E', 'FIN.T', 'GOL', 'ASSIST.', 'DES.C/P.','C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra',"FIN.S"],fill_value=0)
-    segundo_tempo = dados_jogador_df.jogada.loc[dados_jogador_df["tempo"]=='2ºT'].value_counts().reindex(['FIN.C', 'FIN.E', 'FIN.T', 'GOL', 'ASSIST.', 'DES.C/P.','C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra',"FIN.S"],fill_value=0)
+    primeiro_tempo=dados_jogador_df.jogada.loc[dados_jogador_df["tempo"]=='1ºT'].value_counts().reindex(['FIN.C', 'FIN.E', 'FIN.T', 'GOL', 'ASSIST.', 'DES.C/P.','C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra',"FIN.S.C", "FIN.S.E", "FIN.S.T"],fill_value=0)
+    segundo_tempo = dados_jogador_df.jogada.loc[dados_jogador_df["tempo"]=='2ºT'].value_counts().reindex(['FIN.C', 'FIN.E', 'FIN.T', 'GOL', 'ASSIST.', 'DES.C/P.','C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra',"FIN.S.C", "FIN.S.E", "FIN.S.T"],fill_value=0)
     estatisticas_jogadores_df = pd.DataFrame({"1ºT": primeiro_tempo, "2ºT": segundo_tempo})
     estatisticas_jogadores_df["Total"] = estatisticas_jogadores_df["1ºT"] + estatisticas_jogadores_df["2ºT"]
     estatisticas_jogadores_df.loc['FIN.TOTAL'] = estatisticas_jogadores_df.loc[['FIN.C', 'FIN.E', 'FIN.T']].sum()
+    estatisticas_jogadores_df.loc['FIN.S.TOTAL'] = estatisticas_jogadores_df.loc[["FIN.S.C", "FIN.S.E", "FIN.S.T"]].sum()
     
     estatisticas_primeiro_tempo_dict = estatisticas_jogadores_df["1ºT"].to_dict()
     estatisticas_segundo_tempo_dict = estatisticas_jogadores_df["2ºT"].to_dict()
@@ -437,7 +372,7 @@ def plotar_estatisticas_gerais_1(estatisticas_totais_dict):
 def plotar_grafico_barras(estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,mean_primeiro_tempo, mean_segundo_tempo):
     
     # Categorias a serem usadas no gráfico
-    categorias = ['FIN.C', 'FIN.E', 'FIN.T', 'DES.C/P.', 'C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra',"FIN.S"]
+    categorias = ['FIN.C', 'FIN.E', 'FIN.T', 'DES.C/P.', 'C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra',"FIN.S.C", "FIN.S.E", "FIN.S.T"]
     
     # Valores para o 1º e 2º tempo
     valores_1T = [estatisticas_primeiro_tempo_dict[categoria] for categoria in categorias]
@@ -510,7 +445,6 @@ def plotar_grafico_barras(estatisticas_primeiro_tempo_dict, estatisticas_segundo
             'xanchor': 'center',  # Garante que o título fique centralizado
             'y': 0.95  # Distância do título do topo
         },
-        xaxis_title='Tipo de Ação',
         yaxis_title='Quantidade',
         barmode='group',  # Agrupa as barras para comparação direta
         template='plotly_dark',  # Tema visual
@@ -612,7 +546,96 @@ def plotar_grafico_barras_parcial(estatisticas_parciais_dict,mean):
     # Extração das estatísticas
     
     # Categorias a serem usadas no gráfico
-    categorias = ['FIN.C', 'FIN.E', 'FIN.T', 'DES.C/P.', 'C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra',"FIN.S"]
+    categorias_ataque = ['FIN.C', 'FIN.E', 'FIN.T', 'DES.C/P.', 'C.A.-Pró']
+    categorias_defesa =[ 'DES.S/P.', 'PER.P.', 'C.A.-Contra',"FIN.S.C", "FIN.S.E", "FIN.S.T"]
+    mean_ataque = [mean[i] for i in range(5)]
+    mean_defesa = [mean[i] for i in range(5,11)]
+    
+    # Valores para o 1º e 2º tempo
+    valores_ataque = np.array([estatisticas_parciais_dict[categoria] for categoria in categorias_ataque])
+    valores_defesa= np.array([estatisticas_parciais_dict[categoria] for categoria in categorias_defesa])
+    
+    cores = ['rgba(0, 255, 0, 0.6)', 'rgba(255, 0, 0, 0.6)', 'rgba(255, 255, 0, 0.6)',
+             'rgba(0, 0, 255, 0.6)', 'rgba(0, 255, 255, 0.6)', 'rgba(128, 0, 128, 0.6)', 'rgba(0, 60, 0, 1.0)','rgba(255, 165, 0, 1.0)','rgba(0, 255, 255, 0.6)']
+    
+    fig = make_subplots(
+        rows=1, cols=2,  # Definir a quantidade de linhas e colunas
+        subplot_titles=('Ataque', 'Defesa'),  # Títulos para os subgráficos
+        shared_yaxes=True  # Eixo Y compartilhado para comparação
+    )
+
+    
+    # Adicionar o gráfico de barras 
+    
+    fig.add_trace(go.Bar(
+        x=categorias_ataque,
+        y=valores_ataque,
+        name='1º Tempo',
+        marker_color=cores,
+        text=valores_ataque,  
+        textposition='inside',
+        insidetextanchor='start',
+        textfont=dict(color="black")# Cor para as barras do 1º tempo
+    ), row=1, col=1)
+
+    # Adicionar o gráfico de barras para o 2º Tempo no subgráfico (1, 2)
+    fig.add_trace(go.Bar(
+        x=categorias_defesa,
+        y=valores_defesa,
+        name='2º Tempo',
+        marker_color=cores,
+        text=valores_defesa,  
+        textposition='inside',
+        insidetextanchor='start',
+        textfont=dict(color="black")# Cor para as barras do 2º tempo
+    ), row=1, col=2)
+    
+    #Adicionar média
+    fig.add_trace(go.Scatter(
+        x=categorias_ataque,
+        y=mean_ataque,
+        mode="lines+markers+text",  # Exibe linha, pontos e valores
+        text=[f"{m:.2f}" for m in mean_ataque],  # Exibir valores da média
+        textposition="top center",  # Posição dos valores da linha
+        marker=dict(size=8, color="white"),  # Personaliza os pontos
+        line=dict(width=2, color="cyan"),  # Personaliza a linha
+        name="Média Ataque"  # Nome da legenda
+        
+    ),row=1, col=1)
+    
+    fig.add_trace(go.Scatter(
+        x=categorias_defesa,
+        y=mean_defesa,
+        mode="lines+markers+text",  # Exibe linha, pontos e valores
+        text=[f"{m:.2f}" for m in mean_defesa],  # Exibir valores da média
+        textposition="top center",  # Posição dos valores da linha
+        marker=dict(size=8, color="white"),  # Personaliza os pontos
+        line=dict(width=2, color="cyan"),  # Personaliza a linha
+        name="Média Defesa"  # Nome da legenda
+        
+    ),row=1, col=2)    
+    # Atualizar o layout para personalizar a aparência do gráfico
+    fig.update_layout(
+       
+        yaxis_title='Quantidade',
+        barmode='group',  # Agrupa as barras para comparação direta
+        template='plotly_dark',  # Tema visual
+        showlegend=False,  # Não mostra a legenda
+        height=450,  # Altura total da figura (ajustável conforme necessário)
+        margin=dict(t=80)  # Ajuste do espaço superior para o título
+    )
+
+   
+
+    
+  
+    return fig
+
+def plotar_grafico_barras_parcial_1(estatisticas_parciais_dict,mean):
+    # Extração das estatísticas
+    
+    # Categorias a serem usadas no gráfico
+    categorias = ['FIN.C', 'FIN.E', 'FIN.T', 'DES.C/P.', 'C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra']
     
     # Valores para o 1º e 2º tempo
     valores = np.array([estatisticas_parciais_dict[categoria] for categoria in categorias])
@@ -1047,7 +1070,7 @@ def get_mean(df):
     
     numero_jogos = int(df["jogo_id"].nunique()) 
     estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,estatisticas_totais_dict= extrair_estatisticas_gerais(df)
-    categorias = ['FIN.C', 'FIN.E', 'FIN.T', 'DES.C/P.', 'C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra',"FIN.S"]
+    categorias = ['FIN.C', 'FIN.E', 'FIN.T', 'DES.C/P.', 'C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra',"FIN.S.C", "FIN.S.E", "FIN.S.T"]
     
     valores_totais = np.array([estatisticas_totais_dict[categoria] for categoria in categorias])
     mean_total = valores_totais/numero_jogos
@@ -1086,6 +1109,7 @@ def get_plots_plays_localization_team(filtro_jogada,data,tempo):
     
     
     jogadas= {"Ataque":['FIN.C', 'FIN.E', 'FIN.T'], "Defesa":['DES.C/P.','C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra','FIN.S']}
+    jogadas= {"Ataque":['FIN.C', 'FIN.E', 'FIN.T','DES.C/P.','C.A.-Pró'], "Defesa":[ 'DES.S/P.', 'PER.P.', 'C.A.-Contra',"FIN.S.C", "FIN.S.E", "FIN.S.T"]}
     jogadas = jogadas[filtro_jogada]
     figs=[]
     
@@ -1148,3 +1172,40 @@ def create_futsal_subplots(tipo, data, tempo, rows, cols):
     )
 
     return fig
+
+
+def exibir_seta(direcao="↑"):
+    """
+    Exibe um indicador visual com uma seta e o texto "ATAQUE".
+
+    Parâmetros:
+        direcao (str): O símbolo da seta. Exemplo: "↑", "↓", "←", "→".
+    """
+    st.markdown(f"""
+        <style>
+            .container-ataque {{
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                margin: 80px 0;
+                position: relative;
+            }}
+            
+            .seta {{
+                font-size: 50px;
+                transform: translateX(-120px);  /* Ajuste fino da posição horizontal */
+            }}
+            
+            .texto-ataque {{
+                font-size: 20px;
+                font-weight: bold;
+                margin-top: -10px;  /* Espaço entre seta e texto */
+                transform: translateX(-120px);  /* Alinhar com o ajuste da seta */
+            }}
+        </style>
+
+        <div class="container-ataque">
+            <div class="seta">{direcao}</div>
+            <div class="texto-ataque">ATAQUE</div>
+        </div>
+        """, unsafe_allow_html=True)

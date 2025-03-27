@@ -32,6 +32,7 @@ filter_container = st.container()
 
 # Inicialização das variáveis
 dados_jogador_df = extrair_dataframe_jogador(db_manager)
+dados_jogador_total_df = dados_jogador_df.copy()
 dados_todos_jogadores_df = dados_jogador_df.copy()
 options_competicao = []
 options_partidas = []
@@ -70,6 +71,7 @@ with filter_container:
             estatisticas_geral_pt_dict,estatisticas_geral_st_dict, estatisticas_geral_totais_dict = extrair_estatisticas_gerais(dados_todos_jogadores_df)
             numero_jogos = int(dados_todos_jogadores_df["jogo_id"].nunique())
             dados_jogador_df = dados_jogador_df[dados_jogador_df['jogador_nome'] == filtro_jogador]
+            dados_jogador_total_df = dados_jogador_total_df[dados_jogador_total_df['jogador_nome'] == filtro_jogador]
             estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict, estatisticas_totais_dict = extrair_estatisticas_gerais(dados_jogador_df)
             
             #Extraindo média
@@ -108,8 +110,6 @@ with filter_container:
                 estatisticas_geral_pt_dict,estatisticas_geral_st_dict,  estatisticas_geral_totais_dict = extrair_estatisticas_gerais(dados_todos_jogadores_df)
                 estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict, estatisticas_totais_dict = extrair_estatisticas_gerais(dados_jogador_df)
                 
-                #Extraindo média
-                mean_pt, mean_st,mean_total   = get_mean(dados_jogador_df)
                 #Figuras tab total
                 estatisticas_gerais_total_fig, estatisticas_gerais_total_fig_1,  grafico_barras_total_fig,radar_total_fig = get_athletes_total_figures(estatisticas_totais_dict,estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,estatisticas_geral_totais_dict,numero_jogos,mean_pt, mean_st) 
                 #Figuras tab primeiro tempo
@@ -136,7 +136,7 @@ with filter_container:
             if filtro_partida:
                 st.session_state.filtro_partida = filtro_partida
                 #Extraindo média sem o jogo atual
-                mean_pt_sem_jogo_atual, mean_st_sem_jogo_atual,mean_total_sem_jogo_atual  = get_mean(dados_jogador_df[dados_jogador_df['partida'] != filtro_partida])
+                mean_pt_sem_jogo_atual, mean_st_sem_jogo_atual,mean_total_sem_jogo_atual  = get_mean(dados_jogador_total_df[dados_jogador_total_df['partida'] != filtro_partida])
                 dados_jogador_df = dados_jogador_df[dados_jogador_df['partida'] == filtro_partida]
                 dados_todos_jogadores_df = dados_todos_jogadores_df[dados_todos_jogadores_df['partida'] == filtro_partida]
                 estatisticas_geral_pt_dict,estatisticas_geral_st_dict, estatisticas_geral_totais_dict = extrair_estatisticas_gerais(dados_todos_jogadores_df)

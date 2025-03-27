@@ -74,13 +74,16 @@ def deletar_jogos_dialog(lista_jogos):
     
     if jogo_selecionado:
         jogo_id = opcoes_jogos[jogo_selecionado]
+        st.warning("Isso excluirá permanentemente todos os as jogadas associadas a esse jogo. Você tem certeza?", icon="⚠️")
         if st.button("Exluir Jogo", key="excluir_jogo_dialog"):
             try:
                 db_manager.deletar_jogo(jogo_id)
                 st.success(f"Jogo deletado com sucesso!")
                 st.rerun()
             except Exception as e:
-                        st.error(f"Erro ao deletar jogo: {e}")
+                st.error(f"Erro ao deletar jogo: {e}")
+                   
+                                
 
 @st.dialog("Baixar Jogadas")
 def baixar_jogadas_dialog(lista_jogos):

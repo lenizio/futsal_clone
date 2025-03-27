@@ -64,11 +64,11 @@ def excluir_jogador_dialog(equipe_id):
     lista_jogadores = db_manager.listar_jogadores_por_equipe(equipe_id)
     dict_jogadores = {jogador[1]:jogador[0] for jogador in lista_jogadores}
     jogador = st.selectbox('Selecione o jogador', options=dict_jogadores.keys(), index=None)
-    if st.button("Excluir", key=f"excluir_jogador_dialog"):
-        if not jogador:
-            st.error('Selecione um jogador para excluir')
-        else:    
-            jogador_id =dict_jogadores[jogador]
+    if jogador:
+        jogador_id =dict_jogadores[jogador]
+        st.warning("Isso excluirá permanentemente todos os dados associados a ese jogador. Você tem certeza?", icon="⚠️")
+        if st.button("Excluir", key=f"excluir_jogador_dialog"):
+        
             if db_manager.deletar_jogador(jogador_id):
                 st.success(f"Jogador deletado com sucesso!")
                 time.sleep(1)  # Pausa de 2 segundos para mostrar a mensagem antes de atualizar a página
@@ -136,11 +136,11 @@ def excluir_equipe_dialog():
     lista_equipes = db_manager.listar_equipes()
     dict_equipes = {equipe[1]+ " " + equipe[2]:equipe[0] for equipe in lista_equipes}
     equipe = st.selectbox('Selecione o equipe', options=dict_equipes.keys(), index=None)
-    if st.button("Excluir", key=f"excluir_equipe_dialog"):
-        if not equipe:
-            st.error('Selecione um equipe para excluir')
-        else:    
-            equipe_id =dict_equipes[equipe]
+    
+    if equipe:
+        equipe_id =dict_equipes[equipe]
+        st.warning("Isso excluirá permanentemente todos os dados associados a esse time. Você tem certeza?", icon="⚠️")
+        if st.button("Excluir", key=f"excluir_equipe_dialog"):
             if db_manager.deletar_equipe(equipe_id):
                 st.success(f"Equipe deletada com sucesso!")
                 time.sleep(1)  # Pausa de 2 segundos para mostrar a mensagem antes de atualizar a página
@@ -149,7 +149,7 @@ def excluir_equipe_dialog():
                 st.error('Erro na hora de excluir time. Tente novamente')         
                 time.sleep(1)  # Pausa de 2 segundos para mostrar a mensagem antes de atualizar a página
                 st.rerun()     
-                
+                    
 
 
 botao_adicionar_equipe, botao_excluir_equipe = st.columns(2)
