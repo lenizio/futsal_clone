@@ -88,8 +88,8 @@ def extrair_estatisticas_gerais(dados_jogador_df):
     estatisticas_primeiro_tempo_dict = estatisticas_jogadores_df["1ºT"].to_dict()
     estatisticas_segundo_tempo_dict = estatisticas_jogadores_df["2ºT"].to_dict()
     estatisticas_totais_dict = estatisticas_jogadores_df["Total"].to_dict()
-    estatisticas_pt_prorrogacao_dict = estatisticas_jogadores_df["1ºT"].to_dict()
-    estatisticas_st_prorrogacao_dict = estatisticas_jogadores_df["2ºT"].to_dict()
+    estatisticas_pt_prorrogacao_dict = estatisticas_jogadores_df["1ºP"].to_dict()
+    estatisticas_st_prorrogacao_dict = estatisticas_jogadores_df["2ºP"].to_dict()
     
     return estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict, estatisticas_totais_dict, estatisticas_pt_prorrogacao_dict, estatisticas_st_prorrogacao_dict 
 
@@ -452,12 +452,7 @@ def plotar_grafico_barras(estatisticas_primeiro_tempo_dict, estatisticas_segundo
         
     ),row=1, col=2)    
     
-    fig.update_yaxes(
-    range=[0, 50],
-    tickvals=[0, 10, 20, 30, 40, 50],  # Posições dos rótulos
-    ticktext=['0', '10', '20', '30', '40', '50+']
-    
-)
+   
     
     # Atualizar o layout para personalizar a aparência do gráfico
     fig.update_layout(
@@ -583,8 +578,7 @@ def plotar_grafico_barras_parcial(estatisticas_parciais_dict,mean):
     fig = make_subplots(
         rows=1, cols=2,  # Definir a quantidade de linhas e colunas
         subplot_titles=('Ataque', 'Defesa'),  # Títulos para os subgráficos
-        shared_yaxes=False,
-        specs=[[{"secondary_y": True}, {"secondary_y": True}]],# Eixo Y compartilhado para comparação
+        shared_yaxes=True,
     )
 
     
@@ -599,7 +593,7 @@ def plotar_grafico_barras_parcial(estatisticas_parciais_dict,mean):
         textposition='inside',
         insidetextanchor='end',
         textfont=dict(color="black")# Cor para as barras do 1º tempo
-    ), row=1, col=1,secondary_y=False)
+    ), row=1, col=1)
 
     # Adicionar o gráfico de barras para o 2º Tempo no subgráfico (1, 2)
     fig.add_trace(go.Bar(
@@ -609,9 +603,9 @@ def plotar_grafico_barras_parcial(estatisticas_parciais_dict,mean):
         marker_color=cores,
         text=valores_defesa,  
         textposition='inside',
-        insidetextanchor='start',
+        insidetextanchor='end',
         textfont=dict(color="black")# Cor para as barras do 2º tempo
-    ), row=1, col=2,secondary_y=False)
+    ), row=1, col=2)
     
     #Adicionar média
     fig.add_trace(go.Scatter(
@@ -624,7 +618,7 @@ def plotar_grafico_barras_parcial(estatisticas_parciais_dict,mean):
         line=dict(width=2, color="cyan"),  # Personaliza a linha
         name="Média Ataque"  # Nome da legenda
         
-    ),row=1, col=1,secondary_y=True)
+    ),row=1, col=1)
     
     fig.add_trace(go.Scatter(
         x=categorias_defesa,
@@ -636,17 +630,10 @@ def plotar_grafico_barras_parcial(estatisticas_parciais_dict,mean):
         line=dict(width=2, color="cyan"),  # Personaliza a linha
         name="Média Defesa"  # Nome da legenda
         
-    ),row=1, col=2,secondary_y=True)    
+    ),row=1, col=2)    
     
     
-    fig.update_yaxes(
-    range=[0, 100],  # Faixa normal
-    secondary_y=False
-)
-    fig.update_yaxes(
-        range=[0, 75],  # Faixa estendida
-        secondary_y=True
-    )
+    
     # Atualizar o layout para personalizar a aparência do gráfico
     fig.update_layout(
        
@@ -1101,8 +1088,10 @@ def get_team_partial_figures(estatisticas_parciais_dict,numero_jogos,mean):
     
 def get_mean(df):
     
-    numero_jogos = int(df["jogo_id"].nunique()) 
-    estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,estatisticas_totais_dict= extrair_estatisticas_gerais(df)
+    numero_jogos = int(df["jogo_id"].nunique()),
+    numero_jogos_prorrogacao = int(df[df["tempo"] == "1ºP"]["jogo_id"].nunique())
+
+    estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,estatisticas_totais_dict,estatisticas_pt_prorrogacao_dict, estatisticas_st_prorrogacao_dict= extrair_estatisticas_gerais(df)
     categorias = ['FIN.C', 'FIN.E', 'FIN.T', 'DES.C/P.', 'C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra',"FIN.S.C", "FIN.S.E", "FIN.S.T"]
     
     valores_totais = np.array([estatisticas_totais_dict[categoria] for categoria in categorias])
@@ -1112,10 +1101,18 @@ def get_mean(df):
     mean_primeiro_tempo = valores_primeiro_tempo/numero_jogos
     
     valores_segundo_tempo = np.array([estatisticas_segundo_tempo_dict[categoria] for categoria in categorias])
-    mean_segundo_tempo = valores_segundo_tempo/numero_jogos
+    mean_segundo_tempo = valores_segundo_tempo/numero_jogos 
+    
+    valores_primeiro_tempo_prorrogacao = np.array([estatisticas_pt_prorrogacao_dict[categoria] for categoria in categorias])
+    mean_primeiro_tempo_prorrogacao = valores_primeiro_tempo_prorrogacao/numero_jogos_prorrogacao if numero_jogos_prorrogacao != 0 else np.zeros((11,), dtype=int)
+
+    
+    valores_segundo_tempo_prorrogacao = np.array([estatisticas_st_prorrogacao_dict[categoria] for categoria in categorias])
+    mean_segundo_tempo_prorrogacao = valores_segundo_tempo_prorrogacao/numero_jogos_prorrogacao if numero_jogos_prorrogacao != 0 else np.zeros((11,), dtype=int)
+ 
     
     
-    return mean_primeiro_tempo, mean_segundo_tempo,mean_total
+    return mean_primeiro_tempo, mean_segundo_tempo,mean_total,mean_primeiro_tempo_prorrogacao, mean_segundo_tempo_prorrogacao
 
 
 

@@ -50,8 +50,10 @@ grafico_barras_st_fig = go.Figure()
 if not dados_time_df.empty:
     options_competicao = dados_time_df["competicao"].unique().tolist()
     numero_jogos = int(dados_time_df["jogo_id"].nunique()) if int(dados_time_df["jogo_id"].nunique())>0 else 1
+    numero_jogos_prorrogacao = int(dados_time_df[dados_time_df["tempo"] == "1ºP"]["jogo_id"].nunique()) if int(dados_time_df[dados_time_df["tempo"] == "1ºP"]["jogo_id"].nunique()) >0 else 1
+    
     estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict, estatisticas_geral_totais_dict,estatisticas_pt_prorrogacao_dict, estatisticas_st_prorrogacao_dict  = extrair_estatisticas_gerais(dados_time_df)
-    mean_pt, mean_st,mean_total   = get_mean(dados_time_df)
+    mean_pt, mean_st,mean_total,mean_ptp,mean_stp   = get_mean(dados_time_df)
     #Figuras tab total
     estatisticas_gerais_total_fig, estatisticas_gerais_total_fig_1,  grafico_barras_total_fig = get_team_total_figures(estatisticas_geral_totais_dict,estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict,numero_jogos,mean_pt, mean_st) 
     #Figuras tab primeiro tempo
@@ -59,9 +61,9 @@ if not dados_time_df.empty:
     #Figuras tab segundo tempo
     estatisticas_gerais_st_fig, estatisticas_gerais_st_fig_1,  grafico_barras_st_fig = get_team_partial_figures(estatisticas_geral_segundo_tempo_dict,numero_jogos,mean_st) 
     #Figuras tab primeiro tempo prorrogação
-    estatisticas_gerais_ptp_fig, estatisticas_gerais_ptp_fig_1,  grafico_barras_ptp_fig = get_team_partial_figures(estatisticas_pt_prorrogacao_dict,numero_jogos,mean_pt) 
+    estatisticas_gerais_ptp_fig, estatisticas_gerais_ptp_fig_1,  grafico_barras_ptp_fig = get_team_partial_figures(estatisticas_pt_prorrogacao_dict,numero_jogos_prorrogacao,mean_ptp) 
     #Figuras tab segundo tempo prorrogação
-    estatisticas_gerais_stp_fig, estatisticas_gerais_stp_fig_1,  grafico_barras_stp_fig = get_team_partial_figures(estatisticas_st_prorrogacao_dict,numero_jogos,mean_st) 
+    estatisticas_gerais_stp_fig, estatisticas_gerais_stp_fig_1,  grafico_barras_stp_fig = get_team_partial_figures(estatisticas_st_prorrogacao_dict,numero_jogos_prorrogacao,mean_stp) 
     
 with filter_container:
     col1, col2 = st.columns([1, 1])
@@ -79,6 +81,7 @@ with filter_container:
                 st.session_state.filtro_competicao_time = filtro_competicao_time
                 dados_time_df = dados_time_df[dados_time_df['competicao'] == filtro_competicao_time]
                 numero_jogos = int(dados_time_df["jogo_id"].nunique()) if int(dados_time_df["jogo_id"].nunique())>0 else 1
+                numero_jogos_prorrogacao = int(dados_time_df[dados_time_df["tempo"] == "1ºP"]["jogo_id"].nunique()) if int(dados_time_df[dados_time_df["tempo"] == "1ºP"]["jogo_id"].nunique()) >0 else 1
                 estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict, estatisticas_geral_totais_dict,estatisticas_pt_prorrogacao_dict, estatisticas_st_prorrogacao_dict  = extrair_estatisticas_gerais(dados_time_df)
                 #Figuras tab total
                 estatisticas_gerais_total_fig, estatisticas_gerais_total_fig_1,  grafico_barras_total_fig = get_team_total_figures(estatisticas_geral_totais_dict,estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict,numero_jogos,mean_pt, mean_st) 
@@ -87,9 +90,9 @@ with filter_container:
                 #Figuras tab segundo tempo
                 estatisticas_gerais_st_fig, estatisticas_gerais_st_fig_1,  grafico_barras_st_fig = get_team_partial_figures(estatisticas_geral_segundo_tempo_dict,numero_jogos,mean_st)
                 #Figuras tab primeiro tempo prorrogação
-                estatisticas_gerais_ptp_fig, estatisticas_gerais_ptp_fig_1,  grafico_barras_ptp_fig = get_team_partial_figures(estatisticas_pt_prorrogacao_dict,numero_jogos,mean_pt) 
+                estatisticas_gerais_ptp_fig, estatisticas_gerais_ptp_fig_1,  grafico_barras_ptp_fig = get_team_partial_figures(estatisticas_pt_prorrogacao_dict,numero_jogos_prorrogacao,mean_ptp) 
                 #Figuras tab segundo tempo prorrogação
-                estatisticas_gerais_stp_fig, estatisticas_gerais_stp_fig_1,  grafico_barras_stp_fig = get_team_partial_figures(estatisticas_st_prorrogacao_dict,numero_jogos,mean_st) 
+                estatisticas_gerais_stp_fig, estatisticas_gerais_stp_fig_1,  grafico_barras_stp_fig = get_team_partial_figures(estatisticas_st_prorrogacao_dict,numero_jogos_prorrogacao,mean_stp) 
                 options_partidas = dados_time_df["partida"].unique().tolist()
                 options_partidas.reverse()
                 
@@ -108,11 +111,12 @@ with filter_container:
             if filtro_partida_time:
                 st.session_state.filtro_partida_time = filtro_partida_time
                 #Extraindo média sem o jogo atual
-                mean_pt_sem_jogo_atual, mean_st_sem_jogo_atual,mean_total_sem_jogo_atual   = get_mean(dados_time_total_df[dados_time_total_df['partida'] != filtro_partida_time])
+                mean_pt_sem_jogo_atual, mean_st_sem_jogo_atual,mean_total_sem_jogo_atual,mean_ptp_sem_jogo_atual,mean_stp_sem_jogo_atual   = get_mean(dados_time_total_df[dados_time_total_df['partida'] != filtro_partida_time])
                 
                 dados_time_df = dados_time_df[dados_time_df['partida'] == filtro_partida_time]
                
                 numero_jogos = int(dados_time_df["jogo_id"].nunique()) if int(dados_time_df["jogo_id"].nunique())>0 else 1
+                numero_jogos_prorrogacao = int(dados_time_df[dados_time_df["tempo"] == "1ºP"]["jogo_id"].nunique()) if int(dados_time_df[dados_time_df["tempo"] == "1ºP"]["jogo_id"].nunique()) >0 else 1
                 
                 estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict, estatisticas_geral_totais_dict,estatisticas_pt_prorrogacao_dict, estatisticas_st_prorrogacao_dict  = extrair_estatisticas_gerais(dados_time_df)
                 #Figuras tab total
@@ -122,9 +126,9 @@ with filter_container:
                 #Figuras tab segundo tempo
                 estatisticas_gerais_st_fig, estatisticas_gerais_st_fig_1,  grafico_barras_st_fig = get_team_partial_figures(estatisticas_geral_segundo_tempo_dict,numero_jogos,mean_st_sem_jogo_atual)
                 #Figuras tab primeiro tempo prorrogação
-                estatisticas_gerais_ptp_fig, estatisticas_gerais_ptp_fig_1,  grafico_barras_ptp_fig = get_team_partial_figures(estatisticas_pt_prorrogacao_dict,numero_jogos,mean_pt) 
+                estatisticas_gerais_ptp_fig, estatisticas_gerais_ptp_fig_1,  grafico_barras_ptp_fig = get_team_partial_figures(estatisticas_pt_prorrogacao_dict,numero_jogos_prorrogacao,mean_ptp_sem_jogo_atual) 
                 #Figuras tab segundo tempo prorrogação
-                estatisticas_gerais_stp_fig, estatisticas_gerais_stp_fig_1,  grafico_barras_stp_fig = get_team_partial_figures(estatisticas_st_prorrogacao_dict,numero_jogos,mean_st) 
+                estatisticas_gerais_stp_fig, estatisticas_gerais_stp_fig_1,  grafico_barras_stp_fig = get_team_partial_figures(estatisticas_st_prorrogacao_dict,numero_jogos_prorrogacao,mean_stp_sem_jogo_atual) 
 
 if not dados_time_df.empty:
     
