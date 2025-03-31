@@ -75,9 +75,12 @@ def extrair_estatisticas_jogadores(dados_jogador_df):
 
 def extrair_estatisticas_gerais(dados_jogador_df):
     
-    primeiro_tempo=dados_jogador_df.jogada.loc[dados_jogador_df["tempo"]=='1ºT'].value_counts().reindex(['FIN.C', 'FIN.E', 'FIN.T', 'GOL', 'ASSIST.', 'DES.C/P.','C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra',"FIN.S.C", "FIN.S.E", "FIN.S.T"],fill_value=0)
+    primeiro_tempo= dados_jogador_df.jogada.loc[dados_jogador_df["tempo"]=='1ºT'].value_counts().reindex(['FIN.C', 'FIN.E', 'FIN.T', 'GOL', 'ASSIST.', 'DES.C/P.','C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra',"FIN.S.C", "FIN.S.E", "FIN.S.T"],fill_value=0)
     segundo_tempo = dados_jogador_df.jogada.loc[dados_jogador_df["tempo"]=='2ºT'].value_counts().reindex(['FIN.C', 'FIN.E', 'FIN.T', 'GOL', 'ASSIST.', 'DES.C/P.','C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra',"FIN.S.C", "FIN.S.E", "FIN.S.T"],fill_value=0)
-    estatisticas_jogadores_df = pd.DataFrame({"1ºT": primeiro_tempo, "2ºT": segundo_tempo})
+    primeiro_tempo_prorrogacao= dados_jogador_df.jogada.loc[dados_jogador_df["tempo"]=='1ºP'].value_counts().reindex(['FIN.C', 'FIN.E', 'FIN.T', 'GOL', 'ASSIST.', 'DES.C/P.','C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra',"FIN.S.C", "FIN.S.E", "FIN.S.T"],fill_value=0)
+    segundo_tempo_prorrogacao = dados_jogador_df.jogada.loc[dados_jogador_df["tempo"]=='2ºP'].value_counts().reindex(['FIN.C', 'FIN.E', 'FIN.T', 'GOL', 'ASSIST.', 'DES.C/P.','C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra',"FIN.S.C", "FIN.S.E", "FIN.S.T"],fill_value=0)
+
+    estatisticas_jogadores_df = pd.DataFrame({"1ºT": primeiro_tempo, "2ºT": segundo_tempo, "1ºP": primeiro_tempo_prorrogacao, "2ºP": segundo_tempo_prorrogacao})
     estatisticas_jogadores_df["Total"] = estatisticas_jogadores_df["1ºT"] + estatisticas_jogadores_df["2ºT"]
     estatisticas_jogadores_df.loc['FIN.TOTAL'] = estatisticas_jogadores_df.loc[['FIN.C', 'FIN.E', 'FIN.T']].sum()
     estatisticas_jogadores_df.loc['FIN.S.TOTAL'] = estatisticas_jogadores_df.loc[["FIN.S.C", "FIN.S.E", "FIN.S.T"]].sum()
@@ -85,8 +88,10 @@ def extrair_estatisticas_gerais(dados_jogador_df):
     estatisticas_primeiro_tempo_dict = estatisticas_jogadores_df["1ºT"].to_dict()
     estatisticas_segundo_tempo_dict = estatisticas_jogadores_df["2ºT"].to_dict()
     estatisticas_totais_dict = estatisticas_jogadores_df["Total"].to_dict()
+    estatisticas_pt_prorrogacao_dict = estatisticas_jogadores_df["1ºT"].to_dict()
+    estatisticas_st_prorrogacao_dict = estatisticas_jogadores_df["2ºT"].to_dict()
     
-    return estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict, estatisticas_totais_dict 
+    return estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict, estatisticas_totais_dict, estatisticas_pt_prorrogacao_dict, estatisticas_st_prorrogacao_dict 
 
 
 def extrair_estatisticas_localizacao(dados_jogador_df,jogada):
@@ -95,11 +100,17 @@ def extrair_estatisticas_localizacao(dados_jogador_df,jogada):
     segundo_tempo = dados_jogador_df[(dados_jogador_df["tempo"] == '2ºT') & (dados_jogador_df["jogada"] == jogada)].quadrante.value_counts().reindex(
     ['1.0-1.0', '1.0-2.0', '1.0-3.0', '2.0-1.0', '2.0-2.0', '2.0-3.0', '3.0-1.0', '3.0-2.0', '3.0-3.0', '4.0-1.0', '4.0-2.0', '4.0-3.0', '5.0-1.0', '5.0-2.0', '5.0-3.0', '6.0-1.0', '6.0-2.0', '6.0-3.0'], fill_value=0)
     total = primeiro_tempo + segundo_tempo
+    primeiro_tempo_prorrogacao = dados_jogador_df[(dados_jogador_df["tempo"] == '1ºP') & (dados_jogador_df["jogada"] == jogada)].quadrante.value_counts().reindex(
+    ['1.0-1.0', '1.0-2.0', '1.0-3.0', '2.0-1.0', '2.0-2.0', '2.0-3.0', '3.0-1.0', '3.0-2.0', '3.0-3.0', '4.0-1.0', '4.0-2.0', '4.0-3.0', '5.0-1.0', '5.0-2.0', '5.0-3.0', '6.0-1.0', '6.0-2.0', '6.0-3.0'], fill_value=0)
+    segundo_tempo_prorrogacao = dados_jogador_df[(dados_jogador_df["tempo"] == '2ºP') & (dados_jogador_df["jogada"] == jogada)].quadrante.value_counts().reindex(
+    ['1.0-1.0', '1.0-2.0', '1.0-3.0', '2.0-1.0', '2.0-2.0', '2.0-3.0', '3.0-1.0', '3.0-2.0', '3.0-3.0', '4.0-1.0', '4.0-2.0', '4.0-3.0', '5.0-1.0', '5.0-2.0', '5.0-3.0', '6.0-1.0', '6.0-2.0', '6.0-3.0'], fill_value=0)
     
     localizacao_jogadas = {
         "Primeiro Tempo": primeiro_tempo,
         "Segundo Tempo" : segundo_tempo,
-        "Total": total
+        "Total": total,
+        "Primeiro Tempo Prorrogação": primeiro_tempo_prorrogacao,
+        "Segundo Tempo Prorrogação": segundo_tempo_prorrogacao
     }
     
     return localizacao_jogadas
@@ -386,7 +397,8 @@ def plotar_grafico_barras(estatisticas_primeiro_tempo_dict, estatisticas_segundo
     fig = make_subplots(
         rows=1, cols=2,  # Definir a quantidade de linhas e colunas
         subplot_titles=('1º Tempo', '2º Tempo'),  # Títulos para os subgráficos
-        shared_yaxes=True  # Eixo Y compartilhado para comparação
+        shared_yaxes=True , # Eixo Y compartilhado para comparação
+        
     )
 
     # Adicionar o gráfico de barras para o 1º Tempo no subgráfico (1, 1)
@@ -410,7 +422,7 @@ def plotar_grafico_barras(estatisticas_primeiro_tempo_dict, estatisticas_segundo
         text=valores_2T,  
         textposition='inside',
         insidetextanchor='start',
-        textfont=dict(color="black")# Cor para as barras do 2º tempo
+        textfont=dict(color="black"),# Cor para as barras do 2º tempo
     ), row=1, col=2)
     
     #Adicionar média
@@ -434,9 +446,19 @@ def plotar_grafico_barras(estatisticas_primeiro_tempo_dict, estatisticas_segundo
         textposition="top center",  # Posição dos valores da linha
         marker=dict(size=8, color="white"),  # Personaliza os pontos
         line=dict(width=2, color="cyan"),  # Personaliza a linha
-        name="Média Segundo Tempo"  # Nome da legenda
+        name="Média Segundo Tempo",  # Nome da legenda
+    
+    
         
     ),row=1, col=2)    
+    
+    fig.update_yaxes(
+    range=[0, 50],
+    tickvals=[0, 10, 20, 30, 40, 50],  # Posições dos rótulos
+    ticktext=['0', '10', '20', '30', '40', '50+']
+    
+)
+    
     # Atualizar o layout para personalizar a aparência do gráfico
     fig.update_layout(
         title={
@@ -561,7 +583,8 @@ def plotar_grafico_barras_parcial(estatisticas_parciais_dict,mean):
     fig = make_subplots(
         rows=1, cols=2,  # Definir a quantidade de linhas e colunas
         subplot_titles=('Ataque', 'Defesa'),  # Títulos para os subgráficos
-        shared_yaxes=True  # Eixo Y compartilhado para comparação
+        shared_yaxes=False,
+        specs=[[{"secondary_y": True}, {"secondary_y": True}]],# Eixo Y compartilhado para comparação
     )
 
     
@@ -574,9 +597,9 @@ def plotar_grafico_barras_parcial(estatisticas_parciais_dict,mean):
         marker_color=cores,
         text=valores_ataque,  
         textposition='inside',
-        insidetextanchor='start',
+        insidetextanchor='end',
         textfont=dict(color="black")# Cor para as barras do 1º tempo
-    ), row=1, col=1)
+    ), row=1, col=1,secondary_y=False)
 
     # Adicionar o gráfico de barras para o 2º Tempo no subgráfico (1, 2)
     fig.add_trace(go.Bar(
@@ -588,7 +611,7 @@ def plotar_grafico_barras_parcial(estatisticas_parciais_dict,mean):
         textposition='inside',
         insidetextanchor='start',
         textfont=dict(color="black")# Cor para as barras do 2º tempo
-    ), row=1, col=2)
+    ), row=1, col=2,secondary_y=False)
     
     #Adicionar média
     fig.add_trace(go.Scatter(
@@ -601,7 +624,7 @@ def plotar_grafico_barras_parcial(estatisticas_parciais_dict,mean):
         line=dict(width=2, color="cyan"),  # Personaliza a linha
         name="Média Ataque"  # Nome da legenda
         
-    ),row=1, col=1)
+    ),row=1, col=1,secondary_y=True)
     
     fig.add_trace(go.Scatter(
         x=categorias_defesa,
@@ -613,7 +636,17 @@ def plotar_grafico_barras_parcial(estatisticas_parciais_dict,mean):
         line=dict(width=2, color="cyan"),  # Personaliza a linha
         name="Média Defesa"  # Nome da legenda
         
-    ),row=1, col=2)    
+    ),row=1, col=2,secondary_y=True)    
+    
+    
+    fig.update_yaxes(
+    range=[0, 100],  # Faixa normal
+    secondary_y=False
+)
+    fig.update_yaxes(
+        range=[0, 75],  # Faixa estendida
+        secondary_y=True
+    )
     # Atualizar o layout para personalizar a aparência do gráfico
     fig.update_layout(
        
