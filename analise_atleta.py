@@ -292,6 +292,8 @@ if filtro_jogador:
                 localizacao_jogadas = extrair_estatisticas_localizacao(dados_jogador_df,filtro_jogada)
                 
                 for i, (chave, valor) in enumerate(localizacao_jogadas.items()):
+                    if i == 3:
+                        break
                     titulo = f"{filtro_jogada} - {chave}"
                     fig = create_futsal_court(titulo,valor)
                     colunas[i].plotly_chart(fig,config={'displayModeBar': False})
