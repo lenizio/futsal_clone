@@ -50,7 +50,7 @@ grafico_barras_st_fig = go.Figure()
 if not dados_time_df.empty:
     options_competicao = dados_time_df["competicao"].unique().tolist()
     numero_jogos = int(dados_time_df["jogo_id"].nunique()) if int(dados_time_df["jogo_id"].nunique())>0 else 1
-    numero_jogos_prorrogacao = int(dados_time_df[dados_time_df["tempo"] == "1ºP"]["jogo_id"].nunique()) if int(dados_time_df[dados_time_df["tempo"] == "1ºP"]["jogo_id"].nunique()) >0 else 1
+    numero_jogos_prorrogacao = int(dados_time_df[dados_time_df["tempo"] == "1ºP"]["jogo_id"].nunique()) 
     
     estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict, estatisticas_geral_totais_dict,estatisticas_pt_prorrogacao_dict, estatisticas_st_prorrogacao_dict  = extrair_estatisticas_gerais(dados_time_df)
     mean_pt, mean_st,mean_total,mean_ptp,mean_stp   = get_mean(dados_time_df)
@@ -81,7 +81,7 @@ with filter_container:
                 st.session_state.filtro_competicao_time = filtro_competicao_time
                 dados_time_df = dados_time_df[dados_time_df['competicao'] == filtro_competicao_time]
                 numero_jogos = int(dados_time_df["jogo_id"].nunique()) if int(dados_time_df["jogo_id"].nunique())>0 else 1
-                numero_jogos_prorrogacao = int(dados_time_df[dados_time_df["tempo"] == "1ºP"]["jogo_id"].nunique()) if int(dados_time_df[dados_time_df["tempo"] == "1ºP"]["jogo_id"].nunique()) >0 else 1
+                numero_jogos_prorrogacao = int(dados_time_df[dados_time_df["tempo"] == "1ºP"]["jogo_id"].nunique()) 
                 estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict, estatisticas_geral_totais_dict,estatisticas_pt_prorrogacao_dict, estatisticas_st_prorrogacao_dict  = extrair_estatisticas_gerais(dados_time_df)
                 #Figuras tab total
                 estatisticas_gerais_total_fig, estatisticas_gerais_total_fig_1,  grafico_barras_total_fig = get_team_total_figures(estatisticas_geral_totais_dict,estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict,numero_jogos,mean_pt, mean_st) 

@@ -70,7 +70,7 @@ with filter_container:
             image_jogador= pegar_imagem_jogador(image_id)
             estatisticas_geral_pt_dict,estatisticas_geral_st_dict, estatisticas_geral_totais_dict,estatisticas_geral_ptp_dict,estatisticas_geral_stp_dict = extrair_estatisticas_gerais(dados_todos_jogadores_df)
             numero_jogos = int(dados_todos_jogadores_df["jogo_id"].nunique())
-            numero_jogos_prorrogacao = int(dados_todos_jogadores_df[dados_todos_jogadores_df["tempo"] == "1ºP"]["jogo_id"].nunique()) if int(dados_todos_jogadores_df[dados_todos_jogadores_df["tempo"] == "1ºP"]["jogo_id"].nunique()) >0 else 1
+            numero_jogos_prorrogacao = int(dados_todos_jogadores_df[dados_todos_jogadores_df["tempo"] == "1ºP"]["jogo_id"].nunique()) 
             dados_jogador_df = dados_jogador_df[dados_jogador_df['jogador_nome'] == filtro_jogador]
             dados_jogador_total_df = dados_jogador_total_df[dados_jogador_total_df['jogador_nome'] == filtro_jogador]
             estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict, estatisticas_totais_dict,estatisticas_ptp_dict, estatisticas_stp_dict = extrair_estatisticas_gerais(dados_jogador_df)
@@ -108,7 +108,7 @@ with filter_container:
                 dados_jogador_df = dados_jogador_df[dados_jogador_df['competicao'] == filtro_competicao]
                 dados_todos_jogadores_df = dados_todos_jogadores_df[dados_todos_jogadores_df['competicao'] == filtro_competicao]
                 numero_jogos = int(dados_todos_jogadores_df["jogo_id"].nunique())
-                numero_jogos_prorrogacao = int(dados_todos_jogadores_df[dados_todos_jogadores_df["tempo"] == "1ºP"]["jogo_id"].nunique()) if int(dados_todos_jogadores_df[dados_todos_jogadores_df["tempo"] == "1ºP"]["jogo_id"].nunique()) >0 else 1
+                numero_jogos_prorrogacao = int(dados_todos_jogadores_df[dados_todos_jogadores_df["tempo"] == "1ºP"]["jogo_id"].nunique()) 
                 estatisticas_geral_pt_dict,estatisticas_geral_st_dict,  estatisticas_geral_totais_dict,estatisticas_geral_ptp_dict,estatisticas_geral_stp_dict = extrair_estatisticas_gerais(dados_todos_jogadores_df)
                 estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict, estatisticas_totais_dict,estatisticas_ptp_dict, estatisticas_stp_dict = extrair_estatisticas_gerais(dados_jogador_df)
                 
