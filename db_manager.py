@@ -68,6 +68,28 @@ class DBManager:
                 y_loc FLOAT NOT NULL
             )
             """,
+            """
+            CREATE TABLE IF NOT EXISTS gols (
+                id SERIAL PRIMARY KEY,
+                -- Informações do Jogo
+                jogo_id INT NOT NULL REFERENCES jogos(id) ON DELETE CASCADE,
+                
+                -- Contexto do Gol
+                equipe_analisada_id INT NOT NULL REFERENCES equipes(id) ON DELETE CASCADE,
+                tipo_gol VARCHAR(7) NOT NULL ,
+                tempo VARCHAR(10) NOT NULL,
+                caracteristica VARCHAR(255) NOT NULL,
+                x_loc FLOAT NOT NULL,
+                y_loc FLOAT NOT NULL,
+                
+                -- Detalhes específicos para gols da própria equipe
+                autor_gol_id INT REFERENCES jogadores(id) ON DELETE SET NULL,
+                assistente_id INT REFERENCES jogadores(id) ON DELETE SET NULL,
+                jogadores_em_quadra INT[] NOT NULL DEFAULT ARRAY[]::INT[]
+    
+)
+            
+            """,
             # """
             # CREATE TABLE IF NOT EXISTS gols (
             #     id SERIAL PRIMARY KEY,
@@ -87,6 +109,9 @@ class DBManager:
         for comando in comandos:
             self.cursor.execute(comando)
         self.conn.commit()
+        
+    def rollback(self):
+        self.conn.rollback()
 
     def verificar_equipe_existente(self, nome, categoria):
         nome=nome.strip()
@@ -234,8 +259,15 @@ class DBManager:
     # Listar todos os jogos
     def listar_jogos(self):
         self.cursor.execute("SELECT id,equipe_mandante_id,equipe_mandante_nome,equipe_visitante_id, equipe_visitante_nome,data,  competicao, fase, rodada FROM jogos ORDER BY data DESC")
-        return self.cursor.fetchall()  # Retorna uma lista de tuplas
-
+        return self.cursor.fetchall()
+    
+    def listar_jogos_minas(self):
+        self.cursor.execute("""SELECT id,equipe_mandante_id,equipe_mandante_nome,equipe_visitante_id, equipe_visitante_nome,data,  competicao, fase, rodada 
+                            FROM jogos
+                            WHERE equipe_mandante_nome LIKE 'Minas Tênis%'
+                                OR equipe_visitante_nome LIKE 'Minas Tênis%' 
+                            ORDER BY data DESC""")
+        return self.cursor.fetchall()
     # Listar todas as jogadas
     def listar_jogadas(self):
         self.cursor.execute("SELECT * FROM jogadas")
@@ -290,7 +322,7 @@ class DBManager:
                     jogadas.y_loc
                 FROM
                     jogos
-                LEFT JOIN
+                INNER JOIN
                     jogadas
                 ON
                     jogos.id = jogadas.jogo_id 
@@ -312,7 +344,7 @@ class DBManager:
                     jogadas.y_loc
                 FROM
                     jogos
-                LEFT JOIN
+                INNER JOIN
                     jogadas
                 ON
                     jogos.id = jogadas.jogo_id
@@ -360,11 +392,130 @@ class DBManager:
         else:
             return False
 
+    def listar_gols(self):
+        self.cursor.execute("""
+            SELECT
+                g.id, 
+                jogos.equipe_mandante_nome,
+                jogos.equipe_visitante_nome,
+                jogos.competicao ,
+                jogos.fase,
+                jogos.rodada,
+                e.nome  as equipe_analisada,
+                g.tipo_gol,
+                g.caracteristica,
+                g.tempo ,
+                j.nome AS gol_nome,
+                a.nome  as assistente_nome,
+                agg.jogadores_em_quadra_nomes,
+                g.x_loc,
+                g.y_loc
+            FROM gols g
+            LEFT JOIN jogos ON jogos.id = g.jogo_id
+            LEFT JOIN equipes e ON e.id = g.equipe_analisada_id
+            LEFT JOIN jogadores j ON j.id = g.autor_gol_id
+            LEFT JOIN jogadores a ON a.id = g.assistente_id
+            LEFT JOIN (
+                SELECT 
+                    g2.id AS gol_id,
+                    array_agg(j2.nome) AS jogadores_em_quadra_nomes
+                FROM gols g2
+                LEFT JOIN jogadores j2 ON j2.id = ANY(g2.jogadores_em_quadra)
+                GROUP BY g2.id
+            ) agg ON agg.gol_id = g.id""")
+        
+        return self.cursor.fetchall()
+    
+    def listar_gols_por_equipe(self,equipe_id):
+        self.cursor.execute("""
+            SELECT 
+                jogos.equipe_mandante_nome,
+                jogos.equipe_visitante_nome,
+                jogos.competicao ,
+                jogos.fase,
+                jogos.rodada,
+                e.nome  as equipe_analisada,
+                g.tipo_gol,
+                g.caracteristica,
+                g.tempo ,
+                j.nome AS gol_nome,
+                a.nome  as assistente_nome,
+                agg.jogadores_em_quadra_nomes,
+                g.x_loc,
+                g.y_loc
+            FROM gols g
+            LEFT JOIN jogos ON jogos.id = g.jogo_id
+            LEFT JOIN equipes e ON e.id = g.equipe_analisada_id
+            LEFT JOIN jogadores j ON j.id = g.autor_gol_id
+            LEFT JOIN jogadores a ON a.id = g.assistente_id
+            LEFT JOIN (
+                SELECT 
+                    g2.id AS gol_id,
+                    array_agg(j2.nome) AS jogadores_em_quadra_nomes
+                FROM gols g2
+                LEFT JOIN jogadores j2 ON j2.id = ANY(g2.jogadores_em_quadra)
+                GROUP BY g2.id
+            ) agg ON agg.gol_id = g.id
+            WHERE
+                g.equipe_analisada_id = %s""" ,
+                (equipe_id,))
+        
+        return self.cursor.fetchall()
+    
+    def adicionar_gol(self, jogo_id, equipe_analisada_id, tipo_gol, tempo, caracteristica, x_loc, y_loc, jogadores_em_quadra=None, autor_gol_id=None, assistente_id=None):
+    # Define a lista de jogadores em quadra como vazia se não for fornecida
+        if jogadores_em_quadra is None:
+            jogadores_em_quadra = []
+    
+        self.cursor.execute(
+            """
+            INSERT INTO gols (
+                jogo_id, 
+                equipe_analisada_id, 
+                tipo_gol, 
+                tempo, 
+                caracteristica, 
+                x_loc, 
+                y_loc, 
+                autor_gol_id, 
+                assistente_id, 
+                jogadores_em_quadra
+            )
+            VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+            """,
+            (
+                jogo_id,
+                equipe_analisada_id,
+                tipo_gol,
+                tempo,
+                caracteristica,
+                x_loc,
+                y_loc,
+                autor_gol_id,
+                assistente_id,
+                jogadores_em_quadra
+            )
+        )
+        self.conn.commit()
+        return self.cursor.lastrowid
+    
+    def deletar_gol(self, gol_id):
+        self.cursor.execute("DELETE FROM gols WHERE id = %s", (gol_id,))
+        self.conn.commit()
+        
+        if self.cursor.rowcount > 0:
+            return True
+        else:
+            return False
+    
     def fechar_conexao(self):
         if self.cursor:
             self.cursor.close()
         if self.conn:
             self.conn.close()
+
+    
+
 
 @st.cache_resource
 def get_db_manager():

@@ -67,6 +67,7 @@ def adicionar_jogos_dialog(lista_equipes):
                         st.rerun()
                     except Exception as e:
                         st.error(f"Erro ao adicionar jogo: {e}")
+                        db_manager.rollback()
 @st.dialog("Deletar Jogos")
 def deletar_jogos_dialog(lista_jogos):
     opcoes_jogos = {f"{jogo[2]} x {jogo[4]} - {jogo[6]} - {jogo[7]} - {jogo[8]}" : jogo[0] for jogo in lista_jogos}
@@ -82,6 +83,7 @@ def deletar_jogos_dialog(lista_jogos):
                 st.rerun()
             except Exception as e:
                 st.error(f"Erro ao deletar jogo: {e}")
+                db_manager.rollback()
                    
                                 
 

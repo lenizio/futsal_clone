@@ -2,7 +2,6 @@ import streamlit as st
 import os
 from PIL import Image
 from streamlit_image_coordinates import streamlit_image_coordinates
-from streamlit_gsheets import GSheetsConnection
 from db_manager import DBManager,get_db_manager
 import atexit
 from utils import exibir_seta
@@ -11,7 +10,7 @@ from utils import listar_opces_jogadores
 db_manager = get_db_manager()
 
 # Lista de jogos
-lista_jogos = db_manager.listar_jogos()
+lista_jogos = db_manager.listar_jogos_minas()
 
 # Inicializar o valor padrão para o tempo no estado, se ainda não existir
 if "selected_tempo" not in st.session_state:
@@ -117,6 +116,7 @@ else:
                                             st.success(f"Jogada adicionada com sucesso!")    
                                         except Exception as e:
                                             st.error(f"Erro ao adicionar jogadas: {e}")
+                                            db_manager.rollback()
 
                 
                 with right_div:
@@ -149,7 +149,7 @@ else:
                     #             <div class="seta">↑</div>
                     #             <div class="texto-ataque">ATAQUE</div>
                     #         </div>
-                    #         """, unsafe_allow_html=True)
+                    #         """, unsafe_allow_html=True
 
 
                 

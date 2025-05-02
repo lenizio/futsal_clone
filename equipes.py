@@ -21,8 +21,10 @@ def adicionar_jogador_dialog(equipe_id, equipe_nome):
             resultado = db_manager.adicionar_jogador(nome, equipe_id, equipe_nome, posicao, numero_camisa,image_id)
             if isinstance(resultado, str):  # Se for uma string, é uma mensagem de erro
                 st.error(resultado)  # Exibe a mensagem de erro no Streamlit
+                db_manager.rollback()
             else:
                 st.success(f"Jogador cadastrado com sucesso!")
+                
                 time.sleep(1)  # Pausa de 2 segundos para mostrar a mensagem antes de atualizar a página
                 st.rerun()
 @st.dialog("Editar Jogador")
@@ -45,7 +47,8 @@ def editar_jogador_dialog(equipe_id):
             else:
                 resultado = db_manager.editar_jogador(equipe_id,jogador_id,nome,numero_camisa,posicao,image_id)   
                 if isinstance(resultado, str):  # Se for uma string, é uma mensagem de erro
-                    st.error(resultado)  # Exibe a mensagem de erro no Streamlit
+                    st.error(resultado)
+                    db_manager.rollback()# Exibe a mensagem de erro no Streamlit
                 else:
                     st.success(f"Jogador editado com sucesso!")
                     time.sleep(1)  # Pausa de 2 segundos para mostrar a mensagem antes de atualizar a página
@@ -74,7 +77,8 @@ def excluir_jogador_dialog(equipe_id):
                 time.sleep(1)  # Pausa de 2 segundos para mostrar a mensagem antes de atualizar a página
                 st.rerun()    
             else:
-                st.error('Erro na hora de excluir jogador. Tente novamente')         
+                st.error('Erro na hora de excluir jogador. Tente novamente')
+                db_manager.rollback()         
                 time.sleep(1)  # Pausa de 2 segundos para mostrar a mensagem antes de atualizar a página
                 st.rerun()     
 
@@ -130,6 +134,7 @@ def adicionar_equipe_dialog():
                 st.rerun()
             else:
                 st.error(f"O equipe '{equipe}' na categoria '{categoria}' já está cadastrado.")
+                db_manager.rollback()
 @st.dialog("Excluir equipe")
 def excluir_equipe_dialog():
     
@@ -146,7 +151,8 @@ def excluir_equipe_dialog():
                 time.sleep(1)  # Pausa de 2 segundos para mostrar a mensagem antes de atualizar a página
                 st.rerun()    
             else:
-                st.error('Erro na hora de excluir time. Tente novamente')         
+                st.error('Erro na hora de excluir time. Tente novamente')
+                db_manager.rollback()         
                 time.sleep(1)  # Pausa de 2 segundos para mostrar a mensagem antes de atualizar a página
                 st.rerun()     
                     

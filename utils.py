@@ -62,6 +62,14 @@ def extrair_dataframe_jogador(db_manager):
     
     return dados_jogador_df
 
+def extraisr_dataframe_analise_gols(db_manager):
+    dados_analise_gols = db_manager.listar_gols()
+    dados_analise_gols = pd.DataFrame(dados_analise_gols,columns=['id','Mandante', 'Visitante', 'Competição','Fase', 'Rodada', 'Equipe Analisada', 'Tipo','Característica','Tempo', 'Autor', 'Assistente', 'Jogadores em quadra','xloc','yloc'])
+    dados_analise_gols =  dados_analise_gols.set_index('id')
+    dados_analise_gols['quadrante'] = dados_analise_gols.apply(lambda row: calcular_quadrante(row['xloc'], row['yloc']), axis=1)
+    # dados_analise_gols.drop(['xloc','yloc'], inplace=True)
+    dados_analise_gols.fillna("",inplace=True)
+    return dados_analise_gols
 def extrair_estatisticas_jogadores(dados_jogador_df):
     
     primeiro_tempo=dados_jogador_df.jogada.loc[dados_jogador_df["tempo"]=='1ºT'].value_counts().reindex(["FIN.C", "FIN.E", "FIN.T",'DES.C/P.', 'DES.S/P.','PER.P.', 'C.A', 'ASSIST.', 'GOL'],fill_value=0)

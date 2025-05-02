@@ -14,8 +14,9 @@ analise_tempo_real_page = st.Page("analise_tempo_real.py", title="Análise Tempo
 jogos_page = st.Page("jogos.py", title="Jogos")
 jogadas_page = st.Page("jogadas.py", title="Jogadas")
 analise_atleta_page = st.Page("analise_atleta.py", title="Análise Atleta")
+analise_gols_page = st.Page("analise_gols.py",title= "Análise Gols")
 
-pg = st.navigation([equipes_page, jogos_page, jogadas_page, analise_tempo_real_page, analise_atleta_page])
+pg = st.navigation([equipes_page, jogos_page, jogadas_page, analise_tempo_real_page, analise_atleta_page,analise_gols_page])
 pg.run()
 
 # Fechar conexão com o banco de dados ao encerrar o app
