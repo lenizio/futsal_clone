@@ -322,7 +322,7 @@ class DBManager:
                     jogadas.y_loc
                 FROM
                     jogos
-                INNER JOIN
+                LEFT JOIN
                     jogadas
                 ON
                     jogos.id = jogadas.jogo_id 
