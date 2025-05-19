@@ -62,12 +62,12 @@ def extrair_dataframe_jogador(db_manager):
     
     return dados_jogador_df
 
-def extraisr_dataframe_analise_gols(db_manager):
+def extrair_dataframe_analise_gols(db_manager):
     dados_analise_gols = db_manager.listar_gols()
-    dados_analise_gols = pd.DataFrame(dados_analise_gols,columns=['id','Mandante', 'Visitante', 'Competição','Fase', 'Rodada', 'Equipe Analisada', 'Tipo','Característica','Tempo', 'Autor', 'Assistente', 'Jogadores em quadra','xloc','yloc'])
+    dados_analise_gols = pd.DataFrame(dados_analise_gols,columns=['id','jogo_id','Mandante', 'Visitante', 'Competição','Fase', 'Rodada',"Data", 'Equipe Analisada', 'Tipo','Característica','Tempo', 'Autor', 'Assistente', 'Jogadores em quadra','xloc','yloc'])
     dados_analise_gols =  dados_analise_gols.set_index('id')
     dados_analise_gols['quadrante'] = dados_analise_gols.apply(lambda row: calcular_quadrante(row['xloc'], row['yloc']), axis=1)
-    # dados_analise_gols.drop(['xloc','yloc'], inplace=True)
+    dados_analise_gols.drop(['xloc','yloc'], inplace=True,axis=1)
     dados_analise_gols.fillna("",inplace=True)
     return dados_analise_gols
 def extrair_estatisticas_jogadores(dados_jogador_df):
@@ -1211,6 +1211,797 @@ def create_futsal_subplots(tipo, data, tempo, rows, cols):
 
     return fig
 
+def plotar_caracteristicas_gols(df_gols, equipe1, equipe2):
+    jogos_e1,gols_marcados_e1, gols_sofridos_e1, jogos_e2,gols_marcados_e2, gols_sofridos_e2=extrair_dados_caracteristicas_gols(df_gols, equipe1, equipe2)
+    
+    labels = [
+        "Total","4x3", "3x4", "Ataque Posicional PA", "Ataque Posicional PB",
+        "Goleiro Linha", "Defesa Goleiro Linha", "Goleiro no Jogo",
+        "Escanteio", "Falta", "Lateral", "Pênalti", "Tiro de 10",
+        "Gol Contra", "Transição Alta", "Transição Baixa"
+    ]
+    
+    
+    fig = go.Figure()
+    # Dados para os gráficos
+    values_gols_marcados = gols_marcados_e1.values
+    total_gols_marcados = sum(values_gols_marcados)
+    values_gols_marcados=np.insert(values_gols_marcados,0,total_gols_marcados)
+    percentual_gols_marcados = values_gols_marcados/total_gols_marcados if total_gols_marcados != 0 else np.zeros((len(values_gols_marcados),), dtype=int)
+    
+    values_gols_sofridos = gols_sofridos_e2.values
+    total_gols_sofridos = sum(values_gols_sofridos)
+    values_gols_sofridos=np.insert(values_gols_sofridos,0,total_gols_sofridos)
+    percentual_gols_sofridos = values_gols_sofridos/total_gols_sofridos if total_gols_sofridos != 0 else np.zeros((len(values_gols_sofridos),), dtype=int)
+   
+    fig.add_trace(go.Bar(
+        y=labels,
+        x=percentual_gols_sofridos,
+        name=f'Gols Sofridos {equipe2}',
+        orientation='h',
+        text=[f"{v} ({(v/total_gols_sofridos)*100:.2f}%)" for v in values_gols_sofridos],
+        textposition='inside',
+        insidetextanchor='start',
+        marker=dict(color='rgb(214, 39, 40)'),
+        width=0.82, 
+    ))
+
+    fig.add_trace(go.Bar(
+        y=labels,
+        x= [-v for v in percentual_gols_marcados] ,
+        name=f'Gols Marcados {equipe1}',
+        orientation='h',
+        text=[f"({(v/total_gols_marcados)*100:.2f}%) {v} " for v in values_gols_marcados],
+        textposition='inside',
+        insidetextanchor='start',
+        marker=dict(color='rgb(44, 160, 44)'),
+        width=0.82,
+    ))
+
+
+    titulo_esquerda = f'Gols Marcados {equipe1}(nº de jogos: {jogos_e1})'
+    titulo_direita = f'Gols Sofridos {equipe2}(nº de jogos: {jogos_e2})'
+    # Atualizar layout
+    fig.update_layout(
+        showlegend=False,
+        barmode='relative',
+        height=600,
+        legend=dict(x=0.85),
+        xaxis=dict(
+            showgrid=True,        # Ativa o grid horizontal
+            gridcolor='white',     # Cor da linha do grid
+            gridwidth=0.5,
+            tickvals=[-1,-0.5,0,0.5,1],
+            ticktext=['100%', "50%",'0%',"50%",'100%'],
+            range=[-1.03,1.03],
+            tickfont=dict(size=15)
+        ),
+        yaxis=dict(
+            showgrid=True,
+            tickfont=dict(size=14)
+                    ),
+        annotations=[
+        dict(
+            text=titulo_esquerda,
+            x=0.4, y=1.1,
+            xref='paper', yref='paper',
+            xanchor='right',  # texto se expande à direita
+            yanchor='top',
+            showarrow=False,
+            font=dict(size=20 ,family="Arial Black")
+        ),
+        dict(
+            text='X',
+            x=0.5, y=1.1,
+            xref='paper', yref='paper',
+            showarrow=False,
+            font=dict(size=20 ,family="Arial Black")
+        ),
+        dict(
+            text=titulo_direita,
+            x=0.6, y=1.1,
+            xanchor='left',  # texto se expande à direita
+            yanchor='top',
+            xref='paper', yref='paper',
+            showarrow=False,
+            font=dict(size=20 ,family="Arial Black")
+        ),
+        
+    ]
+
+        )
+        
+    return fig
+
+def plotar_caracteristicas_gols_1(df_gols, equipe1, equipe2):
+    jogos_e1,gols_marcados_e1, gols_sofridos_e1, jogos_e2,gols_marcados_e2, gols_sofridos_e2=extrair_dados_caracteristicas_gols_1(df_gols, equipe1, equipe2)
+    total_gm_e1= int(gols_marcados_e1.sum())
+    total_gs_e2=int(gols_sofridos_e2.sum())
+    tempos = gols_marcados_e1.index.get_level_values(0).unique().tolist()
+    labels = gols_marcados_e1.index.get_level_values(1).unique().tolist()
+    acumulado = np.zeros(len(labels))
+    acumulado1 = acumulado.copy()
+    tons_de_vermelho = ['#FF0000', '#CC0000', '#FF6666', '#990000', '#FF3333', '#E60000']
+    tons_de_verde = ['#00FF00', '#00CC00', '#66FF66', '#009900', '#33FF33', '#00E600']
+    data =[]
+    for i,tempo in enumerate(tempos):
+        valores = gols_marcados_e1.loc[tempo].values
+        percentual = valores/total_gm_e1
+        valores1 = gols_sofridos_e2.loc[tempo].values
+        percentual1 = valores1/total_gs_e2
+        cor = tons_de_vermelho[i % len(tons_de_vermelho)]
+        cor1 = tons_de_verde[i % len(tons_de_verde)]
+        data.append(
+            go.Bar(
+            name=f'{equipe1} - {tempo}',
+            x=percentual,
+            y=labels,
+            offsetgroup=1,
+            base = acumulado.copy(),
+            orientation='h',
+            text=[f"{valores[i]} ({(percentual[i]*100):.2f}%)" for i in range(len(valores))],
+            textposition='inside',
+            insidetextanchor='middle',  
+            marker_color = cor,
+            width=0.82, 
+        )
+        )
+        data.append(
+            go.Bar(
+            name=f'{equipe2} - {tempo}',
+            x=-percentual1,
+            y=labels,
+            offsetgroup=2,
+            base = -acumulado1.copy(),
+            orientation='h',
+            text=[f"{valores1[i]} ({(percentual1[i]*100):.2f}%)" for i in range(len(valores1))],
+            textposition='inside',
+            insidetextanchor='middle',
+            marker_color = cor1,
+            width=0.822, 
+        )
+        )
+        
+        acumulado+=percentual
+        acumulado1+=percentual1
+    for i, tempo in enumerate(tempos):
+        cor_vermelho_legenda = tons_de_vermelho[i % len(tons_de_vermelho)]
+        cor_verde_legenda = tons_de_verde[i % len(tons_de_verde)]
+
+        # Legenda para Equipe 1 (gols marcados)
+        data.append(
+            go.Bar(
+                name=f'{equipe1} - {tempo}',
+                x=[0],
+                y=[None] * len(labels),
+                marker_color=cor_vermelho_legenda,
+                showlegend=True
+            )
+        )
+
+        # Legenda para Equipe 2 (gols sofridos)
+        data.append(
+            go.Bar(
+                name=f'{equipe2} - {tempo}',
+                x=[0],
+                y=[None] * len(labels),
+                marker_color=cor_verde_legenda,
+                showlegend=True
+            )
+        )
+        
+    titulo_esquerda = f'Gols Marcados {equipe1}(nº de jogos: {jogos_e1})'
+    titulo_direita = f'Gols Sofridos {equipe2}(nº de jogos: {jogos_e2})'
+    
+    
+    fig = go.Figure(
+        
+        data =data,
+        layout=go.Layout(
+        barmode='relative',
+        showlegend=True,
+        height=600,
+        legend=dict(x=0.85),
+        xaxis=dict(
+            showgrid=True,        # Ativa o grid horizontal
+            gridcolor='white',     # Cor da linha do grid
+            gridwidth=0.5,
+            tickfont=dict(size=14),
+            tickvals=[-1, -0.5, 0, 0.5, 1],
+            ticktext=['100%', '50%', '0%', '50%', '100%'],
+            range=[-1.03, 1.03],
+        ),
+        yaxis=dict(
+            showgrid=True,
+            tickfont=dict(size=13)
+                    ),
+        annotations=[
+        dict(
+            text=titulo_esquerda,
+            x=0.4, y=1.1,
+            xref='paper', yref='paper',
+            xanchor='right',  # texto se expande à direita
+            yanchor='top',
+            showarrow=False,
+            font=dict(size=20 ,family="Arial Black")
+        ),
+        dict(
+            text='X',
+            x=0.5, y=1.1,
+            xref='paper', yref='paper',
+            showarrow=False,
+            font=dict(size=20 ,family="Arial Black")
+        ),
+        dict(
+            text=titulo_direita,
+            x=0.6, y=1.1,
+            xanchor='left',  # texto se expande à direita
+            yanchor='top',
+            xref='paper', yref='paper',
+            showarrow=False,
+            font=dict(size=20 ,family="Arial Black")
+        ),
+        
+    ]
+
+    ) 
+        )
+        
+    return fig
+
+def plotar_caracteristicas_gols_2(df_gols, equipe1, equipe2):
+    jogos_e1, gols_marcados_e1, gols_sofridos_e1, jogos_e2, gols_marcados_e2, gols_sofridos_e2 = extrair_dados_caracteristicas_gols_1(df_gols, equipe1, equipe2)
+    
+    total_gm_e1 = int(gols_marcados_e1.sum())
+    total_gs_e2 = int(gols_sofridos_e2.sum())
+    
+    tempos = gols_marcados_e1.index.get_level_values(0).unique().tolist()
+    labels = gols_marcados_e1.index.get_level_values(1).unique().tolist()
+
+    acumulado = np.zeros(len(labels))
+    acumulado1 = acumulado.copy()
+    
+    tons_sofridos = ['#800000', '#FF9999','#ff0000','#FF6666','#CC0000', '#E63939']
+
+    tons_marcados =['#003300','#4dff4d', '#00A600','#b3ffb3', '#00CC00', '#39E639']
+    
+    data = []
+    
+    for i, tempo in enumerate(tempos):
+        valores = gols_marcados_e1.loc[tempo].values 
+        percentual = valores / total_gm_e1 if total_gm_e1 != 0 else np.zeros((len(valores),), dtype=int)
+        valores1 = gols_sofridos_e2.loc[tempo].values
+        percentual1 = valores1 / total_gs_e2 if total_gs_e2 != 0 else np.zeros((len(valores1),), dtype=int)
+        
+        cor_vermelho = tons_sofridos[i % len(tons_sofridos)]
+        cor_verde = tons_marcados[i % len(tons_marcados)]
+        
+        #gols_sofridos
+        data.append(go.Bar(
+            name=f'{equipe2} - {tempo}',
+            x=percentual1,
+            y=labels,
+            offsetgroup=1,
+            base=acumulado1.copy(),
+            orientation='h',
+            text=[f"{valores1[i]} ({(percentual1[i]*100):.2f}%)" for i in range(len(valores1))],
+            textposition='inside',
+            insidetextanchor='middle',
+            marker_color=cor_vermelho,
+            width=0.82,
+        ))
+        
+        #gol_marcados
+        data.append(go.Bar(
+            name=f'{equipe1} - {tempo}',
+            x=-percentual,
+            y=labels,
+            offsetgroup=2,
+            base=-acumulado.copy(),
+            orientation='h',
+            text=[f"({(percentual[i]*100):.2f}%) {valores[i]}" for i in range(len(valores))],
+            textposition='inside',
+            insidetextanchor='middle',
+            marker_color=cor_verde,
+            width=0.822,
+        ))
+        
+        acumulado += percentual
+        acumulado1 += percentual1
+    
+    # Títulos
+    titulo_esquerda = f'Gols Marcados {equipe1} (nº de jogos: {jogos_e1})'
+    titulo_direita = f'Gols Sofridos {equipe2} (nº de jogos: {jogos_e2})'
+    
+    # Anotações existentes
+    existing_annotations = [
+        dict(
+            text=titulo_esquerda,
+            x=0.4, y=1.2,
+            xref='paper', yref='paper',
+            xanchor='right',
+            yanchor='top',
+            showarrow=False,
+            font=dict(size=20, family="Arial Black")
+        ),
+        dict(
+            text='X',
+            x=0.5, y=1.2,
+            xref='paper', yref='paper',
+            showarrow=False,
+            font=dict(size=20, family="Arial Black")
+        ),
+        dict(
+            text=titulo_direita,
+            x=0.6, y=1.2,
+            xanchor='left',
+            yanchor='top',
+            xref='paper', yref='paper',
+            showarrow=False,
+            font=dict(size=20, family="Arial Black")
+        )
+    ]
+    
+    # Criar legenda personalizada
+    legend_shapes = []
+    legend_annotations = []
+    
+    # Configurações da legenda
+    y_legend = 1.07
+    x_start_esq = 0.10
+    x_start_dir = 0.6
+    delta_x = 0.053
+    delta_shape = 0.05
+
+    # Legenda ESQUERDA (equipe1) - Ordem invertida
+    for i, tempo in enumerate(reversed(tempos)):  # Iterar em ordem reversa
+        original_idx = len(tempos) - 1 - i  # Índice original para cores
+        
+        # # Bloco verde
+        legend_shapes.append(dict(
+            type="rect",
+            xref="paper",
+            yref="paper",
+            x0=x_start_esq + (i * delta_shape),
+            y0=y_legend - 0.03,
+            x1=x_start_esq + (i * delta_shape) + 0.05,
+            y1=y_legend + 0.03,
+            fillcolor=tons_marcados[original_idx % len(tons_marcados)],  # Usar índice original
+            line=dict(width=0)
+        ))
+        
+        # Texto
+        legend_annotations.append(dict(
+            xref="paper",
+            yref="paper",
+            x=x_start_esq + (i * delta_x) + 0.015,
+            y=y_legend - 0.03,
+            text=tempo,  # Já está invertido
+            showarrow=False,
+            font=dict(size=10),
+            align="right"
+        ))
+
+    # Legenda DIREITA (equipe2) - Ordem normal
+    for i, tempo in enumerate(tempos):
+        # Bloco vermelho
+        legend_shapes.append(dict(
+            type="rect",
+            xref="paper",
+            yref="paper",
+            x0=x_start_dir + (i * delta_shape),
+            y0=y_legend - 0.03,
+            x1=x_start_dir + (i * delta_shape) + 0.05,
+            y1=y_legend+0.03,
+            fillcolor=tons_sofridos[i % len(tons_sofridos)],
+            line=dict(width=0)
+        ))
+        
+        # Texto
+        legend_annotations.append(dict(
+            xref="paper",
+            yref="paper",
+            x=x_start_dir + (i * delta_x) + 0.015,
+            y=y_legend - 0.03,
+            text=tempo,
+            showarrow=False,
+            font=dict(size=10),
+            align="center"
+        ))
+
+    # Juntar todas as anotações
+    all_annotations = existing_annotations + legend_annotations
+    
+    fig = go.Figure(
+        data=data,
+        layout=go.Layout(
+            barmode='relative',
+            showlegend=False,
+            height=600,
+            xaxis=dict(
+                showgrid=True,
+                gridcolor='white',
+                gridwidth=0.5,
+                tickfont=dict(size=14),
+                tickvals=[-1, -0.5, 0, 0.5, 1],
+                ticktext=['100%', '50%', '0%', '50%', '100%'],
+                range=[-1.03, 1.03],
+            ),
+            yaxis=dict(
+                showgrid=True,
+                tickfont=dict(size=13)
+            ),
+            annotations=all_annotations,
+            shapes=legend_shapes,
+            margin=dict(r=150)  # Aumentar margem direita para caber a legenda
+        )
+    )
+    
+    return fig
+
+def plotar_caracteristicas_gols_2_invertido(df_gols, equipe1, equipe2):
+    # Extrair dados invertidos (sofridos para equipe1, marcados para equipe2)
+    jogos_e1, gols_marcados_e1, gols_sofridos_e1, jogos_e2, gols_marcados_e2, gols_sofridos_e2 = extrair_dados_caracteristicas_gols_1(df_gols, equipe1, equipe2)
+    
+    # Totais invertidos
+    total_gs_e1 = int(gols_sofridos_e1.sum())  # Total de gols sofridos pela equipe1
+    total_gm_e2 = int(gols_marcados_e2.sum())  # Total de gols marcados pela equipe2
+    
+    tempos = gols_sofridos_e1.index.get_level_values(0).unique().tolist()
+    labels = gols_sofridos_e1.index.get_level_values(1).unique().tolist()
+
+    acumulado = np.zeros(len(labels))
+    acumulado1 = acumulado.copy()
+    
+    # Tons invertidos
+    tons_sofridos = ['#800000', '#FF9999','#ff0000','#FF6666','#CC0000', '#E63939']  # Vermelhos (sofridos)
+    tons_marcados = ['#003300','#4dff4d', '#00A600','#b3ffb3', '#00CC00', '#39E639']  # Verdes (marcados)
+    
+    data = []
+    
+    for i, tempo in enumerate(tempos):
+        # Dados invertidos
+        valores = gols_sofridos_e1.loc[tempo].values  # Sofridos equipe1
+        percentual = valores / total_gs_e1 if total_gs_e1 != 0 else np.zeros((len(valores),), dtype=int)
+        valores1 = gols_marcados_e2.loc[tempo].values  # Marcados equipe2
+        percentual1 = valores1 / total_gm_e2 if total_gm_e2 != 0 else np.zeros((len(valores1),), dtype=int)
+        
+        cor_vermelho = tons_sofridos[i % len(tons_sofridos)]
+        cor_verde = tons_marcados[i % len(tons_marcados)]
+        
+        # Barras invertidas
+        data.append(go.Bar(
+            name=f'{equipe1} - {tempo}',  # Sofridos
+            x=-percentual,
+            y=labels,
+            offsetgroup=1,
+            base=-acumulado.copy(),
+            orientation='h',
+            text=[f"{valores[i]} ({(percentual[i]*100):.2f}%)" for i in range(len(valores))],
+            textposition='inside',
+            insidetextanchor='middle',
+            marker_color=cor_vermelho,  # Vermelho para sofridos
+            width=0.82,
+        ))
+        
+        data.append(go.Bar(
+            name=f'{equipe2} - {tempo}',  # Marcados
+            x=percentual1,
+            y=labels,
+            offsetgroup=2,
+            base=acumulado1.copy(),
+            orientation='h',
+            text=[f"({(percentual1[i]*100):.2f}%) {valores1[i]}" for i in range(len(valores1))],
+            textposition='inside',
+            insidetextanchor='middle',
+            marker_color=cor_verde,  # Verde para marcados
+            width=0.822,
+        ))
+        
+        acumulado += percentual
+        acumulado1 += percentual1
+    
+    # Títulos invertidos
+    titulo_esquerda = f'Gols Sofridos {equipe1} (nº de jogos: {jogos_e1})'
+    titulo_direita = f'Gols Marcados {equipe2} (nº de jogos: {jogos_e2})'
+    
+    existing_annotations = [
+        dict(
+            text=titulo_esquerda,
+            x=0.4, y=1.2,
+            xref='paper', yref='paper',
+            xanchor='right',
+            yanchor='top',
+            showarrow=False,
+            font=dict(size=20, family="Arial Black")
+        ),
+        dict(
+            text='X',
+            x=0.5, y=1.2,
+            xref='paper', yref='paper',
+            showarrow=False,
+            font=dict(size=20, family="Arial Black")
+        ),
+        dict(
+            text=titulo_direita,
+            x=0.6, y=1.2,
+            xanchor='left',
+            yanchor='top',
+            xref='paper', yref='paper',
+            showarrow=False,
+            font=dict(size=20, family="Arial Black")
+        )
+    ]
+    
+    # Legenda invertida
+    legend_shapes = []
+    legend_annotations = []
+    
+    y_legend = 1.07
+    x_start_esq = 0.10
+    x_start_dir = 0.6
+    delta_x = 0.053
+    delta_shape = 0.05
+
+    # Legenda ESQUERDA (sofridos - vermelho)
+    for i, tempo in enumerate(reversed(tempos)):
+        original_idx = len(tempos) - 1 - i
+        legend_shapes.append(dict(
+            type="rect",
+            xref="paper",
+            yref="paper",
+            x0=x_start_esq + (i * delta_shape),
+            y0=y_legend - 0.03,
+            x1=x_start_esq + (i * delta_shape) + 0.05,
+            y1=y_legend+ 0.03,
+            fillcolor=tons_sofridos[original_idx % len(tons_sofridos)],
+            line=dict(width=0)
+        ))
+        
+        legend_annotations.append(dict(
+            xref="paper",
+            yref="paper",
+            x=x_start_esq + (i * delta_x) + 0.015,
+            y=y_legend - 0.03,
+            text=tempo,
+            showarrow=False,
+            font=dict(size=10),
+            align="right"
+        ))
+
+    # Legenda DIREITA (marcados - verde)
+    for i, tempo in enumerate(tempos):
+        legend_shapes.append(dict(
+            type="rect",
+            xref="paper",
+            yref="paper",
+            x0=x_start_dir + (i * delta_shape),
+            y0=y_legend - 0.03,
+            x1=x_start_dir + (i * delta_shape) + 0.05,
+            y1=y_legend+ 0.03,
+            fillcolor=tons_marcados[i % len(tons_marcados)],
+            line=dict(width=0)
+        ))
+        
+        legend_annotations.append(dict(
+            xref="paper",
+            yref="paper",
+            x=x_start_dir + (i * delta_x) + 0.015,
+            y=y_legend - 0.03,
+            text=tempo,
+            showarrow=False,
+            font=dict(size=10),
+            align="center"
+        ))
+
+    all_annotations = existing_annotations + legend_annotations
+    
+    fig = go.Figure(
+        data=data,
+        layout=go.Layout(
+            barmode='relative',
+            showlegend=False,
+            height=600,
+            xaxis=dict(
+                showgrid=True,
+                gridcolor='white',
+                gridwidth=0.5,
+                tickfont=dict(size=14),
+                tickvals=[-1, -0.5, 0, 0.5, 1],
+                ticktext=['100%', '50%', '0%', '50%', '100%'],
+                range=[-1.03, 1.03],
+            ),
+            yaxis=dict(
+                showgrid=True,
+                tickfont=dict(size=13)
+            ),
+            annotations=all_annotations,
+            shapes=legend_shapes,
+            margin=dict(r=150)
+        )
+    )
+    
+    return fig
+
+def plotar_caracteristicas_gols_invertido(df_gols, equipe1, equipe2):
+    jogos_e1,gols_marcados_e1, gols_sofridos_e1,jogos_e2, gols_marcados_e2, gols_sofridos_e2 = extrair_dados_caracteristicas_gols(df_gols, equipe1, equipe2)
+
+    labels = [
+        "Total","4x3", "3x4", "Ataque Posicional PA", "Ataque Posicional PB",
+        "Goleiro Linha", "Defesa Goleiro Linha", "Goleiro no Jogo",
+        "Escanteio", "Falta", "Lateral", "Pênalti", "Tiro de 10",
+        "Gol Contra", "Transição Alta", "Transição Baixa"
+    ]
+    
+    fig = go.Figure()
+
+    # Dados para o novo gráfico
+    values_gols_sofridos_e1 = gols_sofridos_e1.values
+    total_gols_sofridos_e1 = sum(values_gols_sofridos_e1)
+    values_gols_sofridos_e1=np.insert(values_gols_sofridos_e1,0,total_gols_sofridos_e1)
+    percentual_gols_sofridos_e1 = values_gols_sofridos_e1 / total_gols_sofridos_e1 if total_gols_sofridos_e1 != 0 else np.zeros((len(values_gols_sofridos_e1),), dtype=int)
+
+    values_gols_marcados_e2 = gols_marcados_e2.values
+    total_gols_marcados_e2 = sum(values_gols_marcados_e2)
+    values_gols_marcados_e2=np.insert(values_gols_marcados_e2,0,total_gols_marcados_e2)
+    percentual_gols_marcados_e2 = values_gols_marcados_e2 / total_gols_marcados_e2 if total_gols_marcados_e2 != 0 else np.zeros((len(values_gols_marcados_e2),), dtype=int)
+
+    # Barras - Gols Sofridos (Equipe 1) à esquerda
+    fig.add_trace(go.Bar(
+        y=labels,
+        x=[-v for v in percentual_gols_sofridos_e1],
+        name=f'Gols Sofridos {equipe1}',
+        orientation='h',
+        text=[f"{v} ({(v/total_gols_sofridos_e1)*100:.2f}%)" for v in values_gols_sofridos_e1],
+        textposition='inside',
+        insidetextanchor='start',
+        marker=dict(color='rgb(214, 39, 40)'),
+        width=0.82
+    ))
+
+    # Barras - Gols Marcados (Equipe 2) à direita
+    fig.add_trace(go.Bar(
+        y=labels,
+        x=percentual_gols_marcados_e2,
+        name=f'Gols Marcados {equipe2}',
+        orientation='h',
+        text=[f"({(v/total_gols_marcados_e2)*100:.2f}%) {v}" for v in values_gols_marcados_e2],
+        textposition='inside',
+        insidetextanchor='start',
+        marker=dict(color='rgb(44, 160, 44)'),
+        width=0.82
+    ))
+
+    titulo_esquerda = f'Gols Sofridos {equipe1}(nº de jogos: {jogos_e1})'
+    titulo_direita = f'Gols Marcados {equipe2}(nº de jogos:{jogos_e2})'
+
+    # Layout
+    fig.update_layout(
+        showlegend=False,
+        barmode='relative',
+        height=600,
+        xaxis=dict(
+            showgrid=True,
+            gridcolor='white',
+            gridwidth=0.5,
+            tickvals=[-1, -0.5, 0, 0.5, 1],
+            ticktext=['100%', '50%', '0%', '50%', '100%'],
+            range=[-1.03, 1.03],
+            tickfont=dict(size=15)
+        ),
+        yaxis=dict(
+            showgrid=True,
+            tickfont=dict(size=14)
+        ),
+        annotations=[
+            dict(
+                text=titulo_esquerda,
+                x=0.4, y=1.1,
+                xref='paper', yref='paper',
+                xanchor='right',
+                yanchor='top',
+                showarrow=False,
+                font=dict(size=20, family="Arial Black")
+            ),
+            dict(
+                text='X',
+                x=0.5, y=1.1,
+                xref='paper', yref='paper',
+                showarrow=False,
+                font=dict(size=20, family="Arial Black")
+            ),
+            dict(
+                text=titulo_direita,
+                x=0.6, y=1.1,
+                xref='paper', yref='paper',
+                xanchor='left',
+                yanchor='top',
+                showarrow=False,
+                font=dict(size=20, family="Arial Black")
+            )
+        ]
+    )
+
+    return fig
+
+def extrair_dados_caracteristicas_gols(df_gols, equipe1, equipe2):
+    # Lista de características padronizadas para reindexar
+    caracteristicas_padrao = [
+        "4x3", "3x4", "Ataque Posicional PA", "Ataque Posicional PB",
+        "Goleiro Linha", "Defesa Goleiro Linha", "Goleiro no Jogo",
+        "Escanteio", "Falta", "Lateral", "Pênalti", "Tiro de 10",
+        "Gol Contra", "Transição Alta", "Transição Baixa"
+    ]
+    try:
+        jogos_e1 =df_gols.loc[df_gols['Equipe Analisada']==equipe1]['jogo_id'].nunique()
+    except Exception as e:
+        jogos_e1 = 0    
+    try:
+        jogos_e2 =df_gols.loc[df_gols['Equipe Analisada']==equipe2]['jogo_id'].nunique()
+    except Exception as e:
+        jogos_e2 = 0    
+    
+    # Agrupamento
+    df_gols_group = df_gols.groupby(['Equipe Analisada', 'Tipo', 'Característica'])['Tipo'].count()
+
+    # Função auxiliar para acessar e reindexar
+    def get_valor(df, chave):
+        try:
+            s = df.loc[chave]
+        except KeyError:
+            s = pd.Series(dtype=int)  # Series vazia se não encontrar
+        return s.reindex(caracteristicas_padrao, fill_value=0)
+
+    # Coleta e reindexação
+    gols_marcados_e1 = get_valor(df_gols_group, (equipe1, "Marcado"))
+    gols_sofridos_e1 = get_valor(df_gols_group, (equipe1, "Sofrido"))
+    gols_marcados_e2 = get_valor(df_gols_group, (equipe2, "Marcado"))
+    gols_sofridos_e2 = get_valor(df_gols_group, (equipe2, "Sofrido"))
+
+    return jogos_e1,gols_marcados_e1, gols_sofridos_e1,jogos_e2, gols_marcados_e2, gols_sofridos_e2
+
+def extrair_dados_caracteristicas_gols_1(df_gols, equipe1, equipe2):
+    
+    tempos =['1ºQ','2ºQ','3ºQ','4ºQ', '1ºP', '2ºP']
+    caracteristicas_padrao = [
+        "4x3", "3x4", "Ataque Posicional PA", "Ataque Posicional PB",
+        "Goleiro Linha", "Defesa Goleiro Linha", "Goleiro no Jogo",
+        "Escanteio", "Falta", "Lateral", "Pênalti", "Tiro de 10",
+        "Gol Contra", "Transição Alta", "Transição Baixa"
+    ]
+    
+    novo_index = pd.MultiIndex.from_product([tempos, caracteristicas_padrao], names=['Tempo', 'Característica'])
+
+    try:
+        jogos_e1 =df_gols.loc[df_gols['Equipe Analisada']==equipe1]['jogo_id'].nunique()
+    except Exception as e:
+        jogos_e1 = 0    
+    try:
+        jogos_e2 =df_gols.loc[df_gols['Equipe Analisada']==equipe2]['jogo_id'].nunique()
+    except Exception as e:
+        jogos_e2 = 0    
+    
+    # Agrupamento
+    df_gols_group = df_gols.groupby(['Equipe Analisada', 'Tipo', 'Tempo','Característica'])['Tipo'].count()
+
+
+    # Função auxiliar para acessar e reindexar
+    def get_valor(df, chave):
+        try:
+            s = df.loc[chave]
+        except KeyError:
+            s = pd.Series(dtype=int)  # Series vazia se não encontrar
+        return s.reindex(novo_index, fill_value=0)
+
+    # Coleta e reindexação
+    gols_marcados_e1 = get_valor(df_gols_group, (equipe1, "Marcado"))
+    gols_sofridos_e1 = get_valor(df_gols_group, (equipe1, "Sofrido"))
+    gols_marcados_e2 = get_valor(df_gols_group, (equipe2, "Marcado"))
+    gols_sofridos_e2 = get_valor(df_gols_group, (equipe2, "Sofrido"))
+
+    return jogos_e1,gols_marcados_e1, gols_sofridos_e1,jogos_e2, gols_marcados_e2, gols_sofridos_e2
+    
+    
 
 def exibir_seta(direcao="↑"):
     """

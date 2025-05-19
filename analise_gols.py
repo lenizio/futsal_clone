@@ -4,7 +4,7 @@ from PIL import Image
 from streamlit_image_coordinates import streamlit_image_coordinates
 from db_manager import DBManager,get_db_manager
 import atexit
-from utils import exibir_seta,extraisr_dataframe_analise_gols
+from utils import exibir_seta,extrair_dataframe_analise_gols
 from utils import listar_opces_jogadores
 
 # @st.dialog("Deletar",width='large')
@@ -34,7 +34,7 @@ lista_jogos = db_manager.listar_jogos()
 tipo_gol = ["Marcado", "Sofrido"]
 # Inicializar o valor padrão para o tempo no estado, se ainda não existir
 if "selected_tempo" not in st.session_state:
-    st.session_state["selected_tempo"] = "1ºT(1°Q)"
+    st.session_state["selected_tempo"] = "1ºQ"
 
 # Exibir aviso se não houver jogos
 if not lista_jogos:
@@ -59,7 +59,7 @@ else:
             # Seleção do tempo
                 tempo = st.pills(
                     "Tempo", 
-                    ['1ºT(1°Q)','1ºT(2°Q)' ,'2ºT(1°Q)','2ºT(2°Q)', '1ºP', '2ºP'], 
+                    ['1ºQ','2ºQ','3ºQ','4ºQ', '1ºP', '2ºP'], 
                     key="selected_tempo",
                     default=st.session_state["selected_tempo"]  # Usar o valor atual do session_state como default
                 )

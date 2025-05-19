@@ -395,12 +395,14 @@ class DBManager:
     def listar_gols(self):
         self.cursor.execute("""
             SELECT
-                g.id, 
+                g.id,
+                jogos.id as jogo_id, 
                 jogos.equipe_mandante_nome,
                 jogos.equipe_visitante_nome,
                 jogos.competicao ,
                 jogos.fase,
                 jogos.rodada,
+                jogos.data,
                 e.nome  as equipe_analisada,
                 g.tipo_gol,
                 g.caracteristica,
