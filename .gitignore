@@ -1,6 +1,7 @@
 # Ignorar a pasta devcontainer
-.devcontainer/
+devcontainer/
 
+streamlit/
 # Ignorar a pasta __pycache__ (arquivos compilados do Python)
 __pycache__/
 
