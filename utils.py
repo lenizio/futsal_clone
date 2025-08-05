@@ -53,7 +53,7 @@ def calcular_quadrante(x, y):
 
 def extrair_dataframe_jogador(db_manager):
     dados_jogador = db_manager.listar_dados_analise_individual()
-    dados_jogador_df = pd.DataFrame(dados_jogador, columns=["jogo_id","equipe_mandante_nome","equipe_visitante_nome","fase","rodada","competicao","jogador_nome","jogada","tempo","x_loc","y_loc"])
+    dados_jogador_df = pd.DataFrame(dados_jogador, columns=["jogo_id","equipe_mandante_nome","equipe_visitante_nome","fase","rodada","competicao","equipe_jogada","jogador_nome","jogada","tempo","x_loc","y_loc"])
     dados_jogador_df["partida"] = dados_jogador_df.apply(
         lambda row: f"{row['equipe_mandante_nome']} x {row['equipe_visitante_nome']} - {row['competicao']} - {row['fase']} - {row['rodada']}",
         axis=1
@@ -1076,6 +1076,40 @@ def pegar_imagem_jogador(image_id):
         print(f"Erro ao buscar imagem: {e}")
         return None
 
+def get_player_photo(image_id):
+    if not image_id:
+        return None
+    
+    # URL direta para imagens no Google Drive
+    url = f"{image_id}"
+    
+    try:
+        response = requests.get(url, timeout=10)
+        response.raise_for_status()  # Verifica erros HTTP
+        
+        # Verifica se o conteúdo é uma imagem
+        content_type = response.headers.get('Content-Type', '')
+        if 'image' not in content_type:
+            print(f"Conteúdo não é uma imagem. Tipo: {content_type}")
+            return None
+        
+        # Tenta abrir a imagem com Pillow para validar o formato
+        try:
+            Image.open(BytesIO(response.content)).verify()
+        except Exception as e:
+            print(f"Imagem inválida: {e}")
+            return None
+            
+        return response.content
+        
+    except requests.exceptions.RequestException as e:
+        print(f"Erro ao buscar imagem: {e}")
+        return None
+    
+    
+def listar_competicoes_unicas(lista_jogos):
+    competicoes = {jogo[6] for jogo in lista_jogos if jogo[6]}  # índice 6 é 'competicao'
+    return sorted(competicoes)
 
 def get_team_total_figures(estatisticas_totais_dict,estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,numero_jogos,mean_primeiro_tempo, mean_segundo_tempo):
     

@@ -2,13 +2,16 @@ import streamlit as st
 import pandas as pd
 from datetime import datetime
 from db_manager import DBManager,get_db_manager
-from utils import convert_df_to_csv, calcular_quadrante
+from utils import convert_df_to_csv, calcular_quadrante,listar_competicoes_unicas
 import atexit
 
 
 db_manager = get_db_manager()
 lista_equipes = db_manager.listar_equipes()
 lista_jogos = db_manager.listar_jogos()
+opcoes_competicoes = listar_competicoes_unicas(lista_jogos)
+opcoes_competicoes.append('Outra...')
+
 
 if len(lista_equipes) <= 1:
     st.warning("Adicione mais equipes.")
@@ -29,7 +32,13 @@ def adicionar_jogos_dialog(lista_equipes):
         
         if equipe_mandante and equipe_visitante:  # Verifica se ambas as equipes foram selecionadas
             data = st.date_input("Data do Jogo", value=datetime.today())
-            competicao = st.selectbox("Competição",('Liga','Copa da Brasil','Metropolitano','Mineiro',"Amistoso","Copa Gramado"),index=None)
+            competicao_selecionada = st.selectbox("Competição",options=opcoes_competicoes,index=None)
+            if competicao_selecionada == "Outra...":
+                nova_competicao = st.text_input("Digite o nome da nova competição:")
+                competicao = nova_competicao.strip()
+            else:
+                competicao = competicao_selecionada
+                
             fase = st.selectbox("Fase", ('Classificação','Final'), index = None)
             opcoes_rodada=[]
             if fase == "Classificação":
