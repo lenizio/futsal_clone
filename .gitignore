@@ -1,7 +1,7 @@
 # Ignorar a pasta devcontainer
 .devcontainer/
 
-.streamlit/
+.streamlit/secrets.toml
 # Ignorar a pasta __pycache__ (arquivos compilados do Python)
 __pycache__/
 
