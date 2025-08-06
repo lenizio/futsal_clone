@@ -3,14 +3,17 @@ import pandas as pd
 import time
 from db_manager import DBManager,get_db_manager
 import atexit
+from psycopg2.errors import UniqueViolation
 
 db_manager = get_db_manager()
+db_manager.rollback()
+
 
 @st.dialog("Adicionar Jogador")
 def adicionar_jogador_dialog(equipe_id, equipe_nome):
     nome = st.text_input("Nome") 
     posicao = st.selectbox("Selecione a posição", ('Goleiro', "Ala D","Ala E", "Fixo", 'Pivô'),index = None)
-    numero_camisa = st.number_input("Número da camisa", value=None)
+    numero_camisa = st.number_input("Número da camisa", value=None, min_value=0,format="%d")
     image_id= st.text_input("Adicione o id da foto do jogador", value=None)
     
     # Validação e submissão do formulário
@@ -18,15 +21,17 @@ def adicionar_jogador_dialog(equipe_id, equipe_nome):
         if not nome or not posicao or not numero_camisa:
             st.error("Por favor, preencha todos os campos.")
         else:
-            resultado = db_manager.adicionar_jogador(nome, equipe_id, equipe_nome, posicao, numero_camisa,image_id)
-            if isinstance(resultado, str):  # Se for uma string, é uma mensagem de erro
-                st.error(resultado)  # Exibe a mensagem de erro no Streamlit
-                db_manager.rollback()
-            else:
+            
+            try:
+                resultado = db_manager.adicionar_jogador(nome, equipe_id, equipe_nome, posicao, numero_camisa,image_id)
                 st.success(f"Jogador cadastrado com sucesso!")
+                time.sleep(1)  
+                st.rerun()                
+            
+            except Exception as e:
+                st.error(f"Aconteceu o segunite erro ao cadastrar o jogador: {e}")
+                db_manager.rollback()
                 
-                time.sleep(1)  # Pausa de 2 segundos para mostrar a mensagem antes de atualizar a página
-                st.rerun()
 @st.dialog("Editar Jogador")
 def editar_jogador_dialog(equipe_id):
     lista_jogadores = db_manager.listar_jogadores_por_equipe(equipe_id)
@@ -186,8 +191,7 @@ def editar_equipe_dialog():
                 except Exception as e:
                     st.error(f"Erro ao atualizar equipe: {e}")
                     db_manager.rollback()         
-                    time.sleep(1)  # Pausa de 2 segundos para mostrar a mensagem antes de atualizar a página
-                    st.rerun()
+                    
 
 
 botao_adicionar_equipe,botao_editar_equipe, botao_excluir_equipe = st.columns(3)
