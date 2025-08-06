@@ -1,17 +1,23 @@
 import streamlit as st
 import pandas as pd
-from db_manager import DBManager, get_db_manager    
 import plotly.graph_objects as go
 import atexit
 
+# Importações de módulos locais
+from db_manager import DBManager, get_db_manager
+from utils import (
+    extrair_dataframe_jogador, pegar_figuras_e_estatisticas, exibir_conteudo_tab,pegar_imagem_jogador
+)
 
-from utils import *
+# --- Configuração da Página e Inicialização ---
 
 # Inicialização do gerenciador de banco de dados
 db_manager = get_db_manager()
 
-
-# Inicializar session_state para os filtros
+# Inicializar session_state para os filtros, se ainda não existirem
+# Definimos None como valor inicial para indicar que nada foi selecionado
+if "filtro_equipes" not in st.session_state:
+    st.session_state.filtro_equipes = None
 if "filtro_competicao_time" not in st.session_state:
     st.session_state.filtro_competicao_time = None
 if "filtro_partida_time" not in st.session_state:
@@ -19,369 +25,159 @@ if "filtro_partida_time" not in st.session_state:
 
 # Botão de refresh
 if st.button("Atualizar Dados"):
-    # Apenas redefine os dados, mas mantém os filtros
+    # Esta flag pode ser usada para forçar um recarregamento de dados, se necessário
+    # No entanto, o Streamlit já recarrega o script em cada interação,
+    # então pode não ser estritamente necessário dependendo da sua lógica de cache.
     st.session_state.dados_atualizados = True
+    # Opcional: resetar todos os filtros ao atualizar dados
+    st.session_state.filtro_equipes = None
+    st.session_state.filtro_competicao_time = None
+    st.session_state.filtro_partida_time = None
+    st.rerun() # Força o recarregamento para aplicar o reset
 
-
-
-# Container para os filtros
-filter_container = st.container()
-
-# Inicialização das variáveis
+# Extrai o DataFrame inicial com todos os dados
 dados_time_df = extrair_dataframe_jogador(db_manager)
-dados_time_total_df = dados_time_df.copy()
-
-options_competicao = []
-options_partidas = []
-#Figuras tab total
-estatisticas_gerais_total_fig = go.Figure()
-estatisticas_gerais_total_fig_1 = go.Figure()
-grafico_barras_total_fig = go.Figure()
-#Figuras tab primeiro tempo
-estatisticas_gerais_pt_fig = go.Figure()
-estatisticas_gerais_pt_fig_1 = go.Figure()
-grafico_barras_pt_fig = go.Figure()
-#Figuras tab segundo tempo
-estatisticas_gerais_st_fig = go.Figure()
-estatisticas_gerais_st_fig_1 = go.Figure()
-grafico_barras_st_fig = go.Figure()
+dados_time_total_df = dados_time_df.copy() # Mantém uma cópia do DataFrame original para cálculos de média
 
 
-if not dados_time_df.empty:
-    options_competicao = dados_time_df["competicao"].unique().tolist()
-    numero_jogos = int(dados_time_df["jogo_id"].nunique()) if int(dados_time_df["jogo_id"].nunique())>0 else 1
-    numero_jogos_prorrogacao = int(dados_time_df[dados_time_df["tempo"] == "1ºP"]["jogo_id"].nunique()) 
+if dados_time_df.empty:
+    st.warning("Sem jogos analisados!")
+else:
+    with st.container():
+        # 1. Filtro por Equipe
+        # Adiciona uma opção de placeholder no início da lista
+        options_equipes = ["Selecione uma equipe"] + dados_time_df["equipe_jogada"].unique().tolist()
+
+        # Define o índice inicial para o selectbox como 0 (o placeholder)
+        # Se um filtro já foi selecionado e é válido, usa seu índice
+        equipe_index = 0
+        if st.session_state.filtro_equipes and st.session_state.filtro_equipes in options_equipes:
+            equipe_index = options_equipes.index(st.session_state.filtro_equipes)
+
+        filtro_equipes_selecionado = st.selectbox(
+            "Selecione uma equipe para analisar",
+            options=options_equipes,
+            index=equipe_index,
+            key="equipe_select"
+        )
+
+        # Lógica para atualizar o session_state e forçar rerun
+        # Só atualiza se a seleção não for o placeholder e for diferente do estado atual
+        if filtro_equipes_selecionado != "Selecione uma equipe" and filtro_equipes_selecionado != st.session_state.filtro_equipes:
+            st.session_state.filtro_equipes = filtro_equipes_selecionado
+            st.session_state.filtro_competicao_time = None # Reseta filtros dependentes
+            st.session_state.filtro_partida_time = None
+            st.rerun() # Força o recarregamento para aplicar os resets
+
+        # Se o usuário selecionou o placeholder, ou se ainda não selecionou nenhuma equipe válida
+        if filtro_equipes_selecionado == "Selecione uma equipe":
+            st.session_state.filtro_equipes = None # Garante que o estado seja None
+            st.info("Por favor, selecione uma equipe para visualizar os dados.")
+            # Sai da execução para não mostrar dados antes da seleção da equipe
+            st.stop()
+
+    # A partir daqui, sabemos que uma equipe válida foi selecionada (st.session_state.filtro_equipes não é None)
+
+    # Filtra os dados pela equipe selecionada
+    dados_filtrados_por_equipe = dados_time_df[dados_time_df['equipe_jogada'] == st.session_state.filtro_equipes]
     
-    estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict, estatisticas_geral_totais_dict,estatisticas_pt_prorrogacao_dict, estatisticas_st_prorrogacao_dict  = extrair_estatisticas_gerais(dados_time_df)
-    mean_pt, mean_st,mean_total,mean_ptp,mean_stp   = get_mean(dados_time_df)
-    #Figuras tab total
-    estatisticas_gerais_total_fig, estatisticas_gerais_total_fig_1,  grafico_barras_total_fig = get_team_total_figures(estatisticas_geral_totais_dict,estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict,numero_jogos,mean_pt, mean_st) 
-    #Figuras tab primeiro tempo
-    estatisticas_gerais_pt_fig, estatisticas_gerais_pt_fig_1,  grafico_barras_pt_fig = get_team_partial_figures(estatisticas_geral_primeiro_tempo_dict,numero_jogos,mean_pt) 
-    #Figuras tab segundo tempo
-    estatisticas_gerais_st_fig, estatisticas_gerais_st_fig_1,  grafico_barras_st_fig = get_team_partial_figures(estatisticas_geral_segundo_tempo_dict,numero_jogos,mean_st) 
-    #Figuras tab primeiro tempo prorrogação
-    estatisticas_gerais_ptp_fig, estatisticas_gerais_ptp_fig_1,  grafico_barras_ptp_fig = get_team_partial_figures(estatisticas_pt_prorrogacao_dict,numero_jogos_prorrogacao,mean_ptp) 
-    #Figuras tab segundo tempo prorrogação
-    estatisticas_gerais_stp_fig, estatisticas_gerais_stp_fig_1,  grafico_barras_stp_fig = get_team_partial_figures(estatisticas_st_prorrogacao_dict,numero_jogos_prorrogacao,mean_stp) 
+    id_equipe_selecionada =  int(dados_filtrados_por_equipe.iloc[0]["equipe_jogada_id"])
+    dados_equipe = db_manager.listar_dados_equipe(id_equipe_selecionada)
     
-with filter_container:
+    if dados_equipe:
+        nome_equipe, categoria_equipe,logo_id = dados_equipe
     col1, col2 = st.columns([1, 1])
-    # Filtro por competição
+
+    # 2. Filtro por Competição
     with col1:
-        if not dados_time_df.empty:
-            filtro_competicao_time = st.selectbox(
-                "Selecione uma competição",
-                options=options_competicao,
-                index=options_competicao.index(st.session_state.filtro_competicao_time) if st.session_state.filtro_competicao_time else None,
-            )
-            if filtro_competicao_time:
-                if filtro_competicao_time != st.session_state.filtro_competicao_time:
-                    st.session_state.filtro_partida_time = None
-                st.session_state.filtro_competicao_time = filtro_competicao_time
-                dados_time_df = dados_time_df[dados_time_df['competicao'] == filtro_competicao_time]
-                numero_jogos = int(dados_time_df["jogo_id"].nunique()) if int(dados_time_df["jogo_id"].nunique())>0 else 1
-                numero_jogos_prorrogacao = int(dados_time_df[dados_time_df["tempo"] == "1ºP"]["jogo_id"].nunique()) 
-                estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict, estatisticas_geral_totais_dict,estatisticas_pt_prorrogacao_dict, estatisticas_st_prorrogacao_dict  = extrair_estatisticas_gerais(dados_time_df)
-                #Figuras tab total
-                estatisticas_gerais_total_fig, estatisticas_gerais_total_fig_1,  grafico_barras_total_fig = get_team_total_figures(estatisticas_geral_totais_dict,estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict,numero_jogos,mean_pt, mean_st) 
-                #Figuras tab primeiro tempo
-                estatisticas_gerais_pt_fig, estatisticas_gerais_pt_fig_1,  grafico_barras_pt_fig = get_team_partial_figures(estatisticas_geral_primeiro_tempo_dict,numero_jogos,mean_pt) 
-                #Figuras tab segundo tempo
-                estatisticas_gerais_st_fig, estatisticas_gerais_st_fig_1,  grafico_barras_st_fig = get_team_partial_figures(estatisticas_geral_segundo_tempo_dict,numero_jogos,mean_st)
-                #Figuras tab primeiro tempo prorrogação
-                estatisticas_gerais_ptp_fig, estatisticas_gerais_ptp_fig_1,  grafico_barras_ptp_fig = get_team_partial_figures(estatisticas_pt_prorrogacao_dict,numero_jogos_prorrogacao,mean_ptp) 
-                #Figuras tab segundo tempo prorrogação
-                estatisticas_gerais_stp_fig, estatisticas_gerais_stp_fig_1,  grafico_barras_stp_fig = get_team_partial_figures(estatisticas_st_prorrogacao_dict,numero_jogos_prorrogacao,mean_stp) 
-                options_partidas = dados_time_df["partida"].unique().tolist()
-                options_partidas.reverse()
-                
-                if st.session_state.filtro_partida_time is not None and st.session_state.filtro_partida_time not in options_partidas:
-                    filtro_partida_time = None
-                    st.session_state.filtro_partida_time = None
+        # Adiciona placeholder para competição
+        options_competicao = ["Selecione uma competição"] + dados_filtrados_por_equipe["competicao"].unique().tolist()
+        competicao_index = 0
+        if st.session_state.filtro_competicao_time and st.session_state.filtro_competicao_time in options_competicao:
+            competicao_index = options_competicao.index(st.session_state.filtro_competicao_time)
 
-    # Filtro por partida
+        filtro_competicao_selecionado = st.selectbox(
+            "Selecione uma competição",
+            options=options_competicao,
+            index=competicao_index,
+            key="competicao_select"
+        )
+
+        if filtro_competicao_selecionado != "Selecione uma competição" and filtro_competicao_selecionado != st.session_state.filtro_competicao_time:
+            st.session_state.filtro_competicao_time = filtro_competicao_selecionado
+            st.session_state.filtro_partida_time = None # Reseta filtro dependente
+            st.rerun()
+
+        # Se o usuário selecionou o placeholder para competição, ou se ainda não selecionou nenhuma competição válida
+        if filtro_competicao_selecionado == "Selecione uma competição":
+            st.session_state.filtro_competicao_time = None
+            dados_filtrados_por_competicao = dados_filtrados_por_equipe.copy() # Continua com a filtragem apenas por equipe
+        else:
+            dados_filtrados_por_competicao = dados_filtrados_por_equipe[dados_filtrados_por_equipe['competicao'] == st.session_state.filtro_competicao_time]
+
+
+    # 3. Filtro por Partida
     with col2:
-        if not dados_time_df.empty:
-            filtro_partida_time = st.selectbox(
-                "Selecione uma partida",
-                options=options_partidas,
-                index=options_partidas.index(st.session_state.filtro_partida_time) if st.session_state.filtro_partida_time else None,
-            )
-            if filtro_partida_time:
-                st.session_state.filtro_partida_time = filtro_partida_time
-                #Extraindo média sem o jogo atual
-                mean_pt_sem_jogo_atual, mean_st_sem_jogo_atual,mean_total_sem_jogo_atual,mean_ptp_sem_jogo_atual,mean_stp_sem_jogo_atual   = get_mean(dados_time_total_df[dados_time_total_df['partida'] != filtro_partida_time])
-                
-                dados_time_df = dados_time_df[dados_time_df['partida'] == filtro_partida_time]
-               
-                numero_jogos = int(dados_time_df["jogo_id"].nunique()) if int(dados_time_df["jogo_id"].nunique())>0 else 1
-                numero_jogos_prorrogacao = int(dados_time_df[dados_time_df["tempo"] == "1ºP"]["jogo_id"].nunique()) if int(dados_time_df[dados_time_df["tempo"] == "1ºP"]["jogo_id"].nunique()) >0 else 1
-                
-                estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict, estatisticas_geral_totais_dict,estatisticas_pt_prorrogacao_dict, estatisticas_st_prorrogacao_dict  = extrair_estatisticas_gerais(dados_time_df)
-                #Figuras tab total
-                estatisticas_gerais_total_fig, estatisticas_gerais_total_fig_1,  grafico_barras_total_fig = get_team_total_figures(estatisticas_geral_totais_dict,estatisticas_geral_primeiro_tempo_dict, estatisticas_geral_segundo_tempo_dict,numero_jogos,mean_pt, mean_st) 
-                #Figuras tab primeiro tempo
-                estatisticas_gerais_pt_fig, estatisticas_gerais_pt_fig_1,  grafico_barras_pt_fig = get_team_partial_figures(estatisticas_geral_primeiro_tempo_dict,numero_jogos,mean_pt_sem_jogo_atual) 
-                #Figuras tab segundo tempo
-                estatisticas_gerais_st_fig, estatisticas_gerais_st_fig_1,  grafico_barras_st_fig = get_team_partial_figures(estatisticas_geral_segundo_tempo_dict,numero_jogos,mean_st_sem_jogo_atual)
-                #Figuras tab primeiro tempo prorrogação
-                estatisticas_gerais_ptp_fig, estatisticas_gerais_ptp_fig_1,  grafico_barras_ptp_fig = get_team_partial_figures(estatisticas_pt_prorrogacao_dict,numero_jogos_prorrogacao,mean_ptp_sem_jogo_atual) 
-                #Figuras tab segundo tempo prorrogação
-                estatisticas_gerais_stp_fig, estatisticas_gerais_stp_fig_1,  grafico_barras_stp_fig = get_team_partial_figures(estatisticas_st_prorrogacao_dict,numero_jogos_prorrogacao,mean_stp_sem_jogo_atual) 
+        # Adiciona placeholder para partida
+        options_partidas = ["Selecione uma partida"] + dados_filtrados_por_competicao["partida"].unique().tolist()
+        options_partidas[1:].reverse() # Inverte apenas as opções de partida, mantendo o placeholder no início
+        
+        partida_index = 0
+        if st.session_state.filtro_partida_time and st.session_state.filtro_partida_time in options_partidas:
+            partida_index = options_partidas.index(st.session_state.filtro_partida_time)
 
-if not dados_time_df.empty:
-    
-    primeiro_tempo_tab, segundo_tempo_tab, total_tab, pt_prorrogacao_tab, st_prorrogacao_tab = st.tabs(["Primeiro Tempo", "Segundo Tempo", "Total","Primeiro Tempo Prorrogação", "Segundo Tempo Prorrogação"])
-    
-    with primeiro_tempo_tab:
-        
-        col3, col4 = st.columns([1,1.3])
+        filtro_partida_selecionado = st.selectbox(
+            "Selecione uma partida",
+            options=options_partidas,
+            index=partida_index,
+            key="partida_select"
+        )
 
-        with col3:
-            with st.container(border=True,height=500):
-                sub_column1,sub_column2 = st.columns([1,1.5])
-                with sub_column1:
-                    st.image("minas-tenis-clube-logo-png.png",output_format="PNG", width=300)
-                with sub_column2:
-                    with st.container(border=True, height=220):
-                        st.plotly_chart(estatisticas_gerais_pt_fig, use_container_width=True, key="estatisticas_gerais_pt_fig",config={'displayModeBar': False})
-                with st.container(border=True, height=230):
-                    st.plotly_chart(estatisticas_gerais_pt_fig_1, use_container_width=True,key="estatisticas_gerais_pt_fig_1",config={'displayModeBar': False})
-        
-        with col4:
-            with st.container(border=True,height=500):
-                st.plotly_chart(grafico_barras_pt_fig, use_container_width=True, key="grafico_barras_pt",config={'displayModeBar': False})
-        
-        # with st.container(border=True,height=500):
-            # st.plotly_chart(historico_pt_fig, use_container_width=True, key="grafico_historico_pt")
-        
-        filtro_jogada_time = st.selectbox(
-                    "Selecione o tipo de jogada",
-                    options=["Ataque","Defesa"],
-                    index=None,
-                    key="filtro_jogada_time_tab_pt"
-                )       
-        
-        if filtro_jogada_time == "Ataque":
-            with st.container(border=True, height=300):
-                colunas_jogadas_ofensivas = st.columns(5)
-                figs= get_plots_plays_localization_team(filtro_jogada_time,dados_time_df,"Primeiro Tempo")
-                for i,fig in enumerate(figs):
-                    colunas_jogadas_ofensivas[i].plotly_chart(fig,key=f"localizazao_{i}_time_tab_pt",config={'displayModeBar': False})
-        if filtro_jogada_time == "Defesa":
-            with st.container(border=True, height=600):
-                colunas_jogadas_defensivas_1 = st.columns(3)
-                colunas_jogadas_defensivas_2 = st.columns(3)
-                figs= get_plots_plays_localization_team(filtro_jogada_time,dados_time_df,"Primeiro Tempo")
-                
-                for i in range(3):
-                            colunas_jogadas_defensivas_1[i].plotly_chart(figs[i],key=f"localizazao_{i}_time_tab_pt",config={'displayModeBar': False})
-                            colunas_jogadas_defensivas_2[i].plotly_chart(figs[i+3],key=f"localizazao_1{i}_time_tab_pt",config={'displayModeBar': False})
-                        
-              
-    with segundo_tempo_tab:
-        
-        col3, col4 = st.columns([1,1.3])
+        if filtro_partida_selecionado != "Selecione uma partida" and filtro_partida_selecionado != st.session_state.filtro_partida_time:
+            st.session_state.filtro_partida_time = filtro_partida_selecionado
+            st.rerun() # Força o recarregamento
 
-        with col3:
-            with st.container(border=True,height=500):
-                sub_column1,sub_column2 = st.columns([1,1.5])
-                with sub_column1:
-                    st.image("minas-tenis-clube-logo-png.png",output_format="PNG", width=300)
-                with sub_column2:
-                    with st.container(border=True, height=220):
-                        st.plotly_chart(estatisticas_gerais_st_fig, use_container_width=False, key="estatisticas_gerais_st_fig",config={'displayModeBar': False})
-                with st.container(border=True, height=230):
-                    st.plotly_chart(estatisticas_gerais_st_fig_1, use_container_width=False,key="estatisticas_gerais_st_fig_1",config={'displayModeBar': False})
-        
-        with col4:
-            with st.container(border=True,height=500):
-                st.plotly_chart(grafico_barras_st_fig, use_container_width=True, key="grafico_barras_st",config={'displayModeBar': False})
-        
-        # with st.container(border=True,height=500):
-        #     st.plotly_chart(historico_st_fig, use_container_width=True, key="grafico_historico_st")
-        
-        filtro_jogada_time = st.selectbox(
-                    "Selecione o tipo de jogada",
-                    options=["Ataque","Defesa"],
-                    index=None,
-                    key="filtro_jogada_time_tab_st"
-                )        
-        
-        if filtro_jogada_time:
-            # with st.container(border=True, height=400):
-                # colunas_jogadas_ofensivas = st.columns(3)
-                # colunas_jogadas_defensivas = st.columns(6)
-                # colunas= {"Ataque": colunas_jogadas_ofensivas, "Defesa":colunas_jogadas_defensivas}  
-                # figs= get_plots_plays_localization_partial(filtro_jogada_time,dados_time_df,"Segundo Tempo")
-                
-                # for i,fig in enumerate(figs):
-                #     colunas[filtro_jogada_time][i].plotly_chart(fig,key=f"localizazao_{i}_time_tab_st",config={'displayModeBar': False})
-                    
-                if filtro_jogada_time == "Ataque":
-                    with st.container(border=True, height=300):
-                        colunas_jogadas_ofensivas = st.columns(5)
-                        figs= get_plots_plays_localization_team(filtro_jogada_time,dados_time_df,"Segundo Tempo")
-                        for i,fig in enumerate(figs):
-                            colunas_jogadas_ofensivas[i].plotly_chart(fig,key=f"localizazao_{i}_time_tab_st",config={'displayModeBar': False})
-                if filtro_jogada_time == "Defesa":
-                    with st.container(border=True, height=600):
-                        colunas_jogadas_defensivas_1 = st.columns(3)
-                        colunas_jogadas_defensivas_2 = st.columns(3)
-                        figs= get_plots_plays_localization_team(filtro_jogada_time,dados_time_df,"Segundo Tempo")
-                        
-                        for i in range(3):
-                            colunas_jogadas_defensivas_1[i].plotly_chart(figs[i],key=f"localizazao_{i}_time_tab_st",config={'displayModeBar': False})
-                            colunas_jogadas_defensivas_2[i].plotly_chart(figs[i+3],key=f"localizazao_1{i}_time_tab_st",config={'displayModeBar': False})
-                        
-
-                    
-
-                     
-
-                        
-                
-                
-                # localizacao_jogadas = extrair_estatisticas_localizacao(dados_time_df,filtro_jogada_time)
-                # fig_localizacao_st = create_futsal_court(filtro_jogada_time,localizacao_jogadas["Segundo Tempo"])
-                # st.plotly_chart(fig_localizacao_st,key="localizazao_jogada_time_tab_st")    
-                    
-    
-    
-    with total_tab:
-    
-        col3, col4 = st.columns([1,1.4])
-
-        with col3:
-            with st.container(border=True,height=500):
-                sub_column1,sub_column2 = st.columns([1,1.5])
-                with sub_column1:
-                    st.image("minas-tenis-clube-logo-png.png",output_format="PNG", width=300)
-                with sub_column2:
-                    with st.container(border=True, height=220):
-                        st.plotly_chart(estatisticas_gerais_total_fig, use_container_width=False, key="estatisticas_gerais_total_fig",config={'displayModeBar': False})
-                with st.container(border=True, height=230):
-                    st.plotly_chart(estatisticas_gerais_total_fig_1, use_container_width=False,key="estatisticas_gerais_total_fig_1",config={'displayModeBar': False})
-        
-        with col4:
-            with st.container(border=True,height=500):
-                st.plotly_chart(grafico_barras_total_fig, use_container_width=True, key="grafico_barras_total_fig",config={'displayModeBar': False})
-        
-        filtro_jogada_time = st.selectbox(
-                    "Selecione uma jogada",
-                    options=['FIN.C', 'FIN.E', 'FIN.T', 'ASSIST.', 'GOL','DES.C/P.','C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra',"FIN.S.C", "FIN.S.E", "FIN.S.T"],
-                    index=None,
-                    key="filtro_jogada_time_tab_total"
-                )       
-        
-        if filtro_jogada_time:
-            with st.container(border=True, height=300):
-                colunas = st.columns(3) 
-                localizacao_jogadas = extrair_estatisticas_localizacao(dados_time_df,filtro_jogada_time)
-                
-                for i, (chave, valor) in enumerate(localizacao_jogadas.items()):
-                    if i == 3:
-                        break
-                    titulo = f"{filtro_jogada_time} - {chave}"
-                    fig_localizacao_total = create_futsal_court(titulo,valor)
-                    colunas[i].plotly_chart(fig_localizacao_total,config={'displayModeBar': False})
+        # Se o usuário selecionou o placeholder para partida, ou se ainda não selecionou nenhuma partida válida
+        if filtro_partida_selecionado == "Selecione uma partida":
+            st.session_state.filtro_partida_time = None
+            df_para_analisar = dados_filtrados_por_competicao.copy()
+            df_para_media = dados_filtrados_por_competicao.copy()
+        else:
+            # Se uma partida específica foi selecionada, analise apenas essa partida
+            df_para_analisar = dados_filtrados_por_competicao[
+                dados_filtrados_por_competicao['partida'] == st.session_state.filtro_partida_time
+            ]
+            # A média deve ser calculada a partir de todas as outras partidas (excluindo a atual)
+            df_para_media = dados_filtrados_por_competicao[
+                dados_filtrados_por_competicao['partida'] != st.session_state.filtro_partida_time
+            ]
+            # Se não houver outras partidas para a média, use a própria partida para evitar erros
+            if df_para_media.empty:
+                df_para_media = df_para_analisar.copy()
 
 
-    with pt_prorrogacao_tab:
-        
-        col3, col4 = st.columns([1,1.3])
+    # --- Geração dos Gráficos e Exibição das Abas ---
+    # Apenas exibe os gráficos se houver dados para analisar após todos os filtros
+    if not df_para_analisar.empty:
+        figures_dict = pegar_figuras_e_estatisticas(df_para_analisar, df_para_media)
 
-        with col3:
-            with st.container(border=True,height=500):
-                sub_column1,sub_column2 = st.columns([1,1.5])
-                with sub_column1:
-                    st.image("minas-tenis-clube-logo-png.png",output_format="PNG", width=300)
-                with sub_column2:
-                    with st.container(border=True, height=220):
-                        st.plotly_chart(estatisticas_gerais_ptp_fig, use_container_width=True, key="estatisticas_gerais_ptp_fig",config={'displayModeBar': False})
-                with st.container(border=True, height=230):
-                    st.plotly_chart(estatisticas_gerais_ptp_fig_1, use_container_width=True,key="estatisticas_gerais_ptp_fig_1",config={'displayModeBar': False})
-        
-        with col4:
-            with st.container(border=True,height=500):
-                st.plotly_chart(grafico_barras_ptp_fig, use_container_width=True, key="grafico_barras_ptp",config={'displayModeBar': False})
-        
-        # with st.container(border=True,height=500):
-            # st.plotly_chart(historico_pt_fig, use_container_width=True, key="grafico_historico_pt")
-        
-        filtro_jogada_time = st.selectbox(
-                    "Selecione o tipo de jogada",
-                    options=["Ataque","Defesa"],
-                    index=None,
-                    key="filtro_jogada_time_tab_ptp"
-                )       
-        
-        if filtro_jogada_time == "Ataque":
-            with st.container(border=True, height=300):
-                colunas_jogadas_ofensivas = st.columns(5)
-                figs= get_plots_plays_localization_team(filtro_jogada_time,dados_time_df,"Primeiro Tempo Prorrogação")
-                for i,fig in enumerate(figs):
-                    colunas_jogadas_ofensivas[i].plotly_chart(fig,key=f"localizazao_{i}_time_tab_ptp",config={'displayModeBar': False})
-        if filtro_jogada_time == "Defesa":
-            with st.container(border=True, height=600):
-                colunas_jogadas_defensivas_1 = st.columns(3)
-                colunas_jogadas_defensivas_2 = st.columns(3)
-                figs= get_plots_plays_localization_team(filtro_jogada_time,dados_time_df,"Primeiro Tempo Prorrogação")
-                
-                for i in range(3):
-                            colunas_jogadas_defensivas_1[i].plotly_chart(figs[i],key=f"localizazao_{i}_time_tab_ptp",config={'displayModeBar': False})
-                            colunas_jogadas_defensivas_2[i].plotly_chart(figs[i+3],key=f"localizazao_1{i}_time_tab_ptp",config={'displayModeBar': False})
-                        
-    with st_prorrogacao_tab:
-        
-        col3, col4 = st.columns([1,1.3])
+        tab_names = ["Primeiro Tempo", "Segundo Tempo", "Total", "Primeiro Tempo Prorrogação", "Segundo Tempo Prorrogação"]
+        tabs = st.tabs(tab_names)
 
-        with col3:
-            with st.container(border=True,height=500):
-                sub_column1,sub_column2 = st.columns([1,1.5])
-                with sub_column1:
-                    st.image("minas-tenis-clube-logo-png.png",output_format="PNG", width=300)
-                with sub_column2:
-                    with st.container(border=True, height=220):
-                        st.plotly_chart(estatisticas_gerais_stp_fig, use_container_width=True, key="estatisticas_gerais_stp_fig",config={'displayModeBar': False})
-                with st.container(border=True, height=230):
-                    st.plotly_chart(estatisticas_gerais_stp_fig_1, use_container_width=True,key="estatisticas_gerais_stp_fig_1",config={'displayModeBar': False})
-        
-        with col4:
-            with st.container(border=True,height=500):
-                st.plotly_chart(grafico_barras_stp_fig, use_container_width=True, key="grafico_barras_stp",config={'displayModeBar': False})
-        
-        # with st.container(border=True,height=500):
-            # st.plotly_chart(historico_pt_fig, use_container_width=True, key="grafico_historico_pt")
-        
-        filtro_jogada_time = st.selectbox(
-                    "Selecione o tipo de jogada",
-                    options=["Ataque","Defesa"],
-                    index=None,
-                    key="filtro_jogada_time_tab_stp"
-                )       
-        
-        if filtro_jogada_time == "Ataque":
-            with st.container(border=True, height=300):
-                colunas_jogadas_ofensivas = st.columns(5)
-                figs= get_plots_plays_localization_team(filtro_jogada_time,dados_time_df,"Segundo Tempo Prorrogação")
-                for i,fig in enumerate(figs):
-                    colunas_jogadas_ofensivas[i].plotly_chart(fig,key=f"localizazao_{i}_time_tab_stp",config={'displayModeBar': False})
-        if filtro_jogada_time == "Defesa":
-            with st.container(border=True, height=600):
-                colunas_jogadas_defensivas_1 = st.columns(3)
-                colunas_jogadas_defensivas_2 = st.columns(3)
-                figs= get_plots_plays_localization_team(filtro_jogada_time,dados_time_df,"Segundo Tempo Prorrogação")
-                
-                for i in range(3):
-                            colunas_jogadas_defensivas_1[i].plotly_chart(figs[i],key=f"localizazao_{i}_time_tab_stp",config={'displayModeBar': False})
-                            colunas_jogadas_defensivas_2[i].plotly_chart(figs[i+3],key=f"localizazao_1{i}_time_tab_stp",config={'displayModeBar': False})
+        for i, tab in enumerate(tabs):
+            with tab:
+                tab_name = tab_names[i]
+                # Verifica se há dados para exibir na aba antes de chamar a função
+                if tab_name == "Total" or (figures_dict[tab_name][0] and figures_dict[tab_name][0].data):
+                    exibir_conteudo_tab(tab_name, figures_dict[tab_name], df_para_analisar,logo_id)
+                else:
+                    st.info(f"Não há dados para exibir em '{tab_name}' para a seleção atual.")
+    else:
+        st.info("Não há dados para a seleção atual. Por favor, ajuste os filtros.")
 
 
-
-
-
+# --- Fechamento da Conexão com o Banco de Dados ---
+# Garante que a conexão com o banco de dados seja fechada ao desligar o aplicativo
 if hasattr(st, "on_event") and callable(getattr(st, "on_event")):
     st.on_event("shutdown", db_manager.fechar_conexao)
 else:

@@ -1,309 +1,244 @@
 import streamlit as st
 import pandas as pd
-from db_manager import DBManager, get_db_manager    
 import plotly.graph_objects as go
 import atexit
 
-from utils import *
+# Importações de módulos locais
+from db_manager import DBManager, get_db_manager
+from utils import (
+    extrair_dataframe_jogador, pegar_figuras_e_estatisticas, exibir_conteudo_tab,
+    pegar_figuras_e_estatisticas_jogadores, exibir_conteudo_tabs_jogadores,
+    pegar_imagem_jogador,extrair_estatisticas_gerais # Adicionado para a lógica do jogador
+)
+
 
 # Inicialização do gerenciador de banco de dados
 db_manager = get_db_manager()
 
-# Obter lista de jogadores
-lista_atletas = db_manager.listar_jogadores_por_equipe(7)
-jogadores_dict = {jogador[1]: [jogador[0],jogador[4]] for jogador in lista_atletas}
-nomes_jogadores_list = list(jogadores_dict.keys())
-
 # Inicializar session_state para os filtros
+# Definimos None como valor inicial para indicar que nada foi selecionado
+if "filtro_equipes" not in st.session_state:
+    st.session_state.filtro_equipes = None
+if "filtro_competicao_time" not in st.session_state:
+    st.session_state.filtro_competicao_time = None
+if "filtro_partida_time" not in st.session_state:
+    st.session_state.filtro_partida_time = None
+
+# Novos estados para a página de atleta
+if "filtro_equipe_analise" not in st.session_state:
+    st.session_state.filtro_equipe_analise = None
 if "filtro_jogador" not in st.session_state:
     st.session_state.filtro_jogador = None
-if "filtro_competicao" not in st.session_state:
-    st.session_state.filtro_competicao = None
-if "filtro_partida" not in st.session_state:
-    st.session_state.filtro_partida = None
+if "filtro_competicao_jogador" not in st.session_state:
+    st.session_state.filtro_competicao_jogador = None
+if "filtro_partida_jogador" not in st.session_state:
+    st.session_state.filtro_partida_jogador = None
+
 
 # Botão de refresh
 if st.button("Atualizar Dados"):
-    # Apenas redefine os dados, mas mantém os filtros
     st.session_state.dados_atualizados = True
+    # Opcional: resetar todos os filtros ao atualizar dados
+    st.session_state.filtro_equipes = None
+    st.session_state.filtro_competicao_time = None
+    st.session_state.filtro_partida_time = None
+    st.session_state.filtro_equipe_analise = None
+    st.session_state.filtro_jogador = None
+    st.session_state.filtro_competicao_jogador = None
+    st.session_state.filtro_partida_jogador = None
+    st.rerun() # Força o recarregamento para aplicar o reset
 
-# Container para os filtros
-filter_container = st.container()
+# Extrai o DataFrame inicial com todos os dados
+df_dados_completos = extrair_dataframe_jogador(db_manager)
+df_time_total = df_dados_completos.copy() # Mantém uma cópia do DataFrame original para cálculos de média
 
-# Inicialização das variáveis
-dados_jogador_df = extrair_dataframe_jogador(db_manager)
-dados_jogador_total_df = dados_jogador_df.copy()
-dados_todos_jogadores_df = dados_jogador_df.copy()
-options_competicao = []
-options_partidas = []
-#Figuras tab total
-estatisticas_gerais_total_fig = go.Figure()
-estatisticas_gerais_total_fig_1 = go.Figure()
-grafico_barras_total_fig = go.Figure()
-radar_total_fig = go.Figure()
+# st.dataframe(df_dados_completos) # Removido para não poluir a UI
 
-#Figuras tab primeiro tempo
-estatisticas_gerais_pt_fig = go.Figure()
-estatisticas_gerais_pt_fig_1 = go.Figure()
-grafico_barras_pt_fig = go.Figure()
-radar_pt_fig = go.Figure()
-
-#Figuras tab segundo tempo
-estatisticas_gerais_st_fig = go.Figure()
-estatisticas_gerais_st_fig_1 = go.Figure()
-grafico_barras_st_fig = go.Figure()
-radar_st_fig = go.Figure()
-
-with filter_container:
-    col1, col2, col3 = st.columns([1, 1, 2])
-    # Filtro por jogador
-    with col1:
-        filtro_jogador = st.selectbox(
-            "Selecione um jogador",
-            options=nomes_jogadores_list,
-            index=nomes_jogadores_list.index(st.session_state.filtro_jogador) if st.session_state.filtro_jogador else None,
-        )
-        if filtro_jogador:
-            st.session_state.filtro_jogador = filtro_jogador
-            jogador_id = jogadores_dict[filtro_jogador][0]
-            image_id = jogadores_dict[filtro_jogador][1]
-            image_jogador= pegar_imagem_jogador(image_id)
-            estatisticas_geral_pt_dict,estatisticas_geral_st_dict, estatisticas_geral_totais_dict,estatisticas_geral_ptp_dict,estatisticas_geral_stp_dict = extrair_estatisticas_gerais(dados_todos_jogadores_df)
-            numero_jogos = int(dados_todos_jogadores_df["jogo_id"].nunique())
-            numero_jogos_prorrogacao = int(dados_todos_jogadores_df[dados_todos_jogadores_df["tempo"] == "1ºP"]["jogo_id"].nunique()) 
-            dados_jogador_df = dados_jogador_df[dados_jogador_df['jogador_nome'] == filtro_jogador]
-            dados_jogador_total_df = dados_jogador_total_df[dados_jogador_total_df['jogador_nome'] == filtro_jogador]
-            estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict, estatisticas_totais_dict,estatisticas_ptp_dict, estatisticas_stp_dict = extrair_estatisticas_gerais(dados_jogador_df)
-            
-            #Extraindo média
-            mean_pt, mean_st,mean_total,mean_ptp,mean_stp   = get_mean(dados_jogador_df)
-            #Figuras tab total
-            estatisticas_gerais_total_fig, estatisticas_gerais_total_fig_1,  grafico_barras_total_fig,radar_total_fig = get_athletes_total_figures(estatisticas_totais_dict,estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,estatisticas_geral_totais_dict,numero_jogos,mean_pt, mean_st) 
-            #Figuras tab primeiro tempo
-            estatisticas_gerais_pt_fig, estatisticas_gerais_pt_fig_1,  grafico_barras_pt_fig, radar_pt_fig= get_athletes_partial_figures(estatisticas_primeiro_tempo_dict,estatisticas_geral_pt_dict,numero_jogos,mean_pt) 
-            #Figuras tab segundo tempo
-            estatisticas_gerais_st_fig, estatisticas_gerais_st_fig_1,  grafico_barras_st_fig,radar_st_fig = get_athletes_partial_figures(estatisticas_segundo_tempo_dict,estatisticas_geral_st_dict,numero_jogos,mean_st)
-            
-            
-            options_competicao = dados_jogador_df["competicao"].unique().tolist()
-            
-            if st.session_state.filtro_competicao is not None and st.session_state.filtro_competicao not in options_competicao:
-                filtro_competicao = None
-                st.session_state.filtro_competicao = None
-                filtro_partida=None
-                st.session_state.filtro_partida = None
-
-    # Filtro por competição
-    with col2:
-        if not dados_jogador_df.empty:
-            filtro_competicao = st.selectbox(
-                "Selecione uma competição",
-                options=options_competicao,
-                index=options_competicao.index(st.session_state.filtro_competicao) if st.session_state.filtro_competicao else None,
-            )
-            if filtro_competicao:
-                if filtro_competicao != st.session_state.filtro_competicao:
-                    st.session_state.filtro_partida = None
-                st.session_state.filtro_competicao = filtro_competicao
-                dados_jogador_df = dados_jogador_df[dados_jogador_df['competicao'] == filtro_competicao]
-                dados_todos_jogadores_df = dados_todos_jogadores_df[dados_todos_jogadores_df['competicao'] == filtro_competicao]
-                numero_jogos = int(dados_todos_jogadores_df["jogo_id"].nunique())
-                numero_jogos_prorrogacao = int(dados_todos_jogadores_df[dados_todos_jogadores_df["tempo"] == "1ºP"]["jogo_id"].nunique()) 
-                estatisticas_geral_pt_dict,estatisticas_geral_st_dict,  estatisticas_geral_totais_dict,estatisticas_geral_ptp_dict,estatisticas_geral_stp_dict = extrair_estatisticas_gerais(dados_todos_jogadores_df)
-                estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict, estatisticas_totais_dict,estatisticas_ptp_dict, estatisticas_stp_dict = extrair_estatisticas_gerais(dados_jogador_df)
-                
-                #Figuras tab total
-                estatisticas_gerais_total_fig, estatisticas_gerais_total_fig_1,  grafico_barras_total_fig,radar_total_fig = get_athletes_total_figures(estatisticas_totais_dict,estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,estatisticas_geral_totais_dict,numero_jogos,mean_pt, mean_st) 
-                #Figuras tab primeiro tempo
-                estatisticas_gerais_pt_fig, estatisticas_gerais_pt_fig_1,  grafico_barras_pt_fig, radar_pt_fig= get_athletes_partial_figures(estatisticas_primeiro_tempo_dict,estatisticas_geral_pt_dict,numero_jogos,mean_pt) 
-                #Figuras tab segundo tempo
-                estatisticas_gerais_st_fig, estatisticas_gerais_st_fig_1,  grafico_barras_st_fig,radar_st_fig = get_athletes_partial_figures(estatisticas_segundo_tempo_dict,estatisticas_geral_st_dict,numero_jogos,mean_st)
-                          
-                
-                options_partidas = dados_jogador_df["partida"].unique().tolist()
-                options_partidas.reverse()
-                
-                if st.session_state.filtro_partida is not None and st.session_state.filtro_partida not in options_partidas:
-                    filtro_partida=None
-                    st.session_state.filtro_partida = None
-
-    # Filtro por partida
-    with col3:
-        if not dados_jogador_df.empty:
-            filtro_partida = st.selectbox(
-                "Selecione uma partida",
-                options=options_partidas,
-                index=options_partidas.index(st.session_state.filtro_partida) if st.session_state.filtro_partida else None,
-            )
-            if filtro_partida:
-                st.session_state.filtro_partida = filtro_partida
-                #Extraindo média sem o jogo atual
-                mean_pt_sem_jogo_atual, mean_st_sem_jogo_atual,mean_total_sem_jogo_atual,mean_ptp_sem_jogo_atual,mean_stp_sem_jogo_atual  = get_mean(dados_jogador_total_df[dados_jogador_total_df['partida'] != filtro_partida])
-                dados_jogador_df = dados_jogador_df[dados_jogador_df['partida'] == filtro_partida]
-                dados_todos_jogadores_df = dados_todos_jogadores_df[dados_todos_jogadores_df['partida'] == filtro_partida]
-                estatisticas_geral_pt_dict,estatisticas_geral_st_dict, estatisticas_geral_totais_dict,estatisticas_geral_ptp_dict,estatisticas_geral_stp_dict = extrair_estatisticas_gerais(dados_todos_jogadores_df)
-                estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict, estatisticas_totais_dict,estatisticas_ptp_dict, estatisticas_stp_dict = extrair_estatisticas_gerais(dados_jogador_df)
-                #Figuras tab total
-                estatisticas_gerais_total_fig, estatisticas_gerais_total_fig_1,  grafico_barras_total_fig,radar_total_fig = get_athletes_total_figures(estatisticas_totais_dict,estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict,estatisticas_geral_totais_dict,1,mean_pt, mean_st) 
-                #Figuras tab primeiro tempo
-                estatisticas_gerais_pt_fig, estatisticas_gerais_pt_fig_1,  grafico_barras_pt_fig, radar_pt_fig= get_athletes_partial_figures(estatisticas_primeiro_tempo_dict,estatisticas_geral_pt_dict,1,mean_pt_sem_jogo_atual) 
-                #Figuras tab segundo tempo
-                estatisticas_gerais_st_fig, estatisticas_gerais_st_fig_1,  grafico_barras_st_fig,radar_st_fig = get_athletes_partial_figures(estatisticas_segundo_tempo_dict,estatisticas_geral_st_dict,1,mean_st_sem_jogo_atual)
-            
-
-
-    # # Exibir DataFrame atualizado
-    # if not dados_jogador_df.empty:
-    #     st.dataframe(estatisticas_jogadores_df)
-
+if df_dados_completos.empty:
+    st.warning("Sem jogos analisados!")
+else:
     
-if filtro_jogador:
-    
-    
-    primeiro_tempo_tab, segundo_tempo_tab, total_tab = st.tabs(["Primeiro Tempo", "Segundo Tempo", "Total"])
-    
-    with primeiro_tempo_tab:
-        col3_pt, col4_pt = st.columns([1, 1])
 
-        with col3_pt:
-            with st.container(border=True, height=500):
-                sub_column0_pt,sub_column1_pt,sub_column2_pt = st.columns([0.2,1,1.5])
-                with sub_column1_pt:
-                    if image_jogador is not None:
-                        st.image(image_jogador, width=150)
-                with sub_column2_pt:
-                    with st.container(border=True, height=220):
-                       st.plotly_chart(estatisticas_gerais_pt_fig, use_container_width=False, key="estatisticas_gerais_pt_fig",config={'displayModeBar': False})
-                with st.container(border=True, height=230):       
-                    st.plotly_chart(estatisticas_gerais_pt_fig_1, use_container_width=False, key="estatisticas_gerais_pt_fig_1",config={'displayModeBar': False})
-
-        with col4_pt:
-            with st.container(border=True, height=500):
-                st.plotly_chart(grafico_barras_pt_fig, use_container_width=True, key="grafico_barras_pt",config={'displayModeBar': False})
-
-      
-        with st.container(border=True, height=500):
-            st.plotly_chart(radar_pt_fig, use_container_width=True, key="grafico_radar_pt",config={'displayModeBar': False})
-
-        filtro_jogada_pt = st.selectbox(
-            "Selecione o tipo de jogada",
-            options=["Ataque","Defesa"],
-            index=None,
-            key="localizacao_jogada_pt"
-        )
-
-        if filtro_jogada_pt == "Ataque":
-            with st.container(border=True, height=300):
-                colunas_jogadas_ofensivas = st.columns(3)
-                figs= get_plots_plays_localization_athletes(filtro_jogada_pt,dados_jogador_df,"Primeiro Tempo")
-                for i,fig in enumerate(figs):
-                    colunas_jogadas_ofensivas[i].plotly_chart(fig,key=f"localizazao_{i}_jogador_tab_pt",config={'displayModeBar': False})
-        if filtro_jogada_pt == "Defesa":
-            with st.container(border=True, height=300):
-                colunas_jogadas_defensivas = st.columns(5)
-                figs= get_plots_plays_localization_athletes(filtro_jogada_pt,dados_jogador_df,"Primeiro Tempo")
-                
-                for i in range(len(figs)):
-                    colunas_jogadas_defensivas[i].plotly_chart(figs[i],key=f"localizazao_{i}_jogador_tab_pt",config={'displayModeBar': False})
-
-    with segundo_tempo_tab:
-        col3_st, col4_st = st.columns([1, 1])
-
-        with col3_st:
-            with st.container(border=True, height=500):
-                sub_column0_st,sub_column1_st,sub_column2_st = st.columns([0.2,1,1.5])
-                with sub_column1_st:
-                    if image_jogador is not None:
-                        st.image(image_jogador, width=150)
-                with sub_column2_st:
-                    with st.container(border=True, height=220):
-                        st.plotly_chart(estatisticas_gerais_st_fig, use_container_width=False, key="estatisticas_gerais_st_fig",config={'displayModeBar': False})
-                with st.container(border=True, height=230):        
-                    st.plotly_chart(estatisticas_gerais_st_fig_1, use_container_width=False, key="estatisticas_gerais_st_fig_1",config={'displayModeBar': False})
-
-        with col4_st:
-            with st.container(border=True, height=500):
-                st.plotly_chart(grafico_barras_st_fig, use_container_width=True, key="grafico_barras_st",config={'displayModeBar': False})
-
-    
-        with st.container(border=True, height=500):
-            st.plotly_chart(radar_st_fig, use_container_width=True, key="grafico_radar_st",config={'displayModeBar': False})
-
-        filtro_jogada_st = st.selectbox(
-            "Selecione o tipo de  jogada",
-            options=["Ataque","Defesa"],
-            index=None,
-            key="localizacao_jogada_st"
-        )
-
-        if filtro_jogada_st == "Ataque":
-            with st.container(border=True, height=300):
-                colunas_jogadas_ofensivas = st.columns(3)
-                figs= get_plots_plays_localization_athletes(filtro_jogada_st,dados_jogador_df,"Segundo Tempo")
-                for i,fig in enumerate(figs):
-                    colunas_jogadas_ofensivas[i].plotly_chart(fig,key=f"localizazao_{i}_jogador_tab_st",config={'displayModeBar': False})
-        if filtro_jogada_st == "Defesa":
-            with st.container(border=True, height=300):
-                colunas_jogadas_defensivas = st.columns(5)
-                figs= get_plots_plays_localization_athletes(filtro_jogada_st,dados_jogador_df,"Segundo Tempo")
-                for i in range(len(figs)):
-                    colunas_jogadas_defensivas[i].plotly_chart(figs[i],key=f"localizazao_{i}_jogador_tab_st",config={'displayModeBar': False})
-
-    with total_tab:
-
-        col3, col4 = st.columns([1,1])
-
-        with col3:
-            with st.container(border=True,height=500):
-                sub_column0,sub_column1,sub_column2 = st.columns([0.2,1,1.5])
-                with sub_column1:
-                # Exibe a imagem do jogador na primeira coluna
-                    if image_jogador is not None:
-                        st.image(image_jogador, width=150)
-
-                with sub_column2:
-                    # Adiciona um espaçamento antes do gráfico, se necessário
-                    # Renderiza o gráfico de estatísticas gerais
-                    with st.container(border=True, height=220):
-                        st.plotly_chart(estatisticas_gerais_total_fig, use_container_width=False, key="estatisticas_gerais_total_fig",config={'displayModeBar': False})
-                with st.container(border=True, height=230):
-                    st.plotly_chart(estatisticas_gerais_total_fig_1, use_container_width=False,key="estatisticas_gerais_pt_total_1",config={'displayModeBar': False})
-        
-        with col4:
-            with st.container(border=True,height=500):
-                st.plotly_chart(grafico_barras_total_fig, use_container_width=True, key="grafico_barras_total",config={'displayModeBar': False})          
-                    
-        with st.container(border=True, height=500):
-            st.plotly_chart(radar_total_fig, use_container_width=True, key="grafico_radar_total",config={'displayModeBar': False})
-        
-        
-        
-        
-        filtro_jogada = st.selectbox(
-                    "Selecione uma jogada",
-                    options=['FIN.C', 'FIN.E', 'FIN.T', 'ASSIST.', 'GOL', 'DES.C/P.','C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra'],
-                    index=None,
-                    key="localizacao_jogada_total"
-                )       
-        
-        if filtro_jogada:
-            with st.container(border=True, height=300):
-                colunas = st.columns(3) 
-                localizacao_jogadas = extrair_estatisticas_localizacao(dados_jogador_df,filtro_jogada)
-                
-                for i, (chave, valor) in enumerate(localizacao_jogadas.items()):
-                    if i == 3:
-                        break
-                    titulo = f"{filtro_jogada} - {chave}"
-                    fig = create_futsal_court(titulo,valor)
-                    colunas[i].plotly_chart(fig,config={'displayModeBar': False})
-                
    
-    
-                
+    st.subheader("Análise de Desempenho do Atleta")
+    with st.container():
+        # 1. Filtro de Seleção de Equipe (para Análise de Atleta)
+        opcoes_equipes_analise_atleta = ["Selecione uma equipe"] + df_dados_completos["equipe_jogada"].unique().tolist()
+        indice_equipe_analise_atleta = 0
+        if st.session_state.filtro_equipe_analise and st.session_state.filtro_equipe_analise in opcoes_equipes_analise_atleta:
+            indice_equipe_analise_atleta = opcoes_equipes_analise_atleta.index(st.session_state.filtro_equipe_analise)
 
-      
+        equipe_analise_selecionada = st.selectbox(
+            "Selecione uma equipe para analisar",
+            options=opcoes_equipes_analise_atleta,
+            index=indice_equipe_analise_atleta,
+            key="equipe_analise_select_atleta" # Chave única para esta aba
+        )
+
+        # Lógica para atualizar o session_state e forçar rerun
+        if equipe_analise_selecionada != "Selecione uma equipe" and equipe_analise_selecionada != st.session_state.filtro_equipe_analise:
+            st.session_state.filtro_equipe_analise = equipe_analise_selecionada
+            st.session_state.filtro_jogador = None
+            st.session_state.filtro_competicao_jogador = None
+            st.session_state.filtro_partida_jogador = None
+            st.rerun()
+
+        if equipe_analise_selecionada == "Selecione uma equipe":
+            st.session_state.filtro_equipe_analise = None
+            st.info("Por favor, selecione uma equipe para visualizar os dados do atleta.")
+            st.stop() # Interrompe a execução para a aba de atleta
+
+    # A partir daqui, sabemos que uma equipe válida foi selecionada para a aba de atleta
+    df_equipe_selecionada = df_dados_completos[df_dados_completos['equipe_jogada'] == st.session_state.filtro_equipe_analise]
+
+    if df_equipe_selecionada.empty:
+        st.warning(f"Não há dados para a equipe '{st.session_state.filtro_equipe_analise}'.")
+        st.stop() # Interrompe se a equipe selecionada não tiver dados
+
+    # Extrai estatísticas gerais da equipe selecionada (para comparação no radar do jogador)
+    estatisticas_gerais_pt, estatisticas_gerais_st, estatisticas_gerais_total, estatisticas_gerais_ptp, estatisticas_gerais_stp = \
+        extrair_estatisticas_gerais(df_equipe_selecionada)
+    estatisticas_gerais_para_radar = {
+        "Primeiro Tempo": estatisticas_gerais_pt,
+        "Segundo Tempo": estatisticas_gerais_st,
+        "Total": estatisticas_gerais_total,
+        "Primeiro Tempo Prorrogação": estatisticas_gerais_ptp,
+        "Segundo Tempo Prorrogação": estatisticas_gerais_stp
+    }
+
+    
+    
+    id_equipe_selecionada =  int(df_equipe_selecionada.iloc[0]["equipe_jogada_id"])
+    lista_todos_atletas_do_db = db_manager.listar_jogadores_por_equipe(id_equipe_selecionada) 
+
+    
+    jogadores_com_dados_na_equipe = [
+        j for j in lista_todos_atletas_do_db
+        if j[1] in df_equipe_selecionada['jogador_nome'].unique().tolist()
+    ]
+    
+    dicionario_jogadores = {jogador[1]: [jogador[0], jogador[4]] for jogador in jogadores_com_dados_na_equipe}
+    lista_nomes_jogadores = list(dicionario_jogadores.keys())
+
+    if not lista_nomes_jogadores:
+        st.info(f"Não há jogadores com dados para a equipe '{st.session_state.filtro_equipe_analise}'.")
+        st.stop() # Interrompe se não houver jogadores com dados
+
+    with st.container():
+        coluna1_atleta, coluna2_atleta, coluna3_atleta = st.columns([1, 1, 2])
+        # 2. Filtro por Jogador
+        with coluna1_atleta:
+            opcoes_jogadores_atleta = ["Selecione um jogador"] + lista_nomes_jogadores
+            indice_jogador_atleta = 0
+            if st.session_state.filtro_jogador and st.session_state.filtro_jogador in opcoes_jogadores_atleta:
+                indice_jogador_atleta = opcoes_jogadores_atleta.index(st.session_state.filtro_jogador)
+
+            jogador_selecionado = st.selectbox(
+                "Selecione um jogador",
+                options=opcoes_jogadores_atleta,
+                index=indice_jogador_atleta,
+                key="jogador_select_atleta"
+            )
+
+            if jogador_selecionado != "Selecione um jogador" and jogador_selecionado != st.session_state.filtro_jogador:
+                st.session_state.filtro_jogador = jogador_selecionado
+                st.session_state.filtro_competicao_jogador = None
+                st.session_state.filtro_partida_jogador = None
+                st.rerun()
+
+            if jogador_selecionado == "Selecione um jogador":
+                st.session_state.filtro_jogador = None
+                st.info("Por favor, selecione um jogador para visualizar os dados.")
+                st.stop() # Interrompe a execução para o jogador
+
+            # Obtém a id da imagem do jogador
+            id_imagem = dicionario_jogadores.get(st.session_state.filtro_jogador, [None, None])[1]
+            
+            # Filtra os dados para o jogador selecionado
+            df_filtrado_jogador = df_equipe_selecionada[df_equipe_selecionada['jogador_nome'] == st.session_state.filtro_jogador]
+
+        # 3. Filtro por Competição (para o jogador)
+        with coluna2_atleta:
+            opcoes_competicao_jogador = ["Selecione uma competição"] + df_filtrado_jogador["competicao"].unique().tolist()
+            indice_competicao_jogador = 0
+            if st.session_state.filtro_competicao_jogador and st.session_state.filtro_competicao_jogador in opcoes_competicao_jogador:
+                indice_competicao_jogador = opcoes_competicao_jogador.index(st.session_state.filtro_competicao_jogador)
+
+            competicao_jogador_selecionada = st.selectbox(
+                "Selecione uma competição",
+                options=opcoes_competicao_jogador,
+                index=indice_competicao_jogador,
+                key="competicao_jogador_select_atleta"
+            )
+
+            if competicao_jogador_selecionada != "Selecione uma competição" and competicao_jogador_selecionada != st.session_state.filtro_competicao_jogador:
+                st.session_state.filtro_competicao_jogador = competicao_jogador_selecionada
+                st.session_state.filtro_partida_jogador = None
+                st.rerun()
+
+            if competicao_jogador_selecionada == "Selecione uma competição":
+                st.session_state.filtro_competicao_jogador = None
+                df_filtrado_jogador_competicao = df_filtrado_jogador.copy()
+            else:
+                df_filtrado_jogador_competicao = df_filtrado_jogador[df_filtrado_jogador['competicao'] == st.session_state.filtro_competicao_jogador]
+
+        # 4. Filtro por Partida (para o jogador)
+        with coluna3_atleta:
+            opcoes_partidas_jogador = ["Selecione uma partida"] + df_filtrado_jogador_competicao["partida"].unique().tolist()
+            opcoes_partidas_jogador[1:].reverse() # Inverte a ordem das opções de partida, mantendo o placeholder no início
+            
+            indice_partida_jogador = 0
+            if st.session_state.filtro_partida_jogador and st.session_state.filtro_partida_jogador in opcoes_partidas_jogador:
+                indice_partida_jogador = opcoes_partidas_jogador.index(st.session_state.filtro_partida_jogador)
+
+            partida_jogador_selecionada = st.selectbox(
+                "Selecione uma partida",
+                options=opcoes_partidas_jogador,
+                index=indice_partida_jogador,
+                key="partida_jogador_select_atleta"
+            )
+            if partida_jogador_selecionada != "Selecione uma partida" and partida_jogador_selecionada != st.session_state.filtro_partida_jogador:
+                st.session_state.filtro_partida_jogador = partida_jogador_selecionada
+                st.rerun()
+
+            if partida_jogador_selecionada == "Selecione uma partida":
+                st.session_state.filtro_partida_jogador = None
+                df_analise_jogador = df_filtrado_jogador_competicao.copy()
+                df_media_jogador = df_filtrado_jogador_competicao.copy()
+            else:
+                df_analise_jogador = df_filtrado_jogador_competicao[
+                    df_filtrado_jogador_competicao['partida'] == st.session_state.filtro_partida_jogador
+                ]
+                df_media_jogador = df_filtrado_jogador_competicao[
+                    df_filtrado_jogador_competicao['partida'] != st.session_state.filtro_partida_jogador
+                ]
+                if df_media_jogador.empty:
+                    df_media_jogador = df_analise_jogador.copy()
+
+        # --- Geração dos Gráficos e Exibição das Abas (para o jogador) ---
+        if not df_analise_jogador.empty:
+            dict_figuras_jogador = pegar_figuras_e_estatisticas_jogadores(
+                df_analise_jogador, df_media_jogador, estatisticas_gerais_para_radar
+            )
+
+            nomes_abas_jogador = ["Primeiro Tempo", "Segundo Tempo", "Total"]
+            abas_jogador = st.tabs(nomes_abas_jogador)
+
+            for i, conteudo_aba_jogador in enumerate(abas_jogador):
+                with conteudo_aba_jogador:
+                    nome_aba_jogador = nomes_abas_jogador[i]
+                    if dict_figuras_jogador[nome_aba_jogador][0] and dict_figuras_jogador[nome_aba_jogador][0].data:
+                        exibir_conteudo_tabs_jogadores(nome_aba_jogador,
+                             dict_figuras_jogador[nome_aba_jogador],
+                            df_analise_jogador, id_imagem
+                        )
+                    else:
+                        st.info(f"Não há dados para exibir em '{nome_aba_jogador}' para a seleção atual.")
+        else:
+            st.info("Não há dados para a seleção atual do atleta. Por favor, ajuste os filtros.")
+
+# --- Fechamento da Conexão com o Banco de Dados ---
 if hasattr(st, "on_event") and callable(getattr(st, "on_event")):
     st.on_event("shutdown", db_manager.fechar_conexao)
 else:
-    atexit.register(db_manager.fechar_conexao)                   
+    atexit.register(db_manager.fechar_conexao)
