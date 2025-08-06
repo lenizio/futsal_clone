@@ -122,15 +122,16 @@ else:
 def adicionar_equipe_dialog():
     equipe = st.text_input("Nome da Equipe") 
     categoria = st.selectbox("Selecione a categoria", ('Principal', 'Sub-20'))
+    logo_id= st.text_input("Adicione o id da equipe", value=None)
     
     # Validação e submissão do formulário
     if st.button("Cadastrar", key="adicionar_equipe_dialog"):  # Adicionando uma chave única para o botão de cadastrar equipe
         if not equipe or not categoria:  # Verifica se os campos obrigatórios estão preenchidos
             st.error("Por favor, preencha todos os campos.")
         else:
-            id = db_manager.adicionar_equipe(equipe, categoria)
+            id = db_manager.adicionar_equipe(equipe, categoria,logo_id)
             if id is not None:
-                st.success("equipe cadastrado com sucesso!")
+                st.success("Equipe cadastrada com sucesso!")
                 st.rerun()
             else:
                 st.error(f"O equipe '{equipe}' na categoria '{categoria}' já está cadastrado.")
@@ -156,12 +157,46 @@ def excluir_equipe_dialog():
                 time.sleep(1)  # Pausa de 2 segundos para mostrar a mensagem antes de atualizar a página
                 st.rerun()     
                     
+@st.dialog("Editar equipe")
+def editar_equipe_dialog():
+    opcoes_categoria = ['Principal', 'Sub-20']
+    lista_equipes = db_manager.listar_equipes()
+    dict_equipes = {equipe[1]+ " " + equipe[2]:equipe[0] for equipe in lista_equipes}
+    equipe = st.selectbox('Selecione o equipe', options=dict_equipes.keys(), index=None)
+    
+    if equipe:
+        equipe_id =dict_equipes[equipe]
+        dados_equipe = db_manager.listar_dados_equipe(equipe_id)
+        if dados_equipe:
+            nome_equipe, categoria_equipe,logo_id = dados_equipe
+            equipe = st.text_input("Nome da Equipe", value=nome_equipe) 
+            categoria = st.selectbox("Selecione a categoria", options=opcoes_categoria, index=opcoes_categoria.index(categoria_equipe))
+            logo_equipe= st.text_input("Adicione o id da equipe", value=logo_id)
+        
+        
+        if st.button("Editar", key=f"editar_equipe_dialog"):
+            if not equipe or not categoria:
+                st.error("Por favor, preencha todos os campos.")
+            else:    
+                try:
+                    db_manager.atualizar_equipe(equipe_id,equipe,categoria,logo_equipe)
+                    st.success(f"Equipe atualizada com sucesso!")
+                    time.sleep(1)  # Pausa de 2 segundos para mostrar a mensagem antes de atualizar a página
+                    st.rerun()    
+                except Exception as e:
+                    st.error(f"Erro ao atualizar equipe: {e}")
+                    db_manager.rollback()         
+                    time.sleep(1)  # Pausa de 2 segundos para mostrar a mensagem antes de atualizar a página
+                    st.rerun()
 
 
-botao_adicionar_equipe, botao_excluir_equipe = st.columns(2)
+botao_adicionar_equipe,botao_editar_equipe, botao_excluir_equipe = st.columns(3)
 with botao_adicionar_equipe:
     if st.button("Adicionar equipe", key="adicionar_equipe"):
         adicionar_equipe_dialog()
+with botao_editar_equipe:
+    if st.button("Editar equipe", key="editar_equipe"):
+        editar_equipe_dialog()
 with botao_excluir_equipe:
     if st.button("Excluir equipe", key="exluir_equipe"):
         excluir_equipe_dialog()

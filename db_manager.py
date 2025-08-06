@@ -27,7 +27,8 @@ class DBManager:
             CREATE TABLE IF NOT EXISTS equipes (
                 id SERIAL PRIMARY KEY,
                 nome VARCHAR(100) NOT NULL,
-                categoria VARCHAR(50) NOT NULL
+                categoria VARCHAR(50) NOT NULL,
+                logo_id VARCHAR(255) DEFAULT NULL
             )
             """,
             """
@@ -148,7 +149,7 @@ class DBManager:
             return "Já existe um jogador com este número de camisa no equipe."
 
     
-    def adicionar_equipe(self, nome, categoria):
+    def adicionar_equipe(self, nome, categoria,logo_id):
     # Verificar se o equipe já existe
         if self.verificar_equipe_existente(nome, categoria):
             return None
@@ -156,11 +157,11 @@ class DBManager:
         # Inserir o novo equipe
         self.cursor.execute(
             """
-            INSERT INTO equipes (nome, categoria)
-            VALUES (%s, %s)
+            INSERT INTO equipes (nome, categoria, logo_id)
+            VALUES (%s, %s,%s)
             RETURNING id
             """,
-            (nome, categoria)
+            (nome, categoria, logo_id)
         )
         self.conn.commit()
         novo_id = self.cursor.fetchone()[0]
@@ -251,6 +252,45 @@ class DBManager:
         self.cursor.execute("SELECT id, nome, categoria FROM equipes")
         return self.cursor.fetchall()  # Retorna uma lista de tuplas
 
+    def listar_dados_equipe(self,id):
+        
+        self.cursor.execute("""
+                            SELECT  nome, categoria ,logo_id
+                            FROM equipes
+                            WHERE id = %s""",(id,))
+        return self.cursor.fetchone()
+    
+    def atualizar_equipe(self, id, nome=None, categoria=None, logo=None):
+        campos = []
+        valores = []
+
+        if nome is not None:
+            campos.append("nome = %s")
+            valores.append(nome)
+        
+        if categoria is not None:
+            campos.append("categoria = %s")
+            valores.append(categoria)
+        
+        if logo is not None:
+            campos.append("logo = %s")
+            valores.append(logo)
+
+        if not campos:
+            raise ValueError("Nenhum campo para atualizar foi fornecido.")
+
+        # Adiciona o ID ao final dos valores
+        valores.append(id)
+
+        sql = f"""
+            UPDATE equipes
+            SET {', '.join(campos)}
+            WHERE id = %s
+        """
+
+        self.cursor.execute(sql, tuple(valores))
+        self.conn.commit()
+    
     # Listar todos os jogadores
     def listar_jogadores(self):
         self.cursor.execute("SELECT id, nome, equipe, posicao FROM jogadores")
@@ -261,13 +301,7 @@ class DBManager:
         self.cursor.execute("SELECT id,equipe_mandante_id,equipe_mandante_nome,equipe_visitante_id, equipe_visitante_nome,data,  competicao, fase, rodada FROM jogos ORDER BY data DESC")
         return self.cursor.fetchall()
     
-    def listar_jogos_minas(self):
-        self.cursor.execute("""SELECT id,equipe_mandante_id,equipe_mandante_nome,equipe_visitante_id, equipe_visitante_nome,data,  competicao, fase, rodada 
-                            FROM jogos
-                            WHERE equipe_mandante_nome LIKE 'Minas Tênis%'
-                                OR equipe_visitante_nome LIKE 'Minas Tênis%' 
-                            ORDER BY data DESC""")
-        return self.cursor.fetchall()
+   
     # Listar todas as jogadas
     def listar_jogadas(self):
         self.cursor.execute("SELECT * FROM jogadas")
@@ -315,6 +349,7 @@ class DBManager:
                     jogos.fase,
                     jogos.rodada,
                     jogos.competicao,
+                    jogadores.equipe,
                     jogadas.jogador_nome, 
                     jogadas.jogada,
                     jogadas.tempo,
@@ -325,7 +360,12 @@ class DBManager:
                 LEFT JOIN
                     jogadas
                 ON
-                    jogos.id = jogadas.jogo_id 
+                    jogos.id = jogadas.jogo_id
+                INNER JOIN 
+                    jogadores 
+                ON
+                    jogadas.jogador_id = jogadores.id
+
                     """ )
         return self.cursor.fetchall() 
     
