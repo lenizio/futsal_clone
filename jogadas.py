@@ -10,7 +10,7 @@ from utils import listar_opces_jogadores
 db_manager = get_db_manager()
 
 # Lista de jogos
-lista_jogos = db_manager.listar_jogos_minas()
+lista_jogos = db_manager.listar_jogos()
 
 # Inicializar o valor padrão para o tempo no estado, se ainda não existir
 if "selected_tempo" not in st.session_state:
