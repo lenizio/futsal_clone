@@ -273,7 +273,7 @@ class DBManager:
             valores.append(categoria)
         
         if logo is not None:
-            campos.append("logo = %s")
+            campos.append("logo_id = %s")
             valores.append(logo)
 
         if not campos:
@@ -349,6 +349,7 @@ class DBManager:
                     jogos.fase,
                     jogos.rodada,
                     jogos.competicao,
+                    jogadores.equipe_id,
                     jogadores.equipe,
                     jogadas.jogador_nome, 
                     jogadas.jogada,
