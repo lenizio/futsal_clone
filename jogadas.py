@@ -122,35 +122,7 @@ else:
                 with right_div:
                     st.markdown("<br><br><br><br><br><br>", unsafe_allow_html=True)
                     exibir_seta("↑")
-                    # st.markdown("""
-                    #         <style>
-                    #             .container-ataque {
-                    #                 display: flex;
-                    #                 flex-direction: column;
-                    #                 align-items: center;
-                    #                 margin: 80px 0;
-                    #                 position: relative;
-                    #             }
-                                
-                    #             .seta {
-                    #                 font-size: 50px;
-                    #                 transform: translateX(-120px);  /* Ajuste fino da posição horizontal */
-                    #             }
-                                
-                    #             .texto-ataque {
-                    #                 font-size: 20px;
-                    #                 font-weight: bold;
-                    #                 margin-top: -10px;  /* Espaço entre seta e texto */
-                    #                 transform: translateX(-120px);  /* Alinhar com o ajuste da seta */
-                    #             }
-                    #         </style>
-
-                    #         <div class="container-ataque">
-                    #             <div class="seta">↑</div>
-                    #             <div class="texto-ataque">ATAQUE</div>
-                    #         </div>
-                    #         """, unsafe_allow_html=True
-
+    
 
                 
                 
