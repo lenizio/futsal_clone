@@ -39,14 +39,7 @@ if "filtro_partida_jogador" not in st.session_state:
 if st.button("Atualizar Dados"):
     st.session_state.dados_atualizados = True
     # Opcional: resetar todos os filtros ao atualizar dados
-    st.session_state.filtro_equipes = None
-    st.session_state.filtro_competicao_time = None
-    st.session_state.filtro_partida_time = None
-    st.session_state.filtro_equipe_analise = None
-    st.session_state.filtro_jogador = None
-    st.session_state.filtro_competicao_jogador = None
-    st.session_state.filtro_partida_jogador = None
-    st.rerun() # Força o recarregamento para aplicar o reset
+     # Força o recarregamento para aplicar o reset
 
 # Extrai o DataFrame inicial com todos os dados
 df_dados_completos = extrair_dataframe_jogador(db_manager)
@@ -107,16 +100,13 @@ else:
     }
 
     
-    
     id_equipe_selecionada =  int(df_equipe_selecionada.iloc[0]["equipe_jogada_id"])
     lista_todos_atletas_do_db = db_manager.listar_jogadores_por_equipe(id_equipe_selecionada) 
-
     
     jogadores_com_dados_na_equipe = [
         j for j in lista_todos_atletas_do_db
         if j[1] in df_equipe_selecionada['jogador_nome'].unique().tolist()
     ]
-    
     dicionario_jogadores = {jogador[1]: [jogador[0], jogador[4],jogador[2]] for jogador in jogadores_com_dados_na_equipe}
     lista_nomes_jogadores = list(dicionario_jogadores.keys())
 

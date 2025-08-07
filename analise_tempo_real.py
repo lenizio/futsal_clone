@@ -29,12 +29,7 @@ if st.button("Atualizar Dados"):
     # No entanto, o Streamlit já recarrega o script em cada interação,
     # então pode não ser estritamente necessário dependendo da sua lógica de cache.
     st.session_state.dados_atualizados = True
-    # Opcional: resetar todos os filtros ao atualizar dados
-    st.session_state.filtro_equipes = None
-    st.session_state.filtro_competicao_time = None
-    st.session_state.filtro_partida_time = None
-    st.rerun() # Força o recarregamento para aplicar o reset
-
+  
 # Extrai o DataFrame inicial com todos os dados
 dados_time_df = extrair_dataframe_jogador(db_manager)
 dados_time_total_df = dados_time_df.copy() # Mantém uma cópia do DataFrame original para cálculos de média

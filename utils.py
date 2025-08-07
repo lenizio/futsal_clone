@@ -1748,7 +1748,7 @@ def exibir_graficos_tempo(fig1, fig2, fig_barras, key_prefix,logo_path):
             sub_column1, sub_column2 = st.columns([1, 1.5])
             with sub_column1:
                 if imagem is not None:
-                    st.image(imagem, output_format="PNG", width=300)
+                    st.image(imagem, output_format="PNG", width=150)
             with sub_column2:
                 with st.container(border=True, height=220):
                     st.plotly_chart(fig1, use_container_width=True, key=f"{key_prefix}_fig1", config={'displayModeBar': False})
@@ -1901,9 +1901,11 @@ def exibir_localizacao_jogadas_total_jogador(dados_time_df,posicao):
     if posicao == "Goleiro":
         jogadas = {"Ataque": ['FIN.C', 'FIN.E', 'FIN.T', 'DES.C/P.', 'C.A.-Pró'], 
                 "Defesa": ['DES.S/P.', 'PER.P.', 'C.A.-Contra', "FIN.S.C", "FIN.S.E", "FIN.S.T"]}
+        height_container_defesa = 1800
     else:
         jogadas = {"Ataque": ['FIN.C', 'FIN.E', 'FIN.T', 'DES.C/P.', 'C.A.-Pró'],
                    "Defesa": ['DES.S/P.', 'PER.P.', 'C.A.-Contra']}
+        height_container_defesa = 900
 
         
     tab_ataque, tab_defesa = st.tabs(['Ataque', 'Defesa'])
@@ -1922,7 +1924,7 @@ def exibir_localizacao_jogadas_total_jogador(dados_time_df,posicao):
                     colunas[i].plotly_chart(fig_localizacao_total, key=f"localizacao_{jogada}_{chave}", config={'displayModeBar': False})
 
     with tab_defesa:
-        with st.container(border=True, height=1800):
+        with st.container(border=True, height=height_container_defesa):
             for jogada in jogadas['Defesa']:
                 colunas = st.columns(3)
                 localizacao_jogadas = extrair_estatisticas_localizacao(dados_time_df, jogada)
