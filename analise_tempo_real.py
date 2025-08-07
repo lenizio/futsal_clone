@@ -161,7 +161,7 @@ else:
     if not df_para_analisar.empty:
         figures_dict = pegar_figuras_e_estatisticas(df_para_analisar, df_para_media)
 
-        tab_names = ["Primeiro Tempo", "Segundo Tempo", "Total", "Primeiro Tempo Prorrogação", "Segundo Tempo Prorrogação"]
+        tab_names = ["Primeiro Tempo", "Segundo Tempo", "Total"]
         tabs = st.tabs(tab_names)
 
         for i, tab in enumerate(tabs):

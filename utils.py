@@ -415,7 +415,7 @@ def plotar_grafico_barras(estatisticas_primeiro_tempo_dict, estatisticas_segundo
     )
     return fig
 
-def plotar_grafico_barras_jogador(estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict, mean_primeiro_tempo, mean_segundo_tempo):
+def plotar_grafico_barras_jogador(estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict, mean_primeiro_tempo, mean_segundo_tempo,posicao):
     """
     Plota um gráfico de barras comparando as ações de um jogador no 1º e 2º tempo,
     incluindo linhas de média para comparação.
@@ -429,7 +429,14 @@ def plotar_grafico_barras_jogador(estatisticas_primeiro_tempo_dict, estatisticas
     Returns:
         plotly.graph_objects.Figure: Uma figura Plotly com gráficos de barras comparativos para o jogador.
     """
-    categorias = ['FIN.C', 'FIN.E', 'FIN.T', 'DES.C/P.', 'C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra']
+    
+    if posicao == 'Goleiro':    
+        categorias = ['DES.C/P.', 'C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra','FIN.S.C', 'FIN.S.E', 'FIN.S.T', ]
+        mean_primeiro_tempo = mean_primeiro_tempo[3:]
+        mean_segundo_tempo = mean_segundo_tempo[3:]
+    else:
+        categorias = ['FIN.C', 'FIN.E', 'FIN.T', 'DES.C/P.', 'C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra']   
+    
     valores_1T = [estatisticas_primeiro_tempo_dict.get(categoria, 0) for categoria in categorias]
     valores_2T = [estatisticas_segundo_tempo_dict.get(categoria, 0) for categoria in categorias]
 
@@ -524,7 +531,7 @@ def plotar_grafico_barras_parcial(estatisticas_parciais_dict, mean):
     )
     return fig
 
-def plotar_grafico_barras_parcial_jogador(estatisticas_parciais_dict, mean):
+def plotar_grafico_barras_parcial_jogador(estatisticas_parciais_dict, mean,posicao):
     """
     Plota um gráfico de barras para ações parciais de um jogador,
     incluindo uma linha de média para comparação.
@@ -532,11 +539,18 @@ def plotar_grafico_barras_parcial_jogador(estatisticas_parciais_dict, mean):
     Args:
         estatisticas_parciais_dict (dict): Dicionário de estatísticas parciais do jogador.
         mean (np.array): Média das ações para comparação.
+        posicao (str): Posicao do jogador.
 
     Returns:
         plotly.graph_objects.Figure: Uma figura Plotly com o gráfico de barras das ações do jogador.
     """
-    categorias = ['FIN.C', 'FIN.E', 'FIN.T', 'DES.C/P.', 'C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra']
+    if posicao == "Goleiro":
+        categorias = [ 'DES.C/P.', 'C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra','FIN.S.C', 'FIN.S.E', 'FIN.S.T'] 
+        mean = mean[3:]
+    else:    
+        categorias = ['FIN.C', 'FIN.E', 'FIN.T', 'DES.C/P.', 'C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra']
+    
+    
     valores = np.array([estatisticas_parciais_dict.get(categoria, 0) for categoria in categorias])
     cores = ['rgba(0, 255, 0, 0.6)', 'rgba(255, 0, 0, 0.6)', 'rgba(255, 255, 0, 0.6)',
              'rgba(0, 0, 255, 0.6)', 'rgba(0, 255, 255, 0.6)', 'rgba(128, 0, 128, 0.6)', 'rgba(0, 60, 0, 1.0)', 'rgba(255, 165, 0, 1.0)']
@@ -662,7 +676,7 @@ def plotar_historico_time(estatisticas_primeiro_tempo_dict, estatisticas_segundo
     return fig
 
 
-def plotar_radar_chart(estatisticas_totais_dict, estatisticas_geral_totais_dict):
+def plotar_radar_chart(estatisticas_totais_dict, estatisticas_geral_totais_dict,posicao):
     """
     Plota um gráfico de radar comparando as estatísticas de um jogador
     com as estatísticas gerais (da equipe ou de todos os jogadores).
@@ -674,7 +688,10 @@ def plotar_radar_chart(estatisticas_totais_dict, estatisticas_geral_totais_dict)
     Returns:
         plotly.graph_objects.Figure: Uma figura Plotly com o gráfico de radar.
     """
-    theta = ['FIN.C', 'FIN.E', 'FIN.T', 'DES.C/P.', 'DES.S/P.', 'PER.P.']
+    if posicao == "Goleiro":
+        theta = ['FIN.S.C', 'FIN.S.E', 'FIN.S.T', 'DES.C/P.', 'DES.S/P.', 'PER.P.']
+    else:
+        theta = ['FIN.C', 'FIN.E', 'FIN.T', 'DES.C/P.', 'DES.S/P.', 'PER.P.']
 
     numerador = [estatisticas_totais_dict.get(i, 0) for i in theta]
     denominador = [estatisticas_geral_totais_dict.get(i, 0) for i in theta]
@@ -984,7 +1001,7 @@ def get_mean(df):
     return mean_primeiro_tempo, mean_segundo_tempo, mean_total, mean_primeiro_tempo_prorrogacao, mean_segundo_tempo_prorrogacao
 
 
-def get_athletes_total_figures(estatisticas_totais_dict, estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict, estatisticas_geral_totais_dict, numero_jogos, mean_primeiro_tempo, mean_segundo_tempo):
+def get_athletes_total_figures(estatisticas_totais_dict, estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict, estatisticas_geral_totais_dict, numero_jogos, mean_primeiro_tempo, mean_segundo_tempo,posicao):
     """
     Retorna as figuras totais para a análise de um atleta, incluindo gráficos de indicadores,
     gráficos de barras comparativos e um gráfico de radar.
@@ -1007,11 +1024,11 @@ def get_athletes_total_figures(estatisticas_totais_dict, estatisticas_primeiro_t
     """
     estatisticas_gerais_fig = plotar_estatisticas_gerais(estatisticas_totais_dict, numero_jogos)
     estatisticas_gerais_fig_1 = plotar_estatisticas_gerais_1(estatisticas_totais_dict)
-    grafico_barras_fig = plotar_grafico_barras_jogador(estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict, mean_primeiro_tempo, mean_segundo_tempo)
-    radar_fig = plotar_radar_chart(estatisticas_totais_dict, estatisticas_geral_totais_dict)
+    grafico_barras_fig = plotar_grafico_barras_jogador(estatisticas_primeiro_tempo_dict, estatisticas_segundo_tempo_dict, mean_primeiro_tempo, mean_segundo_tempo,posicao)
+    radar_fig = plotar_radar_chart(estatisticas_totais_dict, estatisticas_geral_totais_dict,posicao)
     return estatisticas_gerais_fig, estatisticas_gerais_fig_1, grafico_barras_fig, radar_fig
 
-def get_athletes_partial_figures(estatisticas_parciais_dict, estatisticas_geral_parciais_dict, numero_jogos, mean):
+def get_athletes_partial_figures(estatisticas_parciais_dict, estatisticas_geral_parciais_dict, numero_jogos, mean,posicao):
     """
     Retorna as figuras parciais para a análise de um atleta, focando em um período específico
     (ex: 1º tempo, 2º tempo), incluindo gráficos de indicadores, gráficos de barras parciais e um gráfico de radar.
@@ -1021,6 +1038,7 @@ def get_athletes_partial_figures(estatisticas_parciais_dict, estatisticas_geral_
         estatisticas_geral_parciais_dict (dict): Dicionário com as estatísticas gerais para comparação no radar.
         numero_jogos (int): O número de jogos analisados para este período.
         mean (np.array): Média das ações para este período.
+        posicao (str): Posicao do jogador.
 
     Returns:
         tuple: Uma tupla contendo:
@@ -1029,10 +1047,12 @@ def get_athletes_partial_figures(estatisticas_parciais_dict, estatisticas_geral_
                - plotly.graph_objects.Figure: Figura de gráfico de barras parcial.
                - plotly.graph_objects.Figure: Figura do gráfico de radar.
     """
+    
+    
     estatisticas_gerais_fig = plotar_estatisticas_gerais(estatisticas_parciais_dict, numero_jogos)
     estatisticas_gerais_fig_1 = plotar_estatisticas_gerais_1(estatisticas_parciais_dict)
-    grafico_barras_fig = plotar_grafico_barras_parcial_jogador(estatisticas_parciais_dict, mean)
-    radar_fig = plotar_radar_chart(estatisticas_parciais_dict, estatisticas_geral_parciais_dict)
+    grafico_barras_fig = plotar_grafico_barras_parcial_jogador(estatisticas_parciais_dict, mean,posicao)
+    radar_fig = plotar_radar_chart(estatisticas_parciais_dict, estatisticas_geral_parciais_dict,posicao)
     return estatisticas_gerais_fig, estatisticas_gerais_fig_1, grafico_barras_fig, radar_fig
 
 
@@ -1058,7 +1078,7 @@ def get_plots_plays_localization_team(filtro_jogada, data, tempo):
         figs.append(fig)
     return figs
 
-def get_plots_plays_localization_athletes(filtro_jogada, data, tempo):
+def get_plots_plays_localization_athletes(filtro_jogada, data, tempo,posicao):
     """
     Retorna uma lista de figuras da quadra de futsal com heatmaps de localização
     para jogadas específicas de um atleta, filtradas por tipo de jogada e tempo.
@@ -1071,7 +1091,15 @@ def get_plots_plays_localization_athletes(filtro_jogada, data, tempo):
     Returns:
         list: Uma lista de figuras Plotly (quadras de futsal com heatmaps).
     """
-    jogadas = {"Ataque": ['FIN.C', 'FIN.E', 'FIN.T'], "Defesa": ['DES.C/P.', 'C.A.-Pró', 'DES.S/P.', 'PER.P.', 'C.A.-Contra']}
+    if posicao == 'Goleiro':
+    
+        jogadas = {"Ataque": ['FIN.C', 'FIN.E', 'FIN.T','DES.C/P.', 'C.A.-Pró'], 
+                   "Defesa": ['DES.S/P.', 'PER.P.', 'C.A.-Contra',"FIN.S.C", "FIN.S.E", "FIN.S.T"]}
+    else:
+        jogadas = {"Ataque": ['FIN.C', 'FIN.E', 'FIN.T','DES.C/P.', 'C.A.-Pró'], 
+                   "Defesa": ['DES.S/P.', 'PER.P.', 'C.A.-Contra']}
+            
+    
     jogadas_selecionadas = jogadas[filtro_jogada]
     figs = []
     for jogada in jogadas_selecionadas:
@@ -1783,6 +1811,43 @@ def exibir_localizacao_jogadas_por_tempo(dados_time_df, tempo, key_prefix):
                     colunas_jogadas_defensivas_2[i-3].plotly_chart(figs[i], key=f"localizazao_1{i}_time_tab_defesa_{key_prefix}", config={'displayModeBar': False})
 
 
+def exibir_localizacao_jogadas_por_tempo_jogador(dados_time_df, tempo, key_prefix,posicao):
+    """
+    Exibe a localização das jogadas por tempo para o time, divididas em abas de "Ataque" e "Defesa",
+    mostrando heatmaps da quadra.
+
+    Args:
+        dados_time_df (pd.DataFrame): DataFrame contendo os dados das jogadas do time.
+        tempo (str): O período de tempo a ser analisado (ex: 'Primeiro Tempo', 'Segundo Tempo').
+        key_prefix (str): Prefixo para as chaves únicas dos componentes Streamlit.
+        posicao (string): Posição do jogador.
+    """
+    tab_ataque, tab_defesa = st.tabs(['Ataque', 'Defesa'])
+    if posicao == "Goleiro":
+        height_container_defesa = 600
+    else:   
+        height_container_defesa = 300
+    
+    with tab_ataque:
+        with st.container(border=True, height=300):
+            colunas_jogadas_ofensivas = st.columns(5)
+            figs = get_plots_plays_localization_athletes("Ataque", dados_time_df, tempo,posicao)
+            for i, fig in enumerate(figs):
+                colunas_jogadas_ofensivas[i].plotly_chart(fig, key=f"localizazao_{i}_time_tab_ataque_{key_prefix}", config={'displayModeBar': False})
+    with tab_defesa:
+        with st.container(border=True, height=height_container_defesa):
+            colunas_jogadas_defensivas_1 = st.columns(3)
+            colunas_jogadas_defensivas_2 = st.columns(3)
+            figs = get_plots_plays_localization_athletes("Defesa", dados_time_df, tempo,posicao)
+
+            for i in range(3):
+                colunas_jogadas_defensivas_1[i].plotly_chart(figs[i], key=f"localizazao_{i}_time_tab_defesa_{key_prefix}", config={'displayModeBar': False})
+            if len(figs) > 3:
+                for i in range(3, len(figs)):
+                    colunas_jogadas_defensivas_2[i-3].plotly_chart(figs[i], key=f"localizazao_1{i}_time_tab_defesa_{key_prefix}", config={'displayModeBar': False})
+
+
+
 def exibir_localizacao_jogadas_total(dados_time_df):
     """
     Exibe a localização total das jogadas para o time, divididas em abas de "Ataque" e "Defesa",
@@ -1821,7 +1886,54 @@ def exibir_localizacao_jogadas_total(dados_time_df):
                     fig_localizacao_total = create_futsal_court(titulo, valor)
                     colunas[i].plotly_chart(fig_localizacao_total, key=f"localizacao_{jogada}_{chave}", config={'displayModeBar': False})
 
-def pegar_figuras_e_estatisticas_jogadores(df_analise, df_media, estatisticas_gerais_para_radar):
+def exibir_localizacao_jogadas_total_jogador(dados_time_df,posicao):
+    """
+    Exibe a localização total das jogadas para o time, divididas em abas de "Ataque" e "Defesa",
+    mostrando heatmaps da quadra para cada período de tempo (1ºT, 2ºT, Total).
+
+    Args:
+        dados_time_df (pd.DataFrame): DataFrame contendo os dados das jogadas do time.
+        posicao (string): Posiçao do jogador.
+    """
+    
+    if posicao == "Goleiro":
+        jogadas = {"Ataque": ['FIN.C', 'FIN.E', 'FIN.T', 'DES.C/P.', 'C.A.-Pró'], 
+                "Defesa": ['DES.S/P.', 'PER.P.', 'C.A.-Contra', "FIN.S.C", "FIN.S.E", "FIN.S.T"]}
+    else:
+        jogadas = {"Ataque": ['FIN.C', 'FIN.E', 'FIN.T', 'DES.C/P.', 'C.A.-Pró'],
+                   "Defesa": ['DES.S/P.', 'PER.P.', 'C.A.-Contra']}
+
+        
+    tab_ataque, tab_defesa = st.tabs(['Ataque', 'Defesa'])
+
+    with tab_ataque:
+        with st.container(border=True, height=1500):
+            for jogada in jogadas['Ataque']:
+                colunas = st.columns(3)
+                localizacao_jogadas = extrair_estatisticas_localizacao(dados_time_df, jogada)
+
+                for i, (chave, valor) in enumerate(localizacao_jogadas.items()):
+                    if i == 3: # Exibe apenas os 3 primeiros (1T, 2T, Total)
+                        break
+                    titulo = f"{jogada} - {chave}"
+                    fig_localizacao_total = create_futsal_court(titulo, valor)
+                    colunas[i].plotly_chart(fig_localizacao_total, key=f"localizacao_{jogada}_{chave}", config={'displayModeBar': False})
+
+    with tab_defesa:
+        with st.container(border=True, height=1800):
+            for jogada in jogadas['Defesa']:
+                colunas = st.columns(3)
+                localizacao_jogadas = extrair_estatisticas_localizacao(dados_time_df, jogada)
+
+                for i, (chave, valor) in enumerate(localizacao_jogadas.items()):
+                    if i == 3: # Exibe apenas os 3 primeiros (1T, 2T, Total)
+                        break
+                    titulo = f"{jogada} - {chave}"
+                    fig_localizacao_total = create_futsal_court(titulo, valor)
+                    colunas[i].plotly_chart(fig_localizacao_total, key=f"localizacao_{jogada}_{chave}", config={'displayModeBar': False})
+
+
+def pegar_figuras_e_estatisticas_jogadores(df_analise, df_media, estatisticas_gerais_para_radar,posicao):
     """
     Calcula estatísticas e gera figuras para um DataFrame específico do jogador (df_analise),
     comparando com uma média de referência (df_media) e estatísticas gerais para o radar.
@@ -1831,7 +1943,7 @@ def pegar_figuras_e_estatisticas_jogadores(df_analise, df_media, estatisticas_ge
         df_media (pd.DataFrame): DataFrame com os dados para calcular as médias de comparação.
         estatisticas_gerais_para_radar (dict): Dicionário de estatísticas gerais (da equipe ou todos os jogadores)
                                                 para a comparação no gráfico de radar, estruturado por período.
-
+        posicao (str): Posiçao jogador.
     Returns:
         dict: Um dicionário contendo tuplas de figuras e rótulos para cada aba.
     """
@@ -1844,15 +1956,15 @@ def pegar_figuras_e_estatisticas_jogadores(df_analise, df_media, estatisticas_ge
 
     # Para a aba 'Total':
     fig_total_1, fig_total_2, bar_total, radar_total = get_athletes_total_figures(
-        estatisticas_total, estatisticas_pt, estatisticas_st, estatisticas_gerais_para_radar['Total'], numero_jogos_jogador, media_pt, media_st
+        estatisticas_total, estatisticas_pt, estatisticas_st, estatisticas_gerais_para_radar['Total'], numero_jogos_jogador, media_pt, media_st,posicao
     )
     # Para a aba 'Primeiro Tempo':
     fig_pt_1, fig_pt_2, bar_pt, radar_pt = get_athletes_partial_figures(
-        estatisticas_pt, estatisticas_gerais_para_radar['Primeiro Tempo'], numero_jogos_jogador, media_pt
+        estatisticas_pt, estatisticas_gerais_para_radar['Primeiro Tempo'], numero_jogos_jogador, media_pt,posicao
     )
     # Para a aba 'Segundo Tempo':
     fig_st_1, fig_st_2, bar_st, radar_st = get_athletes_partial_figures(
-        estatisticas_st, estatisticas_gerais_para_radar['Segundo Tempo'], numero_jogos_jogador, media_st
+        estatisticas_st, estatisticas_gerais_para_radar['Segundo Tempo'], numero_jogos_jogador, media_st,posicao
     )
 
     return {
@@ -1861,13 +1973,14 @@ def pegar_figuras_e_estatisticas_jogadores(df_analise, df_media, estatisticas_ge
         "Total": (fig_total_1, fig_total_2, bar_total, radar_total, "Total"),
     }
 
-def exibir_conteudo_tabs_jogadores(nome_tab, figuras, df,logo_path):
+def exibir_conteudo_tabs_jogadores(nome_tab, figuras, df,logo_path,posicao):
     """
     Exibe o conteúdo nas abas do Streamlit com os gráficos e dados do jogador por tempo.
 
     Args:
         figuras_estatisticas_jogador (dict): Dicionário com tuplas de figuras por tempo.
         dados_time_df (pd.DataFrame): DataFrame com dados da equipe no jogo.
+        posicao (str): Posição do jogador.
     """
    
 
@@ -1878,50 +1991,11 @@ def exibir_conteudo_tabs_jogadores(nome_tab, figuras, df,logo_path):
         st.plotly_chart(radar_fig, use_container_width=True, key=f"{tempo_label}_radar", config={'displayModeBar': False})
     st.subheader("Localização Jogadas")
     if tempo_label == "Total":
-        exibir_localizacao_jogadas_total(df)
+        exibir_localizacao_jogadas_total_jogador(df,posicao)
     else:
-        exibir_localizacao_jogadas_por_tempo(df, tempo_label, key_prefix=nome_tab)   
+        exibir_localizacao_jogadas_por_tempo_jogador(df, tempo_label,nome_tab,posicao)   
 
-# def exibir_conteudo_tabs_jogadores(nome_tab, figuras, df, imagem_jogador):
-#     """
-#     Exibe o conteúdo de uma aba específica do jogador (gráficos e localização de jogadas).
 
-#     Args:
-#         tab_name (str): Nome da aba.
-#         figures (tuple): Tupla contendo as figuras Plotly para a aba (fig1, fig2, bar_fig, radar_fig, tempo_label).
-#         df (pd.DataFrame): DataFrame com os dados atuais para a localização das jogadas.
-#         image_jogador (bytes): Dados da imagem do jogador.
-#     """
-#     fig1, fig2, bar_fig, radar_fig, tempo_label = figuras # Desempacota a figura do radar
-
-#     col3, col4 = st.columns([1, 1])
-
-#     with col3:
-#         with st.container(border=True, height=500):
-#             sub_column0, sub_column1, sub_column2 = st.columns([0.2, 1, 1.5])
-#             with sub_column1:
-#                 if imagem_jogador is not None:
-#                     st.image(imagem_jogador, width=150)
-#             with sub_column2:
-#                 with st.container(border=True, height=220):
-#                     st.plotly_chart(fig1, use_container_width=False, key=f"{nome_tab}_fig1", config={'displayModeBar': False})
-#             with st.container(border=True, height=230):
-#                 st.plotly_chart(fig2, use_container_width=False, key=f"{nome_tab}_fig2", config={'displayModeBar': False})
-
-#     with col4:
-#         with st.container(border=True, height=500):
-#             st.plotly_chart(bar_fig, use_container_width=True, key=f"{nome_tab}_barras", config={'displayModeBar': False})
-
-#     # Exibe o gráfico de radar
-#     with st.container(border=True, height=500):
-#         st.plotly_chart(radar_fig, use_container_width=True, key=f"{nome_tab}_radar", config={'displayModeBar': False})
-
-#     st.subheader("Localização Jogadas")
-
-#     if tempo_label == "Total":
-#             exibir_localizacao_jogadas_total(df)
-#     else:
-#         exibir_localizacao_jogadas_por_tempo(df, tempo_label, key_prefix=nome_tab)   
 
 def pegar_figuras_e_estatisticas(df_para_analisar, df_para_media):
     """

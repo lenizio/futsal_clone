@@ -117,7 +117,7 @@ else:
         if j[1] in df_equipe_selecionada['jogador_nome'].unique().tolist()
     ]
     
-    dicionario_jogadores = {jogador[1]: [jogador[0], jogador[4]] for jogador in jogadores_com_dados_na_equipe}
+    dicionario_jogadores = {jogador[1]: [jogador[0], jogador[4],jogador[2]] for jogador in jogadores_com_dados_na_equipe}
     lista_nomes_jogadores = list(dicionario_jogadores.keys())
 
     if not lista_nomes_jogadores:
@@ -153,7 +153,7 @@ else:
 
             # Obtém a id da imagem do jogador
             id_imagem = dicionario_jogadores.get(st.session_state.filtro_jogador, [None, None])[1]
-            
+            posicao = dicionario_jogadores.get(st.session_state.filtro_jogador, [None, None])[2]
             # Filtra os dados para o jogador selecionado
             df_filtrado_jogador = df_equipe_selecionada[df_equipe_selecionada['jogador_nome'] == st.session_state.filtro_jogador]
 
@@ -218,7 +218,7 @@ else:
         # --- Geração dos Gráficos e Exibição das Abas (para o jogador) ---
         if not df_analise_jogador.empty:
             dict_figuras_jogador = pegar_figuras_e_estatisticas_jogadores(
-                df_analise_jogador, df_media_jogador, estatisticas_gerais_para_radar
+                df_analise_jogador, df_media_jogador, estatisticas_gerais_para_radar,posicao
             )
 
             nomes_abas_jogador = ["Primeiro Tempo", "Segundo Tempo", "Total"]
@@ -230,7 +230,7 @@ else:
                     if dict_figuras_jogador[nome_aba_jogador][0] and dict_figuras_jogador[nome_aba_jogador][0].data:
                         exibir_conteudo_tabs_jogadores(nome_aba_jogador,
                              dict_figuras_jogador[nome_aba_jogador],
-                            df_analise_jogador, id_imagem
+                            df_analise_jogador, id_imagem,posicao
                         )
                     else:
                         st.info(f"Não há dados para exibir em '{nome_aba_jogador}' para a seleção atual.")
