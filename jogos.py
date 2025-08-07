@@ -16,7 +16,7 @@ opcoes_competicoes.append('Outra...')
 if len(lista_equipes) <= 1:
     st.warning("Adicione mais equipes.")
     
-@st.dialog("Adicionar Jogos")
+@st.dialog("Adicionar Jogos",width = 'large')
 def adicionar_jogos_dialog(lista_equipes):
     dict_equipes = {equipe[1] + " " + equipe[2]: equipe[0] for equipe in lista_equipes}
     
@@ -77,7 +77,7 @@ def adicionar_jogos_dialog(lista_equipes):
                     except Exception as e:
                         st.error(f"Erro ao adicionar jogo: {e}")
                         db_manager.rollback()
-@st.dialog("Deletar Jogos")
+@st.dialog("Deletar Jogos",width = 'large')
 def deletar_jogos_dialog(lista_jogos):
     opcoes_jogos = {f"{jogo[2]} x {jogo[4]} - {jogo[6]} - {jogo[7]} - {jogo[8]}" : jogo[0] for jogo in lista_jogos}
     jogo_selecionado = st.selectbox("Selecinoe um jogo para excluir", options=opcoes_jogos.keys(), index=None)
@@ -96,7 +96,7 @@ def deletar_jogos_dialog(lista_jogos):
                    
                                 
 
-@st.dialog("Baixar Jogadas")
+@st.dialog("Baixar Jogadas",width = 'large')
 def baixar_jogadas_dialog(lista_jogos):
 
         opcoes_jogos = {f"{jogo[2]} x {jogo[4]} - {jogo[6]} - {jogo[7]} - {jogo[8]}" : jogo[0] for jogo in lista_jogos}
