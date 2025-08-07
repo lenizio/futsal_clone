@@ -6,7 +6,7 @@ from db_manager import DBManager,get_db_manager
 import atexit
 from utils import exibir_seta
 
-from utils import listar_opces_jogadores
+from utils import listar_opcoes_jogadores
 db_manager = get_db_manager()
 
 # Lista de jogos
@@ -54,7 +54,7 @@ else:
 
                     # Container para os elementos abaixo do botão de tempo
                     with st.container():
-                        opcoes_jogadores_dict, opcoes_jogadores_list = listar_opces_jogadores(lista_jogadores)
+                        opcoes_jogadores_dict, opcoes_jogadores_list = listar_opcoes_jogadores(lista_jogadores)
                         col1, col2 = st.columns(2)
 
                         # Coluna 1: Exibir a imagem e capturar as coordenadas

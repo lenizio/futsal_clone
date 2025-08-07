@@ -29,33 +29,35 @@ def convert_df_to_csv(df):
 
 def listar_opcoes_jogadores(lista_jogadores):
     """
-    Lista opções de jogadores e goleiros, organizando-os em dicionários e uma lista combinada.
+    Organiza jogadores e goleiros em um dicionário e uma lista combinada para seleção.
 
     Args:
-        lista_jogadores (list): Uma lista de tuplas, onde cada tupla representa um jogador
-                                e contém informações como ID, nome, posição, etc.
-                                Espera-se o formato: (id, nome, posicao, nome_completo, image_id).
+        lista_jogadores (list): Lista de tuplas com informações dos jogadores no formato:
+                                (id, nome, posicao, nome_completo, image_id)
 
     Returns:
-        tuple: Uma tupla contendo:
-            - dict: Um dicionário onde as chaves são os nomes completos dos jogadores
-                    e os valores são listas [ID do jogador, ID da imagem].
-            - list: Uma lista ordenada dos nomes completos dos jogadores.
+        tuple:
+            - dict: Mapeia nome_completo → [id, image_id]
+            - list: Lista ordenada dos nomes completos (goleiros + jogadores de linha)
     """
-    opcoes_jogadores_dict = {}
-    opcoes_goleiro_dict = {jogador[3]: [jogador[0], jogador[1]] for jogador in lista_jogadores if jogador[2] == "Goleiro"}
-    opcoes_jogadores_dict.update(opcoes_goleiro_dict)
-    opcoes_goleiro_list = list(opcoes_goleiro_dict.keys())
+    posicoes_linha = {"Fixo", "Ala D", "Ala E", "Pivô"}
 
-    opcoes_jogadores_linha_dict = {}
-    opcoes_jogadores_linha_dict.update({jogador[3]: [jogador[0], jogador[1]] for jogador in lista_jogadores if jogador[2] == "Fixo"})
-    opcoes_jogadores_linha_dict.update({jogador[3]: [jogador[0], jogador[1]] for jogador in lista_jogadores if jogador[2] == "Ala D"})
-    opcoes_jogadores_linha_dict.update({jogador[3]: [jogador[0], jogador[1]] for jogador in lista_jogadores if jogador[2] == "Ala E"})
-    opcoes_jogadores_linha_dict.update({jogador[3]: [jogador[0], jogador[1]] for jogador in lista_jogadores if jogador[2] == "Pivô"})
-    opcoes_jogadores_linha_list = list(opcoes_jogadores_linha_dict.keys())
-    opcoes_jogadores_linha_list.sort()
-    opcoes_jogadores_list = opcoes_goleiro_list + opcoes_jogadores_linha_list
-    opcoes_jogadores_dict.update(opcoes_jogadores_linha_dict)
+    # Separar jogadores por posição
+    goleiros = {nome_completo: [id_jogador, image_id]
+                for id_jogador, _, posicao, nome_completo, image_id in lista_jogadores
+                if posicao == "Goleiro"}
+
+    jogadores_linha = {nome_completo: [id_jogador, image_id]
+                       for id_jogador, _, posicao, nome_completo, image_id in lista_jogadores
+                       if posicao in posicoes_linha}
+
+    # Combinar todos os jogadores
+    opcoes_jogadores_dict = {**goleiros, **jogadores_linha}
+
+    # Criar lista ordenada: goleiros primeiro, depois jogadores de linha em ordem alfabética
+    lista_goleiros = list(goleiros.keys())
+    lista_linha = sorted(jogadores_linha.keys())
+    opcoes_jogadores_list = lista_goleiros + lista_linha
 
     return opcoes_jogadores_dict, opcoes_jogadores_list
 
