@@ -28,16 +28,18 @@ A aplicação está dividida em várias seções para cobrir todo o fluxo de tra
 ---
 
 ## 🗂️ Estrutura do Projeto
-├── app.py # Arquivo principal do Streamlit
-├── db_manager.py # Conexão e funções para o banco de dados PostgreSQL
-├── utils.py # Funções auxiliares (pandas, plotly, matplotlib, etc.)
-├── equipes.py # Página de gerenciamento de times e jogadores
-├── jogos.py # Página de gerenciamento de jogos
-├── jogadas.py # Página para registrar jogadas
-├── analise_tempo_real.py # Visualização da análise de times
-├── analise_atleta.py # Visualização da análise de atletas individuais
-├── futsal_court.jpg # Imagem da quadra usada na interface
-├── requirements.txt # Lista de dependências
+```
+├── app.py                  # Arquivo principal do Streamlit
+├── db_manager.py           # Conexão e funções para o banco de dados PostgreSQL
+├── utils.py                # Funções auxiliares (pandas, plotly, matplotlib, etc.)
+├── equipes.py              # Página de gerenciamento de times e jogadores
+├── jogos.py                # Página de gerenciamento de jogos
+├── jogadas.py              # Página para registrar jogadas
+├── analise_tempo_real.py   # Visualização da análise de times
+├── analise_atleta.py       # Visualização da análise de atletas individuais
+├── futsal_court.jpg        # Imagem da quadra usada na interface
+├── requirements.txt        # Lista de dependências
+```
 
 ## 🧰 Tecnologias Utilizadas
 
@@ -47,6 +49,9 @@ A aplicação está dividida em várias seções para cobrir todo o fluxo de tra
 - [Pandas](https://pandas.pydata.org/)
 - [Plotly](https://plotly.com/python/)
 - [Matplotlib](https://matplotlib.org/)
+
+
+
 
 📄 Licença
 Este projeto está licenciado sob a MIT License.
