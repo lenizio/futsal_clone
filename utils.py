@@ -716,6 +716,7 @@ def plotar_radar_chart(estatisticas_totais_dict, estatisticas_geral_totais_dict,
             ),
         ),
         showlegend=False, template="plotly_dark",
+        title=dict(text='Radar de Ações: Percentual em Relação ao Time', x=0.5, xanchor='center', yanchor='top')
     )
     return fig
 
