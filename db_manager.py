@@ -3,9 +3,18 @@ from psycopg2 import sql
 import streamlit as st
 
 class DBManager:
-    
+    """
+    Gerencia a conexão e as operações com o banco de dados PostgreSQL.
+    """
     
     def __init__(self):
+        """
+        Inicializa a conexão com o banco de dados PostgreSQL usando as
+        variáveis de ambiente do Streamlit.
+
+        Raises:
+            psycopg2.OperationalError: Se a conexão com o banco de dados falhar.
+        """
         try:
             self.conn = psycopg2.connect(
                 host=st.secrets.DB_HOST,
@@ -20,8 +29,11 @@ class DBManager:
             print(f"Erro de conexão: {e}")
             raise
         
-     
     def criar_tabelas(self):
+        """
+        Cria as tabelas `equipes`, `jogadores`, `jogos`, `jogadas` e `gols` 
+        se elas ainda não existirem.
+        """
         comandos = [
             """
             CREATE TABLE IF NOT EXISTS equipes (
@@ -90,31 +102,29 @@ class DBManager:
     
 )
             
-            """,
-            # """
-            # CREATE TABLE IF NOT EXISTS gols (
-            #     id SERIAL PRIMARY KEY,
-            #     equipe_mandante_id INT NOT NULL REFERENCES equipes(id) ON DELETE CASCADE,
-            #     equipe_mandante_nome VARCHAR(100) NOT NULL,
-            #     nome VARCHAR(100) NOT NULL,
-            #     numero_camisa INT NOT NULL,
-            #     equipe_id INT NOT NULL REFERENCES equipes(id) ON DELETE CASCADE,
-            #     equipe VARCHAR(100) NOT NULL,
-            #     posicao VARCHAR(50) NOT NULL,
-            #     image_id VARCHAR(255) DEFAULT NULL,
-            #     CONSTRAINT unique_numero_camisa_por_equipe UNIQUE (equipe_id, numero_camisa)
-
-            # )
-            # """
+            """
         ]
         for comando in comandos:
             self.cursor.execute(comando)
         self.conn.commit()
         
     def rollback(self):
+        """
+        Desfaz a última transação do banco de dados.
+        """
         self.conn.rollback()
 
     def verificar_equipe_existente(self, nome, categoria):
+        """
+        Verifica se uma equipe com o nome e categoria fornecidos já existe no banco de dados.
+
+        Args:
+            nome (str): O nome da equipe.
+            categoria (str): A categoria da equipe.
+
+        Returns:
+            tuple or None: Uma tupla com o ID da equipe se ela for encontrada, caso contrário, retorna None.
+        """
         nome=nome.strip()
         
         self.cursor.execute(
@@ -126,31 +136,67 @@ class DBManager:
         )
         return self.cursor.fetchone()  # Retorna None se não encontrar
     
-    def verificar_jogador_por_nome(self, nome, equipe_id,jogador_id=None):
+    def verificar_jogador_por_nome(self, nome, equipe_id, jogador_id=None):
+        """
+        Verifica se já existe um jogador com o mesmo nome em uma equipe, excluindo opcionalmente
+        o próprio jogador que está sendo editado.
+
+        Args:
+            nome (str): O nome do jogador a ser verificado.
+            equipe_id (int): O ID da equipe.
+            jogador_id (int, optional): O ID do jogador a ser excluído da verificação (para edições). Defaults to None.
+
+        Returns:
+            str or None: Uma string de erro se um jogador com o mesmo nome for encontrado, caso contrário, None.
+        """
         self.cursor.execute(
-                    """
-                    SELECT 1 FROM jogadores WHERE nome = %s AND equipe_id = %s AND id != %s
-                    """,
-                    (nome, equipe_id, jogador_id)
-                )
+            """
+            SELECT 1 FROM jogadores WHERE nome = %s AND equipe_id = %s AND id != %s
+            """,
+            (nome, equipe_id, jogador_id)
+        )
         resultado = self.cursor.fetchone()
         if resultado:
             return "Jogador já cadastrado com este nome."
 
-    def verificar_jogador_por_numero_camisa(self, numero_camisa, equipe_id,jogador_id=None):
+    def verificar_jogador_por_numero_camisa(self, numero_camisa, equipe_id, jogador_id=None):
+        """
+        Verifica se já existe um jogador com o mesmo número de camisa em uma equipe, 
+        excluindo opcionalmente o próprio jogador que está sendo editado.
+
+        Args:
+            numero_camisa (int): O número da camisa do jogador.
+            equipe_id (int): O ID da equipe.
+            jogador_id (int, optional): O ID do jogador a ser excluído da verificação (para edições). Defaults to None.
+
+        Returns:
+            str or None: Uma string de erro se um jogador com o mesmo número de camisa for encontrado, caso contrário, None.
+        """
         self.cursor.execute(
             """
             SELECT 1 FROM jogadores WHERE numero_camisa = %s AND equipe_id = %s AND id != %s
-                    """,
-                (numero_camisa, equipe_id, jogador_id)
+            """,
+            (numero_camisa, equipe_id, jogador_id)
         )
         resultado = self.cursor.fetchone()
         if resultado:
             return "Já existe um jogador com este número de camisa no equipe."
 
     
-    def adicionar_equipe(self, nome, categoria,logo_id):
-    # Verificar se o equipe já existe
+    def adicionar_equipe(self, nome, categoria, logo_id):
+        """
+        Adiciona uma nova equipe ao banco de dados.
+
+        Args:
+            nome (str): O nome da equipe.
+            categoria (str): A categoria da equipe.
+            logo_id (str): O ID da imagem do logo da equipe.
+
+        Returns:
+            int or None: O ID da nova equipe se a inserção for bem-sucedida, caso contrário, None 
+                        se a equipe já existir.
+        """
+        # Verificar se o equipe já existe
         if self.verificar_equipe_existente(nome, categoria):
             return None
 
@@ -169,6 +215,22 @@ class DBManager:
 
 
     def adicionar_jogador(self, nome, equipe_id, equipe_nome, posicao, numero_camisa, image_id=None):
+        """
+        Adiciona um novo jogador ao banco de dados, verificando se o nome e o número da camisa 
+        já existem na mesma equipe.
+
+        Args:
+            nome (str): O nome do jogador.
+            equipe_id (int): O ID da equipe.
+            equipe_nome (str): O nome da equipe.
+            posicao (str): A posição do jogador.
+            numero_camisa (int): O número da camisa do jogador.
+            image_id (str, optional): O ID da imagem do jogador. Defaults to None.
+
+        Returns:
+            int or str: O ID do novo jogador se a inserção for bem-sucedida, ou uma string 
+                        com a mensagem de erro se o jogador já existir.
+        """
         # Verificar se o jogador já existe pelo nome
         erro_nome = self.verificar_jogador_por_nome(nome, equipe_id)
         if erro_nome:
@@ -191,7 +253,22 @@ class DBManager:
         novo_id = self.cursor.lastrowid
         return novo_id
     
-    def editar_jogador(self,equipe_id, jogador_id, nome=None, numero_camisa=None, posicao=None, image_id=None):
+    def editar_jogador(self, equipe_id, jogador_id, nome=None, numero_camisa=None, posicao=None, image_id=None):
+        """
+        Edita os dados de um jogador existente.
+
+        Args:
+            equipe_id (int): O ID da equipe do jogador.
+            jogador_id (int): O ID do jogador a ser editado.
+            nome (str, optional): O novo nome do jogador. Defaults to None.
+            numero_camisa (int, optional): O novo número da camisa. Defaults to None.
+            posicao (str, optional): A nova posição. Defaults to None.
+            image_id (str, optional): O novo ID da imagem. Defaults to None.
+            
+        Returns:
+            str or None: Uma string de erro se o nome ou número da camisa já existir em outro jogador 
+                         da equipe, caso contrário, retorna None.
+        """
         campos = []
         valores = []
 
@@ -208,11 +285,11 @@ class DBManager:
             campos.append("image_id = %s")
             valores.append(image_id)
         
-        erro_nome = self.verificar_jogador_por_nome(nome, equipe_id,jogador_id)
+        erro_nome = self.verificar_jogador_por_nome(nome, equipe_id, jogador_id)
         if erro_nome:
             return erro_nome
         
-        erro_numero_camisa = self.verificar_jogador_por_numero_camisa(numero_camisa, equipe_id,jogador_id)
+        erro_numero_camisa = self.verificar_jogador_por_numero_camisa(numero_camisa, equipe_id, jogador_id)
         if erro_numero_camisa:
             return erro_numero_camisa    
 
@@ -223,8 +300,23 @@ class DBManager:
         self.conn.commit()
 
 
-
     def adicionar_jogo(self, equipe_mandante_id, equipe_mandante_nome, equipe_visitante_id, equipe_visitante_nome, data, fase, rodada, competicao):
+        """
+        Adiciona um novo jogo ao banco de dados.
+
+        Args:
+            equipe_mandante_id (int): O ID da equipe mandante.
+            equipe_mandante_nome (str): O nome da equipe mandante.
+            equipe_visitante_id (int): O ID da equipe visitante.
+            equipe_visitante_nome (str): O nome da equipe visitante.
+            data (date): A data do jogo.
+            fase (str): A fase da competição.
+            rodada (str): A rodada da competição.
+            competicao (str): O nome da competição.
+
+        Returns:
+            int: O ID do novo jogo.
+        """
         self.cursor.execute(
             """
             INSERT INTO jogos (equipe_mandante_id, equipe_mandante_nome, equipe_visitante_id, equipe_visitante_nome, data, fase, rodada, competicao)
@@ -237,6 +329,21 @@ class DBManager:
         return self.cursor.fetchone()[0]
 
     def adicionar_jogada(self, jogador_id, jogador_nome, jogo_id, jogada, tempo, x_loc, y_loc):
+        """
+        Adiciona uma nova jogada ao banco de dados.
+
+        Args:
+            jogador_id (int): O ID do jogador que fez a jogada.
+            jogador_nome (str): O nome do jogador que fez a jogada.
+            jogo_id (int): O ID do jogo em que a jogada ocorreu.
+            jogada (str): A descrição da jogada.
+            tempo (str): O tempo em que a jogada ocorreu.
+            x_loc (float): A coordenada X da jogada.
+            y_loc (float): A coordenada Y da jogada.
+
+        Returns:
+            int: O ID da nova jogada.
+        """
         self.cursor.execute(
             """
             INSERT INTO jogadas (jogador_id, jogador_nome, jogo_id, jogada, tempo, x_loc, y_loc)
@@ -247,20 +354,47 @@ class DBManager:
         self.conn.commit()
         return self.cursor.lastrowid
 
-    # Listar todos os equipes
     def listar_equipes(self):
+        """
+        Lista todas as equipes cadastradas no banco de dados.
+
+        Returns:
+            list of tuple: Uma lista de tuplas, onde cada tupla contém:
+                           (id, nome, categoria)
+        """
         self.cursor.execute("SELECT id, nome, categoria FROM equipes")
         return self.cursor.fetchall()  # Retorna uma lista de tuplas
 
-    def listar_dados_equipe(self,id):
-        
+    def listar_dados_equipe(self, id):
+        """
+        Lista os dados de uma equipe específica.
+
+        Args:
+            id (int): O ID da equipe.
+
+        Returns:
+            tuple or None: Uma tupla com os dados da equipe se encontrada, caso contrário, None. A tupla contém:
+                           (nome, categoria, logo_id)
+        """
         self.cursor.execute("""
-                            SELECT  nome, categoria ,logo_id
-                            FROM equipes
-                            WHERE id = %s""",(id,))
+            SELECT nome, categoria, logo_id
+            FROM equipes
+            WHERE id = %s""", (id,))
         return self.cursor.fetchone()
     
     def atualizar_equipe(self, id, nome=None, categoria=None, logo=None):
+        """
+        Atualiza os dados de uma equipe existente.
+
+        Args:
+            id (int): O ID da equipe a ser atualizada.
+            nome (str, optional): O novo nome da equipe. Defaults to None.
+            categoria (str, optional): A nova categoria da equipe. Defaults to None.
+            logo (str, optional): O novo ID do logo da equipe. Defaults to None.
+        
+        Raises:
+            ValueError: Se nenhum campo para atualizar for fornecido.
+        """
         campos = []
         valores = []
 
@@ -291,113 +425,199 @@ class DBManager:
         self.cursor.execute(sql, tuple(valores))
         self.conn.commit()
     
-    # Listar todos os jogadores
     def listar_jogadores(self):
+        """
+        Lista todos os jogadores cadastrados no banco de dados.
+
+        Returns:
+            list of tuple: Uma lista de tuplas, onde cada tupla contém:
+                           (id, nome, equipe, posicao)
+        """
         self.cursor.execute("SELECT id, nome, equipe, posicao FROM jogadores")
         return self.cursor.fetchall()  # Retorna uma lista de tuplas
 
-    # Listar todos os jogos
     def listar_jogos(self):
-        self.cursor.execute("SELECT id,equipe_mandante_id,equipe_mandante_nome,equipe_visitante_id, equipe_visitante_nome,data,  competicao, fase, rodada FROM jogos ORDER BY data DESC")
+        """
+        Lista todos os jogos cadastrados no banco de dados, ordenados por data decrescente.
+
+        Returns:
+            list of tuple: Uma lista de tuplas, onde cada tupla contém:
+                           (id, equipe_mandante_id, equipe_mandante_nome, equipe_visitante_id, equipe_visitante_nome, data, competicao, fase, rodada)
+        """
+        self.cursor.execute("SELECT id, equipe_mandante_id, equipe_mandante_nome, equipe_visitante_id, equipe_visitante_nome, data, competicao, fase, rodada FROM jogos ORDER BY data DESC")
         return self.cursor.fetchall()
     
-   
-    # Listar todas as jogadas
     def listar_jogadas(self):
+        """
+        Lista todas as jogadas cadastradas no banco de dados.
+
+        Returns:
+            list of tuple: Uma lista de tuplas, onde cada tupla contém:
+                           (id, jogador_id, jogador_nome, jogo_id, jogada, tempo, x_loc, y_loc)
+        """
         self.cursor.execute("SELECT * FROM jogadas")
         return self.cursor.fetchall()  # Retorna uma lista de tuplas
 
-    # Listar jogadores por equipe
     def listar_jogadores_por_equipe(self, equipe_id):
-        self.cursor.execute("SELECT id, nome, posicao, numero_camisa,image_id FROM jogadores WHERE equipe_id = %s", (equipe_id,))
+        """
+        Lista todos os jogadores de uma equipe específica.
+
+        Args:
+            equipe_id (int): O ID da equipe.
+
+        Returns:
+            list of tuple: Uma lista de tuplas, onde cada tupla contém:
+                           (id, nome, posicao, numero_camisa, image_id)
+        """
+        self.cursor.execute("SELECT id, nome, posicao, numero_camisa, image_id FROM jogadores WHERE equipe_id = %s", (equipe_id,))
         return self.cursor.fetchall()  # Retorna uma lista de tuplas
     
-     # Listar jogadores por equipe
     def listar_nome_id_jogadores_por_equipe(self, equipe_id):
+        """
+        Lista o ID e o nome de todos os jogadores de uma equipe específica.
+
+        Args:
+            equipe_id (int): O ID da equipe.
+
+        Returns:
+            list of tuple: Uma lista de tuplas, onde cada tupla contém:
+                           (id, nome)
+        """
         self.cursor.execute("SELECT id, nome FROM jogadores WHERE equipe_id = %s", (equipe_id,))
         return self.cursor.fetchall()  # Retorna uma lista de tuplas
 
-    # Listar jogos por equipe e competição
     def listar_jogos_por_equipe_e_competicao(self, equipe_id, competicao):
+        """
+        Lista todos os jogos de uma equipe em uma competição específica.
+
+        Args:
+            equipe_id (int): O ID da equipe.
+            competicao (str): O nome da competição.
+
+        Returns:
+            list of tuple: Uma lista de tuplas, onde cada tupla contém os dados do jogo.
+        """
         self.cursor.execute(
             """
             SELECT * FROM jogos
-            WHERE (equipe_mandante_id = %s OR equipe_visitante_id = %s) AND competicao = %s lksdjfkldsfj
+            WHERE (equipe_mandante_id = %s OR equipe_visitante_id = %s) AND competicao = %s
             """,
             (equipe_id, equipe_id, competicao)
         )
         return self.cursor.fetchall()  # Retorna uma lista de tuplas
 
-   
-    
     def listar_detalhes_jogo(self, jogo_id):
-        self.cursor.execute("SELECT equipe_mandante_id, equipe_mandante_nome,equipe_visitante_id ,equipe_visitante_nome,data,fase,rodada,competicao FROM jogos WHERE id = %s",(jogo_id,))
+        """
+        Lista os detalhes de um jogo específico.
+
+        Args:
+            jogo_id (int): O ID do jogo.
+
+        Returns:
+            tuple or None: Uma tupla com os detalhes do jogo se encontrado, caso contrário, None. A tupla contém:
+                           (equipe_mandante_id, equipe_mandante_nome, equipe_visitante_id, equipe_visitante_nome, data, fase, rodada, competicao)
+        """
+        self.cursor.execute("SELECT equipe_mandante_id, equipe_mandante_nome, equipe_visitante_id, equipe_visitante_nome, data, fase, rodada, competicao FROM jogos WHERE id = %s", (jogo_id,))
         return self.cursor.fetchone()
     
     def listar_jogadas_por_jogo(self, jogo_id):
+        """
+        Lista todas as jogadas de um jogo específico.
+
+        Args:
+            jogo_id (int): O ID do jogo.
+
+        Returns:
+            list of tuple: Uma lista de tuplas, onde cada tupla contém os dados de uma jogada.
+        """
         self.cursor.execute("SELECT * FROM jogadas WHERE jogo_id = %s", (jogo_id,))
         return self.cursor.fetchall()  # Retorna uma lista de tuplas
-   
-
+    
 
     def listar_dados_analise_individual(self):
-        self.cursor.execute("""
-            SELECT
-                    jogos.id,
-                    jogos.equipe_mandante_nome,
-                    jogos.equipe_visitante_nome,
-                    jogos.fase,
-                    jogos.rodada,
-                    jogos.competicao,
-                    jogadores.equipe_id,
-                    jogadores.equipe,
-                    jogadas.jogador_nome, 
-                    jogadas.jogada,
-                    jogadas.tempo,
-                    jogadas.x_loc,
-                    jogadas.y_loc
-                FROM
-                    jogos
-                LEFT JOIN
-                    jogadas
-                ON
-                    jogos.id = jogadas.jogo_id
-                INNER JOIN 
-                    jogadores 
-                ON
-                    jogadas.jogador_id = jogadores.id
+        """
+        Retorna uma lista completa de dados para análise individual, unindo informações de jogos, jogadas e jogadores.
 
-                    """ )
-        return self.cursor.fetchall() 
-    
-    def listar_jogadas_por_partida(self,jogo_id):
+        Returns:
+            list of tuple: Uma lista de tuplas, onde cada tupla contém:
+                           (id_jogo, equipe_mandante_nome, equipe_visitante_nome, fase_jogo, rodada_jogo, 
+                            competicao_jogo, equipe_id_jogador, equipe_nome_jogador, nome_jogador, 
+                            tipo_jogada, tempo_jogada, x_loc_jogada, y_loc_jogada)
+        """
         self.cursor.execute("""
             SELECT
-                    jogos.equipe_mandante_nome,
-                    jogos.equipe_visitante_nome,
-                    jogos.fase,
-                    jogos.rodada,
-                    jogos.competicao,
-                    jogadas.jogador_nome, 
-                    jogadas.jogada,
-                    jogadas.tempo,
-                    jogadas.x_loc,
-                    jogadas.y_loc
-                FROM
-                    jogos
-                INNER JOIN
-                    jogadas
-                ON
-                    jogos.id = jogadas.jogo_id
-                WHERE
-                    jogos.id = %s""", 
-                    (jogo_id,)
-                    )
+                jogos.id,
+                jogos.equipe_mandante_nome,
+                jogos.equipe_visitante_nome,
+                jogos.fase,
+                jogos.rodada,
+                jogos.competicao,
+                jogadores.equipe_id,
+                jogadores.equipe,
+                jogadas.jogador_nome, 
+                jogadas.jogada,
+                jogadas.tempo,
+                jogadas.x_loc,
+                jogadas.y_loc
+            FROM
+                jogos
+            LEFT JOIN
+                jogadas
+            ON
+                jogos.id = jogadas.jogo_id
+            INNER JOIN 
+                jogadores 
+            ON
+                jogadas.jogador_id = jogadores.id
+            """)
+        return self.cursor.fetchall()
+    
+    def listar_jogadas_por_partida(self, jogo_id):
+        """
+        Lista todas as jogadas de uma partida específica, com detalhes do jogo.
+
+        Args:
+            jogo_id (int): O ID do jogo.
+
+        Returns:
+            list of tuple: Uma lista de tuplas, onde cada tupla contém:
+                           (equipe_mandante_nome, equipe_visitante_nome, fase_jogo, rodada_jogo, competicao_jogo, 
+                            nome_jogador, tipo_jogada, tempo_jogada, x_loc_jogada, y_loc_jogada)
+        """
+        self.cursor.execute("""
+            SELECT
+                jogos.equipe_mandante_nome,
+                jogos.equipe_visitante_nome,
+                jogos.fase,
+                jogos.rodada,
+                jogos.competicao,
+                jogadas.jogador_nome, 
+                jogadas.jogada,
+                jogadas.tempo,
+                jogadas.x_loc,
+                jogadas.y_loc
+            FROM
+                jogos
+            INNER JOIN
+                jogadas
+            ON
+                jogos.id = jogadas.jogo_id
+            WHERE
+                jogos.id = %s""", 
+                (jogo_id,))
         return self.cursor.fetchall() 
     
     
-        
     def deletar_equipe(self, equipe_id):
+        """
+        Deleta uma equipe do banco de dados.
+
+        Args:
+            equipe_id (int): O ID da equipe a ser deletada.
+
+        Returns:
+            bool: True se a equipe foi deletada com sucesso, False caso contrário.
+        """
         self.cursor.execute("DELETE FROM equipes WHERE id = %s", (equipe_id,))
         self.conn.commit()
         
@@ -407,6 +627,15 @@ class DBManager:
             return False
 
     def deletar_jogador(self, jogador_id):
+        """
+        Deleta um jogador do banco de dados.
+
+        Args:
+            jogador_id (int): O ID do jogador a ser deletado.
+
+        Returns:
+            bool: True se o jogador foi deletado com sucesso, False caso contrário.
+        """
         self.cursor.execute("DELETE FROM jogadores WHERE id = %s", (jogador_id,))
         self.conn.commit()
         
@@ -416,6 +645,15 @@ class DBManager:
             return False
 
     def deletar_jogo(self, jogo_id):
+        """
+        Deleta um jogo do banco de dados.
+
+        Args:
+            jogo_id (int): O ID do jogo a ser deletado.
+
+        Returns:
+            bool: True se o jogo foi deletado com sucesso, False caso contrário.
+        """
         self.cursor.execute("DELETE FROM jogos WHERE id = %s", (jogo_id,))
         self.conn.commit()
         
@@ -425,6 +663,15 @@ class DBManager:
             return False
 
     def deletar_jogada(self, jogada_id):
+        """
+        Deleta uma jogada do banco de dados.
+
+        Args:
+            jogada_id (int): O ID da jogada a ser deletada.
+
+        Returns:
+            bool: True se a jogada foi deletada com sucesso, False caso contrário.
+        """
         self.cursor.execute("DELETE FROM jogadas WHERE id = %s", (jogada_id,))
         self.conn.commit()
         
@@ -434,6 +681,15 @@ class DBManager:
             return False
 
     def listar_gols(self):
+        """
+        Lista todos os gols com informações detalhadas de jogos, equipes, jogadores e assistentes.
+
+        Returns:
+            list of tuple: Uma lista de tuplas, onde cada tupla contém:
+                           (id_gol, jogo_id, equipe_mandante_nome, equipe_visitante_nome, competicao, fase, 
+                            rodada, data, equipe_analisada, tipo_gol, caracteristica, tempo, nome_autor_gol, 
+                            nome_assistente, nomes_jogadores_em_quadra, x_loc, y_loc)
+        """
         self.cursor.execute("""
             SELECT
                 g.id,
@@ -444,12 +700,12 @@ class DBManager:
                 jogos.fase,
                 jogos.rodada,
                 jogos.data,
-                e.nome  as equipe_analisada,
+                e.nome as equipe_analisada,
                 g.tipo_gol,
                 g.caracteristica,
-                g.tempo ,
+                g.tempo,
                 j.nome AS gol_nome,
-                a.nome  as assistente_nome,
+                a.nome as assistente_nome,
                 agg.jogadores_em_quadra_nomes,
                 g.x_loc,
                 g.y_loc
@@ -469,7 +725,19 @@ class DBManager:
         
         return self.cursor.fetchall()
     
-    def listar_gols_por_equipe(self,equipe_id):
+    def listar_gols_por_equipe(self, equipe_id):
+        """
+        Lista todos os gols de uma equipe específica, com informações detalhadas.
+
+        Args:
+            equipe_id (int): O ID da equipe.
+
+        Returns:
+            list of tuple: Uma lista de tuplas, onde cada tupla contém:
+                           (equipe_mandante_nome, equipe_visitante_nome, competicao, fase, rodada, 
+                            equipe_analisada, tipo_gol, caracteristica, tempo, nome_autor_gol, 
+                            nome_assistente, nomes_jogadores_em_quadra, x_loc, y_loc)
+        """
         self.cursor.execute("""
             SELECT 
                 jogos.equipe_mandante_nome,
@@ -477,12 +745,12 @@ class DBManager:
                 jogos.competicao ,
                 jogos.fase,
                 jogos.rodada,
-                e.nome  as equipe_analisada,
+                e.nome as equipe_analisada,
                 g.tipo_gol,
                 g.caracteristica,
-                g.tempo ,
+                g.tempo,
                 j.nome AS gol_nome,
-                a.nome  as assistente_nome,
+                a.nome as assistente_nome,
                 agg.jogadores_em_quadra_nomes,
                 g.x_loc,
                 g.y_loc
@@ -506,10 +774,28 @@ class DBManager:
         return self.cursor.fetchall()
     
     def adicionar_gol(self, jogo_id, equipe_analisada_id, tipo_gol, tempo, caracteristica, x_loc, y_loc, jogadores_em_quadra=None, autor_gol_id=None, assistente_id=None):
-    # Define a lista de jogadores em quadra como vazia se não for fornecida
+        """
+        Adiciona um novo gol ao banco de dados.
+
+        Args:
+            jogo_id (int): O ID do jogo em que o gol ocorreu.
+            equipe_analisada_id (int): O ID da equipe que está sendo analisada no gol.
+            tipo_gol (str): O tipo de gol ('Feito' ou 'Sofrido').
+            tempo (str): O tempo em que o gol ocorreu.
+            caracteristica (str): A característica do gol (ex: "Chute de fora da área").
+            x_loc (float): A coordenada X do gol.
+            y_loc (float): A coordenada Y do gol.
+            jogadores_em_quadra (list of int, optional): Uma lista de IDs dos jogadores em quadra no momento do gol. Defaults to None.
+            autor_gol_id (int, optional): O ID do jogador que fez o gol. Defaults to None.
+            assistente_id (int, optional): O ID do jogador que deu a assistência. Defaults to None.
+
+        Returns:
+            int: O ID do novo gol.
+        """
+        # Define a lista de jogadores em quadra como vazia se não for fornecida
         if jogadores_em_quadra is None:
             jogadores_em_quadra = []
-    
+        
         self.cursor.execute(
             """
             INSERT INTO gols (
@@ -543,6 +829,15 @@ class DBManager:
         return self.cursor.lastrowid
     
     def deletar_gol(self, gol_id):
+        """
+        Deleta um gol do banco de dados.
+
+        Args:
+            gol_id (int): O ID do gol a ser deletado.
+
+        Returns:
+            bool: True se o gol foi deletado com sucesso, False caso contrário.
+        """
         self.cursor.execute("DELETE FROM gols WHERE id = %s", (gol_id,))
         self.conn.commit()
         
@@ -552,14 +847,23 @@ class DBManager:
             return False
     
     def fechar_conexao(self):
+        """
+        Fecha o cursor e a conexão com o banco de dados.
+        """
         if self.cursor:
             self.cursor.close()
         if self.conn:
             self.conn.close()
 
-    
-
 
 @st.cache_resource
 def get_db_manager():
-    return DBManager()   
+    """
+    Retorna uma instância de `DBManager` usando o cache do Streamlit.
+    Isso garante que apenas uma única conexão com o banco de dados seja 
+    criada e reutilizada em toda a execução do aplicativo.
+
+    Returns:
+        DBManager: Uma instância de DBManager.
+    """
+    return DBManager()
