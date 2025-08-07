@@ -113,7 +113,7 @@ else:
                                                     x_loc=x,
                                                     y_loc=y
                                                 )
-                                            st.success(f"Jogada adicionada com sucesso!")    
+                                            st.success(f"Jogada adicionada com sucesso para {jogador_nome}!")    
                                         except Exception as e:
                                             st.error(f"Erro ao adicionar jogadas: {e}")
                                             db_manager.rollback()

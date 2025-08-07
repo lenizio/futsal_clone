@@ -37,18 +37,17 @@ def listar_opcoes_jogadores(lista_jogadores):
 
     Returns:
         tuple:
-            - dict: Mapeia nome_completo → [id, image_id]
+            - dict: Mapeia número camisa→ [id, nome]
             - list: Lista ordenada dos nomes completos (goleiros + jogadores de linha)
     """
     posicoes_linha = {"Fixo", "Ala D", "Ala E", "Pivô"}
-
     # Separar jogadores por posição
-    goleiros = {nome_completo: [id_jogador, image_id]
-                for id_jogador, _, posicao, nome_completo, image_id in lista_jogadores
+    goleiros = {numero: [id_jogador, nome]
+                for id_jogador, nome, posicao, numero, image_id in lista_jogadores
                 if posicao == "Goleiro"}
 
-    jogadores_linha = {nome_completo: [id_jogador, image_id]
-                       for id_jogador, _, posicao, nome_completo, image_id in lista_jogadores
+    jogadores_linha = {numero: [id_jogador, nome]
+                       for id_jogador, nome, posicao, numero, image_id in lista_jogadores
                        if posicao in posicoes_linha}
 
     # Combinar todos os jogadores
