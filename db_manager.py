@@ -31,8 +31,9 @@ class DBManager:
         
     def criar_tabelas(self):
         """
-        Cria as tabelas `equipes`, `jogadores`, `jogos`, `jogadas` e `gols` 
+        Cria as tabelas `equipes_1`, `jogadores_1`, `jogos_1`, `jogadas_1` e `gols_1`
         se elas ainda não existirem.
+        Caso ocorra algum erro, a transação será revertida.
         """
         comandos = [
             """
@@ -52,8 +53,7 @@ class DBManager:
                 equipe VARCHAR(100) NOT NULL,
                 posicao VARCHAR(50) NOT NULL,
                 image_id VARCHAR(255) DEFAULT NULL,
-                CONSTRAINT unique_numero_camisa_por_equipe UNIQUE (equipe_id, numero_camisa)
-
+                CONSTRAINT unique_numero_camisa_por_equipe_1 UNIQUE (equipe_id, numero_camisa)
             )
             """,
             """
@@ -61,12 +61,13 @@ class DBManager:
                 id SERIAL PRIMARY KEY,
                 equipe_mandante_id INT NOT NULL REFERENCES equipes_1(id) ON DELETE CASCADE,
                 equipe_mandante_nome VARCHAR(100) NOT NULL,
-                equipe_visitante_id INT NOT NULL REFERENCES equipes_1(id)ON DELETE CASCADE,
+                equipe_visitante_id INT NOT NULL REFERENCES equipes_1(id) ON DELETE CASCADE,
                 equipe_visitante_nome VARCHAR(100) NOT NULL,
                 data DATE NOT NULL,
                 fase VARCHAR(50),
                 rodada VARCHAR(50),
-                competicao VARCHAR(100)
+                competicao VARCHAR(100),
+                inicio_partida TIME
             )
             """,
             """
@@ -78,7 +79,8 @@ class DBManager:
                 jogada VARCHAR(255) NOT NULL,
                 tempo VARCHAR(10) NOT NULL,
                 x_loc FLOAT NOT NULL,
-                y_loc FLOAT NOT NULL
+                y_loc FLOAT NOT NULL,
+                hora_jogada TIME NULL
             )
             """,
             """
@@ -89,7 +91,7 @@ class DBManager:
                 
                 -- Contexto do Gol
                 equipe_analisada_id INT NOT NULL REFERENCES equipes_1(id) ON DELETE CASCADE,
-                tipo_gol VARCHAR(7) NOT NULL ,
+                tipo_gol VARCHAR(7) NOT NULL,
                 tempo VARCHAR(10) NOT NULL,
                 caracteristica VARCHAR(255) NOT NULL,
                 x_loc FLOAT NOT NULL,
@@ -99,14 +101,17 @@ class DBManager:
                 autor_gol_id INT REFERENCES jogadores_1(id) ON DELETE SET NULL,
                 assistente_id INT REFERENCES jogadores_1(id) ON DELETE SET NULL,
                 jogadores_em_quadra INT[] NOT NULL DEFAULT ARRAY[]::INT[]
-    
             )
-            
             """
         ]
-        for comando in comandos:
-            self.cursor.execute(comando)
-        self.conn.commit()
+
+        try:
+            for comando in comandos:
+                self.cursor.execute(comando)
+            self.conn.commit()
+        except Exception as e:
+            self.conn.rollback()
+
         
     def rollback(self):
         """
@@ -334,20 +339,20 @@ class DBManager:
 
         Args:
             jogador_id (int): O ID do jogador que fez a jogada.
-            jogador_nome (str): O nome do jogador que fez a jogada.
+            jogador_nome (str): O nome do jogador.
             jogo_id (int): O ID do jogo em que a jogada ocorreu.
-            jogada (str): A descrição da jogada.
-            tempo (str): O tempo em que a jogada ocorreu.
-            x_loc (float): A coordenada X da jogada.
-            y_loc (float): A coordenada Y da jogada.
+            jogada (str): O tipo de jogada (ex: "gol", "passe").
+            tempo (str): O tempo em que a jogada ocorreu durante o jogo.
+            x_loc (float): A coordenada X da localização da jogada.
+            y_loc (float): A coordenada Y da localização da jogada.
 
         Returns:
-            int: O ID da nova jogada.
+            int: O ID da jogada recém-adicionada.
         """
         self.cursor.execute(
             """
-            INSERT INTO jogadas_1 (jogador_id, jogador_nome, jogo_id, jogada, tempo, x_loc, y_loc)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
+            INSERT INTO jogadas_1 (jogador_id, jogador_nome, jogo_id, jogada, tempo, x_loc, y_loc, hora_jogada)
+            VALUES (%s, %s, %s, %s, %s, %s, %s, CURRENT_TIME)
             """,
             (jogador_id, jogador_nome, jogo_id, jogada, tempo, x_loc, y_loc)
         )
@@ -458,6 +463,56 @@ class DBManager:
         self.cursor.execute("SELECT * FROM jogadas_1")
         return self.cursor.fetchall()  # Retorna uma lista de tuplas
 
+    def listar_jogadas_por_partida_com_tempo(self, jogo_id):
+        """
+        Recupera uma lista de todas as jogadas para uma partida específica,
+        incluindo detalhes do jogo e do jogador.
+
+        Args:
+            jogo_id (int): O ID da partida.
+
+        Returns:
+            list of tuples: Uma lista de jogadas com os seguintes detalhes:
+                - equipe_mandante_nome (str)
+                - equipe_visitante_nome (str)
+                - fase (str)
+                - rodada (int)
+                - competicao (str)
+                - jogador_nome (str)
+                - jogada (str)
+                - tempo (str): tempo da jogada (ex: '1ºT', '2ºT', etc.)
+                - x_loc (float)
+                - y_loc (float)
+                - tempo_relativo_jogada (timedelta): diferença entre o horário da jogada e o início da partida
+        """
+        self.cursor.execute("""
+            SELECT
+                jogos_1.equipe_mandante_nome,
+                jogos_1.equipe_visitante_nome,
+                jogos_1.fase,
+                jogos_1.rodada,
+                jogos_1.competicao,
+                jogadas_1.jogador_nome, 
+                jogadas_1.jogada,
+                jogadas_1.tempo,
+                jogadas_1.x_loc,
+                jogadas_1.y_loc,
+                jogadas_1.hora_jogada,
+                EXTRACT(EPOCH from jogadas_1.hora_jogada - jogos_1.inicio_partida) as tempo_relativo_jogada
+            FROM
+                jogos_1
+            INNER JOIN
+                jogadas_1
+            ON
+                jogos_1.id = jogadas_1.jogo_id
+            WHERE
+                jogos_1.id = %s
+            ORDER BY
+                jogadas_1.id ASC
+        """, (jogo_id,))
+        return self.cursor.fetchall()
+    
+    
     def listar_jogadores_por_equipe(self, equipe_id):
         """
         Lista todos os jogadores de uma equipe específica.

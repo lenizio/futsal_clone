@@ -9,7 +9,7 @@ import io
 import requests
 import plotly.io as pio
 from PIL import Image
-import os
+from datetime import datetime
 from io import BytesIO
 
 
@@ -2067,3 +2067,79 @@ def exibir_conteudo_tab(nome_tab, figuras, df,logo_path):
         exibir_localizacao_jogadas_total(df)
     else:
         exibir_localizacao_jogadas_por_tempo(df, tempo_label, key_prefix=nome_tab)            
+        
+        
+def listar_jogadas_com_tempo(db_manager, jogo_id):
+    """
+    Recupera todas as jogadas de uma partida e calcula o quadrante de cada jogada.
+
+    Args:
+        db_manager: Instância da classe DBManager.
+        jogo_id (int): ID da partida.
+        calcular_quadrante (func): Função que recebe x, y e retorna o quadrante.
+
+    Returns:
+        pd.DataFrame: DataFrame com colunas:
+            - jogador_nome
+            - jogada
+            - quadrante
+            - tempo
+            - tempo_relativo_jogada
+    """
+    # Recupera jogadas do DB
+    lista_jogadas = db_manager.listar_jogadas_por_partida_com_tempo(jogo_id)
+
+    if not lista_jogadas:
+        return pd.DataFrame(columns=['jogador_nome', 'jogada', 'quadrante', 'tempo','hora_jogada', 'tempo_relativo_jogada'])
+
+    # Converte para DataFrame
+    df = pd.DataFrame(lista_jogadas, columns=[
+        'equipe_mandante_nome',
+        'equipe_visitante_nome',
+        'fase',
+        'rodada',
+        'competicao',
+        'jogador_nome',
+        'jogada',
+        'tempo',
+        'x_loc',
+        'y_loc',
+        'hora_jogada',
+        'tempo_relativo_jogada'
+    ])
+
+    # Calcula quadrante
+    df['quadrante'] = df.apply(lambda row: calcular_quadrante(row['x_loc'], row['y_loc']), axis=1)
+
+    
+    # converter a coluna para datetime
+    df['hora_jogada_dt'] = df['hora_jogada'].apply(lambda t: datetime.combine(datetime.today(), t))
+
+    # calcular tempo relativo
+    df['tempo_relativo_jogada'] = (df['hora_jogada_dt'] - df['hora_jogada_dt'].iloc[0]).dt.total_seconds()
+    
+    # Seleciona colunas desejadas
+    df_final = df[['jogador_nome', 'jogada', 'quadrante', 'tempo','hora_jogada', 'tempo_relativo_jogada']].copy()
+
+    return df_final
+
+
+def formatar_hhmmss(segundos):
+    """
+    Formata um número de segundos em um formato de tempo HH:MM:SS ou MM:SS.
+    
+    Args:
+        segundos (int): O número de segundos a ser formatado.
+        
+    Returns:
+        str: A string de tempo formatada. Se o tempo for superior a uma hora, o formato
+             será "HH:MM:SS". Caso contrário, será "MM:SS".
+    """
+    seg = int(segundos)
+    hrs = seg // 3600
+    mins = (seg % 3600) // 60
+    secs = seg % 60
+    if hrs > 0:
+        return f"{hrs:02d}:{mins:02d}:{secs:02d}"
+    else:
+        return f"{mins:02d}:{secs:02d}"
