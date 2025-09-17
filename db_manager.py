@@ -36,7 +36,7 @@ class DBManager:
         """
         comandos = [
             """
-            CREATE TABLE IF NOT EXISTS equipes (
+            CREATE TABLE IF NOT EXISTS equipes_1 (
                 id SERIAL PRIMARY KEY,
                 nome VARCHAR(100) NOT NULL,
                 categoria VARCHAR(50) NOT NULL,
@@ -44,11 +44,11 @@ class DBManager:
             )
             """,
             """
-            CREATE TABLE IF NOT EXISTS jogadores (
+            CREATE TABLE IF NOT EXISTS jogadores_1 (
                 id SERIAL PRIMARY KEY,
                 nome VARCHAR(100) NOT NULL,
                 numero_camisa INT NOT NULL,
-                equipe_id INT NOT NULL REFERENCES equipes(id) ON DELETE CASCADE,
+                equipe_id INT NOT NULL REFERENCES equipes_1(id) ON DELETE CASCADE,
                 equipe VARCHAR(100) NOT NULL,
                 posicao VARCHAR(50) NOT NULL,
                 image_id VARCHAR(255) DEFAULT NULL,
@@ -57,11 +57,11 @@ class DBManager:
             )
             """,
             """
-            CREATE TABLE IF NOT EXISTS jogos (
+            CREATE TABLE IF NOT EXISTS jogos_1 (
                 id SERIAL PRIMARY KEY,
-                equipe_mandante_id INT NOT NULL REFERENCES equipes(id) ON DELETE CASCADE,
+                equipe_mandante_id INT NOT NULL REFERENCES equipes_1(id) ON DELETE CASCADE,
                 equipe_mandante_nome VARCHAR(100) NOT NULL,
-                equipe_visitante_id INT NOT NULL REFERENCES equipes(id)ON DELETE CASCADE,
+                equipe_visitante_id INT NOT NULL REFERENCES equipes_1(id)ON DELETE CASCADE,
                 equipe_visitante_nome VARCHAR(100) NOT NULL,
                 data DATE NOT NULL,
                 fase VARCHAR(50),
@@ -70,11 +70,11 @@ class DBManager:
             )
             """,
             """
-            CREATE TABLE IF NOT EXISTS jogadas (
+            CREATE TABLE IF NOT EXISTS jogadas_1 (
                 id SERIAL PRIMARY KEY,
-                jogador_id BIGINT NOT NULL REFERENCES jogadores(id) ON DELETE CASCADE,
+                jogador_id BIGINT NOT NULL REFERENCES jogadores_1(id) ON DELETE CASCADE,
                 jogador_nome VARCHAR(100) NOT NULL,
-                jogo_id INT NOT NULL REFERENCES jogos(id) ON DELETE CASCADE,
+                jogo_id INT NOT NULL REFERENCES jogos_1(id) ON DELETE CASCADE,
                 jogada VARCHAR(255) NOT NULL,
                 tempo VARCHAR(10) NOT NULL,
                 x_loc FLOAT NOT NULL,
@@ -82,13 +82,13 @@ class DBManager:
             )
             """,
             """
-            CREATE TABLE IF NOT EXISTS gols (
+            CREATE TABLE IF NOT EXISTS gols_1 (
                 id SERIAL PRIMARY KEY,
                 -- Informações do Jogo
-                jogo_id INT NOT NULL REFERENCES jogos(id) ON DELETE CASCADE,
+                jogo_id INT NOT NULL REFERENCES jogos_1(id) ON DELETE CASCADE,
                 
                 -- Contexto do Gol
-                equipe_analisada_id INT NOT NULL REFERENCES equipes(id) ON DELETE CASCADE,
+                equipe_analisada_id INT NOT NULL REFERENCES equipes_1(id) ON DELETE CASCADE,
                 tipo_gol VARCHAR(7) NOT NULL ,
                 tempo VARCHAR(10) NOT NULL,
                 caracteristica VARCHAR(255) NOT NULL,
@@ -96,11 +96,11 @@ class DBManager:
                 y_loc FLOAT NOT NULL,
                 
                 -- Detalhes específicos para gols da própria equipe
-                autor_gol_id INT REFERENCES jogadores(id) ON DELETE SET NULL,
-                assistente_id INT REFERENCES jogadores(id) ON DELETE SET NULL,
+                autor_gol_id INT REFERENCES jogadores_1(id) ON DELETE SET NULL,
+                assistente_id INT REFERENCES jogadores_1(id) ON DELETE SET NULL,
                 jogadores_em_quadra INT[] NOT NULL DEFAULT ARRAY[]::INT[]
     
-)
+            )
             
             """
         ]
@@ -129,7 +129,7 @@ class DBManager:
         
         self.cursor.execute(
             """
-            SELECT id FROM equipes
+            SELECT id FROM equipes_1
             WHERE nome = %s AND categoria = %s
             """,
             (nome, categoria)
@@ -151,7 +151,7 @@ class DBManager:
         """
         self.cursor.execute(
             """
-            SELECT 1 FROM jogadores WHERE nome = %s AND equipe_id = %s AND id != %s
+            SELECT 1 FROM jogadores_1 WHERE nome = %s AND equipe_id = %s AND id != %s
             """,
             (nome, equipe_id, jogador_id)
         )
@@ -174,7 +174,7 @@ class DBManager:
         """
         self.cursor.execute(
             """
-            SELECT 1 FROM jogadores WHERE numero_camisa = %s AND equipe_id = %s AND id != %s
+            SELECT 1 FROM jogadores_1 WHERE numero_camisa = %s AND equipe_id = %s AND id != %s
             """,
             (numero_camisa, equipe_id, jogador_id)
         )
@@ -194,7 +194,7 @@ class DBManager:
 
         Returns:
             int or None: O ID da nova equipe se a inserção for bem-sucedida, caso contrário, None 
-                        se a equipe já existir.
+                         se a equipe já existir.
         """
         # Verificar se o equipe já existe
         if self.verificar_equipe_existente(nome, categoria):
@@ -203,7 +203,7 @@ class DBManager:
         # Inserir o novo equipe
         self.cursor.execute(
             """
-            INSERT INTO equipes (nome, categoria, logo_id)
+            INSERT INTO equipes_1 (nome, categoria, logo_id)
             VALUES (%s, %s,%s)
             RETURNING id
             """,
@@ -244,7 +244,7 @@ class DBManager:
         # Inserir o novo jogador
         self.cursor.execute(
             """
-            INSERT INTO jogadores (nome, equipe_id, equipe, posicao, numero_camisa, image_id)
+            INSERT INTO jogadores_1 (nome, equipe_id, equipe, posicao, numero_camisa, image_id)
             VALUES (%s, %s, %s, %s, %s, %s)
             """,
             (nome, equipe_id, equipe_nome, posicao, numero_camisa, image_id)
@@ -295,7 +295,7 @@ class DBManager:
 
         valores.append(jogador_id)
 
-        comando = f"UPDATE jogadores SET {', '.join(campos)} WHERE id = %s"
+        comando = f"UPDATE jogadores_1 SET {', '.join(campos)} WHERE id = %s"
         self.cursor.execute(comando, tuple(valores))
         self.conn.commit()
 
@@ -319,7 +319,7 @@ class DBManager:
         """
         self.cursor.execute(
             """
-            INSERT INTO jogos (equipe_mandante_id, equipe_mandante_nome, equipe_visitante_id, equipe_visitante_nome, data, fase, rodada, competicao)
+            INSERT INTO jogos_1 (equipe_mandante_id, equipe_mandante_nome, equipe_visitante_id, equipe_visitante_nome, data, fase, rodada, competicao)
             VALUES (%s, %s, %s, %s, %s, %s, %s, %s)
             RETURNING id
             """,
@@ -346,7 +346,7 @@ class DBManager:
         """
         self.cursor.execute(
             """
-            INSERT INTO jogadas (jogador_id, jogador_nome, jogo_id, jogada, tempo, x_loc, y_loc)
+            INSERT INTO jogadas_1 (jogador_id, jogador_nome, jogo_id, jogada, tempo, x_loc, y_loc)
             VALUES (%s, %s, %s, %s, %s, %s, %s)
             """,
             (jogador_id, jogador_nome, jogo_id, jogada, tempo, x_loc, y_loc)
@@ -362,7 +362,7 @@ class DBManager:
             list of tuple: Uma lista de tuplas, onde cada tupla contém:
                            (id, nome, categoria)
         """
-        self.cursor.execute("SELECT id, nome, categoria FROM equipes")
+        self.cursor.execute("SELECT id, nome, categoria FROM equipes_1")
         return self.cursor.fetchall()  # Retorna uma lista de tuplas
 
     def listar_dados_equipe(self, id):
@@ -378,7 +378,7 @@ class DBManager:
         """
         self.cursor.execute("""
             SELECT nome, categoria, logo_id
-            FROM equipes
+            FROM equipes_1
             WHERE id = %s""", (id,))
         return self.cursor.fetchone()
     
@@ -417,7 +417,7 @@ class DBManager:
         valores.append(id)
 
         sql = f"""
-            UPDATE equipes
+            UPDATE equipes_1
             SET {', '.join(campos)}
             WHERE id = %s
         """
@@ -433,7 +433,7 @@ class DBManager:
             list of tuple: Uma lista de tuplas, onde cada tupla contém:
                            (id, nome, equipe, posicao)
         """
-        self.cursor.execute("SELECT id, nome, equipe, posicao FROM jogadores")
+        self.cursor.execute("SELECT id, nome, equipe, posicao FROM jogadores_1")
         return self.cursor.fetchall()  # Retorna uma lista de tuplas
 
     def listar_jogos(self):
@@ -444,7 +444,7 @@ class DBManager:
             list of tuple: Uma lista de tuplas, onde cada tupla contém:
                            (id, equipe_mandante_id, equipe_mandante_nome, equipe_visitante_id, equipe_visitante_nome, data, competicao, fase, rodada)
         """
-        self.cursor.execute("SELECT id, equipe_mandante_id, equipe_mandante_nome, equipe_visitante_id, equipe_visitante_nome, data, competicao, fase, rodada FROM jogos ORDER BY data DESC")
+        self.cursor.execute("SELECT id, equipe_mandante_id, equipe_mandante_nome, equipe_visitante_id, equipe_visitante_nome, data, competicao, fase, rodada FROM jogos_1 ORDER BY data DESC")
         return self.cursor.fetchall()
     
     def listar_jogadas(self):
@@ -455,7 +455,7 @@ class DBManager:
             list of tuple: Uma lista de tuplas, onde cada tupla contém:
                            (id, jogador_id, jogador_nome, jogo_id, jogada, tempo, x_loc, y_loc)
         """
-        self.cursor.execute("SELECT * FROM jogadas")
+        self.cursor.execute("SELECT * FROM jogadas_1")
         return self.cursor.fetchall()  # Retorna uma lista de tuplas
 
     def listar_jogadores_por_equipe(self, equipe_id):
@@ -469,7 +469,7 @@ class DBManager:
             list of tuple: Uma lista de tuplas, onde cada tupla contém:
                            (id, nome, posicao, numero_camisa, image_id)
         """
-        self.cursor.execute("SELECT id, nome, posicao, numero_camisa, image_id FROM jogadores WHERE equipe_id = %s", (equipe_id,))
+        self.cursor.execute("SELECT id, nome, posicao, numero_camisa, image_id FROM jogadores_1 WHERE equipe_id = %s", (equipe_id,))
         return self.cursor.fetchall()  # Retorna uma lista de tuplas
     
     def listar_nome_id_jogadores_por_equipe(self, equipe_id):
@@ -483,7 +483,7 @@ class DBManager:
             list of tuple: Uma lista de tuplas, onde cada tupla contém:
                            (id, nome)
         """
-        self.cursor.execute("SELECT id, nome FROM jogadores WHERE equipe_id = %s", (equipe_id,))
+        self.cursor.execute("SELECT id, nome FROM jogadores_1 WHERE equipe_id = %s", (equipe_id,))
         return self.cursor.fetchall()  # Retorna uma lista de tuplas
 
     def listar_jogos_por_equipe_e_competicao(self, equipe_id, competicao):
@@ -499,7 +499,7 @@ class DBManager:
         """
         self.cursor.execute(
             """
-            SELECT * FROM jogos
+            SELECT * FROM jogos_1
             WHERE (equipe_mandante_id = %s OR equipe_visitante_id = %s) AND competicao = %s
             """,
             (equipe_id, equipe_id, competicao)
@@ -517,64 +517,12 @@ class DBManager:
             tuple or None: Uma tupla com os detalhes do jogo se encontrado, caso contrário, None. A tupla contém:
                            (equipe_mandante_id, equipe_mandante_nome, equipe_visitante_id, equipe_visitante_nome, data, fase, rodada, competicao)
         """
-        self.cursor.execute("SELECT equipe_mandante_id, equipe_mandante_nome, equipe_visitante_id, equipe_visitante_nome, data, fase, rodada, competicao FROM jogos WHERE id = %s", (jogo_id,))
+        self.cursor.execute("SELECT equipe_mandante_id, equipe_mandante_nome, equipe_visitante_id, equipe_visitante_nome, data, fase, rodada, competicao FROM jogos_1 WHERE id = %s", (jogo_id,))
         return self.cursor.fetchone()
     
     def listar_jogadas_por_jogo(self, jogo_id):
         """
-        Lista todas as jogadas de um jogo específico.
-
-        Args:
-            jogo_id (int): O ID do jogo.
-
-        Returns:
-            list of tuple: Uma lista de tuplas, onde cada tupla contém os dados de uma jogada.
-        """
-        self.cursor.execute("SELECT * FROM jogadas WHERE jogo_id = %s", (jogo_id,))
-        return self.cursor.fetchall()  # Retorna uma lista de tuplas
-    
-
-    def listar_dados_analise_individual(self):
-        """
-        Retorna uma lista completa de dados para análise individual, unindo informações de jogos, jogadas e jogadores.
-
-        Returns:
-            list of tuple: Uma lista de tuplas, onde cada tupla contém:
-                           (id_jogo, equipe_mandante_nome, equipe_visitante_nome, fase_jogo, rodada_jogo, 
-                            competicao_jogo, equipe_id_jogador, equipe_nome_jogador, nome_jogador, 
-                            tipo_jogada, tempo_jogada, x_loc_jogada, y_loc_jogada)
-        """
-        self.cursor.execute("""
-            SELECT
-                jogos.id,
-                jogos.equipe_mandante_nome,
-                jogos.equipe_visitante_nome,
-                jogos.fase,
-                jogos.rodada,
-                jogos.competicao,
-                jogadores.equipe_id,
-                jogadores.equipe,
-                jogadas.jogador_nome, 
-                jogadas.jogada,
-                jogadas.tempo,
-                jogadas.x_loc,
-                jogadas.y_loc
-            FROM
-                jogos
-            LEFT JOIN
-                jogadas
-            ON
-                jogos.id = jogadas.jogo_id
-            INNER JOIN 
-                jogadores 
-            ON
-                jogadas.jogador_id = jogadores.id
-            """)
-        return self.cursor.fetchall()
-    
-    def listar_jogadas_por_partida(self, jogo_id):
-        """
-        Lista todas as jogadas de uma partida específica, com detalhes do jogo.
+        Lista todas as jogadas de um jogo específico, com detalhes do jogo.
 
         Args:
             jogo_id (int): O ID do jogo.
@@ -582,30 +530,69 @@ class DBManager:
         Returns:
             list of tuple: Uma lista de tuplas, onde cada tupla contém:
                            (equipe_mandante_nome, equipe_visitante_nome, fase_jogo, rodada_jogo, competicao_jogo, 
-                            nome_jogador, tipo_jogada, tempo_jogada, x_loc_jogada, y_loc_jogada)
+                           nome_jogador, tipo_jogada, tempo_jogada, x_loc_jogada, y_loc_jogada)
         """
         self.cursor.execute("""
             SELECT
-                jogos.equipe_mandante_nome,
-                jogos.equipe_visitante_nome,
-                jogos.fase,
-                jogos.rodada,
-                jogos.competicao,
-                jogadas.jogador_nome, 
-                jogadas.jogada,
-                jogadas.tempo,
-                jogadas.x_loc,
-                jogadas.y_loc
+                jogos_1.equipe_mandante_nome,
+                jogos_1.equipe_visitante_nome,
+                jogos_1.fase,
+                jogos_1.rodada,
+                jogos_1.competicao,
+                jogadas_1.jogador_nome, 
+                jogadas_1.jogada,
+                jogadas_1.tempo,
+                jogadas_1.x_loc,
+                jogadas_1.y_loc
             FROM
-                jogos
+                jogos_1
             INNER JOIN
-                jogadas
+                jogadas_1
             ON
-                jogos.id = jogadas.jogo_id
+                jogos_1.id = jogadas_1.jogo_id
             WHERE
-                jogos.id = %s""", 
+                jogos_1.id = %s""", 
                 (jogo_id,))
         return self.cursor.fetchall() 
+    
+    
+    def listar_dados_analise_individual(self):
+        """
+        Retorna uma lista completa de dados para análise individual, unindo informações de jogos, jogadas e jogadores.
+
+        Returns:
+            list of tuple: Uma lista de tuplas, onde cada tupla contém:
+                           (id_jogo, equipe_mandante_nome, equipe_visitante_nome, fase_jogo, rodada_jogo, 
+                           competicao_jogo, equipe_id_jogador, equipe_nome_jogador, nome_jogador, 
+                           tipo_jogada, tempo_jogada, x_loc_jogada, y_loc_jogada)
+        """
+        self.cursor.execute("""
+            SELECT
+                jogos_1.id,
+                jogos_1.equipe_mandante_nome,
+                jogos_1.equipe_visitante_nome,
+                jogos_1.fase,
+                jogos_1.rodada,
+                jogos_1.competicao,
+                jogadores_1.equipe_id,
+                jogadores_1.equipe,
+                jogadas_1.jogador_nome, 
+                jogadas_1.jogada,
+                jogadas_1.tempo,
+                jogadas_1.x_loc,
+                jogadas_1.y_loc
+            FROM
+                jogos_1
+            LEFT JOIN
+                jogadas_1
+            ON
+                jogos_1.id = jogadas_1.jogo_id
+            INNER JOIN 
+                jogadores_1 
+            ON
+                jogadas_1.jogador_id = jogadores_1.id
+            """)
+        return self.cursor.fetchall()
     
     
     def deletar_equipe(self, equipe_id):
@@ -618,7 +605,7 @@ class DBManager:
         Returns:
             bool: True se a equipe foi deletada com sucesso, False caso contrário.
         """
-        self.cursor.execute("DELETE FROM equipes WHERE id = %s", (equipe_id,))
+        self.cursor.execute("DELETE FROM equipes_1 WHERE id = %s", (equipe_id,))
         self.conn.commit()
         
         if self.cursor.rowcount > 0:
@@ -636,7 +623,7 @@ class DBManager:
         Returns:
             bool: True se o jogador foi deletado com sucesso, False caso contrário.
         """
-        self.cursor.execute("DELETE FROM jogadores WHERE id = %s", (jogador_id,))
+        self.cursor.execute("DELETE FROM jogadores_1 WHERE id = %s", (jogador_id,))
         self.conn.commit()
         
         if self.cursor.rowcount > 0:
@@ -654,7 +641,7 @@ class DBManager:
         Returns:
             bool: True se o jogo foi deletado com sucesso, False caso contrário.
         """
-        self.cursor.execute("DELETE FROM jogos WHERE id = %s", (jogo_id,))
+        self.cursor.execute("DELETE FROM jogos_1 WHERE id = %s", (jogo_id,))
         self.conn.commit()
         
         if self.cursor.rowcount > 0:
@@ -672,7 +659,7 @@ class DBManager:
         Returns:
             bool: True se a jogada foi deletada com sucesso, False caso contrário.
         """
-        self.cursor.execute("DELETE FROM jogadas WHERE id = %s", (jogada_id,))
+        self.cursor.execute("DELETE FROM jogadas_1 WHERE id = %s", (jogada_id,))
         self.conn.commit()
         
         if self.cursor.rowcount > 0:
@@ -687,19 +674,19 @@ class DBManager:
         Returns:
             list of tuple: Uma lista de tuplas, onde cada tupla contém:
                            (id_gol, jogo_id, equipe_mandante_nome, equipe_visitante_nome, competicao, fase, 
-                            rodada, data, equipe_analisada, tipo_gol, caracteristica, tempo, nome_autor_gol, 
-                            nome_assistente, nomes_jogadores_em_quadra, x_loc, y_loc)
+                           rodada, data, equipe_analisada, tipo_gol, caracteristica, tempo, nome_autor_gol, 
+                           nome_assistente, nomes_jogadores_em_quadra, x_loc, y_loc)
         """
         self.cursor.execute("""
             SELECT
                 g.id,
-                jogos.id as jogo_id, 
-                jogos.equipe_mandante_nome,
-                jogos.equipe_visitante_nome,
-                jogos.competicao ,
-                jogos.fase,
-                jogos.rodada,
-                jogos.data,
+                jogos_1.id as jogo_id, 
+                jogos_1.equipe_mandante_nome,
+                jogos_1.equipe_visitante_nome,
+                jogos_1.competicao ,
+                jogos_1.fase,
+                jogos_1.rodada,
+                jogos_1.data,
                 e.nome as equipe_analisada,
                 g.tipo_gol,
                 g.caracteristica,
@@ -709,17 +696,17 @@ class DBManager:
                 agg.jogadores_em_quadra_nomes,
                 g.x_loc,
                 g.y_loc
-            FROM gols g
-            LEFT JOIN jogos ON jogos.id = g.jogo_id
-            LEFT JOIN equipes e ON e.id = g.equipe_analisada_id
-            LEFT JOIN jogadores j ON j.id = g.autor_gol_id
-            LEFT JOIN jogadores a ON a.id = g.assistente_id
+            FROM gols_1 g
+            LEFT JOIN jogos_1 ON jogos_1.id = g.jogo_id
+            LEFT JOIN equipes_1 e ON e.id = g.equipe_analisada_id
+            LEFT JOIN jogadores_1 j ON j.id = g.autor_gol_id
+            LEFT JOIN jogadores_1 a ON a.id = g.assistente_id
             LEFT JOIN (
                 SELECT 
                     g2.id AS gol_id,
                     array_agg(j2.nome) AS jogadores_em_quadra_nomes
-                FROM gols g2
-                LEFT JOIN jogadores j2 ON j2.id = ANY(g2.jogadores_em_quadra)
+                FROM gols_1 g2
+                LEFT JOIN jogadores_1 j2 ON j2.id = ANY(g2.jogadores_em_quadra)
                 GROUP BY g2.id
             ) agg ON agg.gol_id = g.id""")
         
@@ -735,16 +722,16 @@ class DBManager:
         Returns:
             list of tuple: Uma lista de tuplas, onde cada tupla contém:
                            (equipe_mandante_nome, equipe_visitante_nome, competicao, fase, rodada, 
-                            equipe_analisada, tipo_gol, caracteristica, tempo, nome_autor_gol, 
-                            nome_assistente, nomes_jogadores_em_quadra, x_loc, y_loc)
+                           equipe_analisada, tipo_gol, caracteristica, tempo, nome_autor_gol, 
+                           nome_assistente, nomes_jogadores_em_quadra, x_loc, y_loc)
         """
         self.cursor.execute("""
             SELECT 
-                jogos.equipe_mandante_nome,
-                jogos.equipe_visitante_nome,
-                jogos.competicao ,
-                jogos.fase,
-                jogos.rodada,
+                jogos_1.equipe_mandante_nome,
+                jogos_1.equipe_visitante_nome,
+                jogos_1.competicao ,
+                jogos_1.fase,
+                jogos_1.rodada,
                 e.nome as equipe_analisada,
                 g.tipo_gol,
                 g.caracteristica,
@@ -754,17 +741,17 @@ class DBManager:
                 agg.jogadores_em_quadra_nomes,
                 g.x_loc,
                 g.y_loc
-            FROM gols g
-            LEFT JOIN jogos ON jogos.id = g.jogo_id
-            LEFT JOIN equipes e ON e.id = g.equipe_analisada_id
-            LEFT JOIN jogadores j ON j.id = g.autor_gol_id
-            LEFT JOIN jogadores a ON a.id = g.assistente_id
+            FROM gols_1 g
+            LEFT JOIN jogos_1 ON jogos_1.id = g.jogo_id
+            LEFT JOIN equipes_1 e ON e.id = g.equipe_analisada_id
+            LEFT JOIN jogadores_1 j ON j.id = g.autor_gol_id
+            LEFT JOIN jogadores_1 a ON a.id = g.assistente_id
             LEFT JOIN (
                 SELECT 
                     g2.id AS gol_id,
                     array_agg(j2.nome) AS jogadores_em_quadra_nomes
-                FROM gols g2
-                LEFT JOIN jogadores j2 ON j2.id = ANY(g2.jogadores_em_quadra)
+                FROM gols_1 g2
+                LEFT JOIN jogadores_1 j2 ON j2.id = ANY(g2.jogadores_em_quadra)
                 GROUP BY g2.id
             ) agg ON agg.gol_id = g.id
             WHERE
@@ -798,7 +785,7 @@ class DBManager:
         
         self.cursor.execute(
             """
-            INSERT INTO gols (
+            INSERT INTO gols_1 (
                 jogo_id, 
                 equipe_analisada_id, 
                 tipo_gol, 
@@ -838,7 +825,7 @@ class DBManager:
         Returns:
             bool: True se o gol foi deletado com sucesso, False caso contrário.
         """
-        self.cursor.execute("DELETE FROM gols WHERE id = %s", (gol_id,))
+        self.cursor.execute("DELETE FROM gols_1 WHERE id = %s", (gol_id,))
         self.conn.commit()
         
         if self.cursor.rowcount > 0:
