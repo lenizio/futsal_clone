@@ -1,18 +1,11 @@
-# Ignorar a pasta devcontainer
 .devcontainer/
 
-.streamlit/secrets.toml
-# Ignorar a pasta __pycache__ (arquivos compilados do Python)
 __pycache__/
 
-# Ignorar a pasta venv (ambiente virtual)
 venv/
 
-# Ignorar arquivos de configuração do VS Code (opcional)
 .vscode/
 
-# Ignorar arquivos de logs (opcional)
 *.log
 
-# Ignorar arquivos temporários (opcional)
 *.tmp
