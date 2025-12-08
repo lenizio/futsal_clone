@@ -106,7 +106,7 @@ else:
                                                 # Insere cada jogada no banco de dados
                                                 db_manager.adicionar_jogada(
                                                     jogador_id=jogador_id,
-                                                    jogador_nome=jogador_nome,
+                                                    jogador_nome=jogador,
                                                     jogo_id=jogo_id,
                                                     jogada=jogada,
                                                     tempo=tempo,
