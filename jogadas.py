@@ -92,7 +92,7 @@ else:
                                             x = float(coordinates["x"])
                                             y = float(coordinates["y"])
                                             # Recupera os detalhes do jogador
-                                            jogador_id, jogador_nome = opcoes_jogadores_dict[jogador]
+                                            jogador_id, jogador_numero = opcoes_jogadores_dict[jogador]
 
                                             # Se 'GOL' estiver nas jogadas, garantir que 'FIN.C' também seja adicionado
                                             jogadas_modificadas = jogadas.copy()
@@ -113,7 +113,7 @@ else:
                                                     x_loc=x,
                                                     y_loc=y
                                                 )
-                                            st.success(f"Jogada adicionada com sucesso para {jogador_nome}!")    
+                                            st.success(f"Jogada adicionada com sucesso para {jogador}!")    
                                         except Exception as e:
                                             st.error(f"Erro ao adicionar jogadas: {e}")
                                             db_manager.rollback()
