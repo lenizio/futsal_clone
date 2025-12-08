@@ -1748,7 +1748,7 @@ def exibir_graficos_tempo(fig1, fig2, fig_barras, key_prefix,logo_path):
             sub_column1, sub_column2 = st.columns([1, 1.5])
             with sub_column1:
                 if imagem is not None:
-                    st.image(imagem, output_format="PNG", width=150)
+                    st.image(imagem, output_format="PNG", width=250)
             with sub_column2:
                 with st.container(border=True, height=220):
                     st.plotly_chart(fig1, use_container_width=True, key=f"{key_prefix}_fig1", config={'displayModeBar': False})
