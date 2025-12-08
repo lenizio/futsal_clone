@@ -37,16 +37,16 @@ def listar_opcoes_jogadores(lista_jogadores):
 
     Returns:
         tuple:
-            - dict: Mapeia número camisa→ [id, nome]
+            - dict: Mapeia nome→ [id, numero]
             - list: Lista ordenada dos nomes completos (goleiros + jogadores de linha)
     """
     posicoes_linha = {"Fixo", "Ala D", "Ala E", "Pivô"}
     # Separar jogadores por posição
-    goleiros = {numero: [id_jogador, nome]
+    goleiros = {nome: [id_jogador, numero]
                 for id_jogador, nome, posicao, numero, image_id in lista_jogadores
                 if posicao == "Goleiro"}
 
-    jogadores_linha = {numero: [id_jogador, nome]
+    jogadores_linha = {nome: [id_jogador, numero]
                        for id_jogador, nome, posicao, numero, image_id in lista_jogadores
                        if posicao in posicoes_linha}
 
