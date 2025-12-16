@@ -104,8 +104,8 @@ def baixar_jogadas_dialog(lista_jogos):
         
         if jogo_selecionado:
             jogo_id = opcoes_jogos[jogo_selecionado]
-            lista_jogadas = db_manager.listar_jogadas_por_partida_com_tempo(jogo_id)
-            lista_jogadas_df = pd.DataFrame(lista_jogadas, columns=["equipe_mandante_nome","equipe_visitante_nome","fase","rodada","competicao","jogador_nome","jogada","tempo","x_loc","y_loc","tempo_relativo_jogada"])
+            lista_jogadas = db_manager.listar_jogadas_por_partida(jogo_id)
+            lista_jogadas_df = pd.DataFrame(lista_jogadas, columns=["equipe_mandante_nome","equipe_visitante_nome","fase","rodada","competicao","jogador_nome","jogada","tempo","x_loc","y_loc"])
             if not lista_jogadas_df.empty:
                 lista_jogadas_df['quadrante'] = lista_jogadas_df.apply(lambda row: calcular_quadrante(row['x_loc'], row['y_loc']), axis=1)
                 lista_jogadas_df.drop(["x_loc","y_loc"],axis=1, inplace=True)

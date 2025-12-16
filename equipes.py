@@ -127,7 +127,7 @@ else:
 def adicionar_equipe_dialog():
     equipe = st.text_input("Nome da Equipe") 
     categoria = st.selectbox("Selecione a categoria", ('Principal', 'Sub-20'))
-    logo_id= st.text_input("Adicione o id da equipe", value=None)
+    logo_id= st.text_input("Adicione o id da imagem do logo equipe", value=None)
     
     # Validação e submissão do formulário
     if st.button("Cadastrar", key="adicionar_equipe_dialog"):  # Adicionando uma chave única para o botão de cadastrar equipe

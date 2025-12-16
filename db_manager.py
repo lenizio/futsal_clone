@@ -512,6 +512,52 @@ class DBManager:
         """, (jogo_id,))
         return self.cursor.fetchall()
     
+    def listar_jogadas_por_partida(self, jogo_id):
+        """
+        Recupera uma lista de todas as jogadas para uma partida específica,
+        incluindo detalhes do jogo e do jogador.
+
+        Args:
+            jogo_id (int): O ID da partida.
+
+        Returns:
+            list of tuples: Uma lista de jogadas com os seguintes detalhes:
+                - equipe_mandante_nome (str)
+                - equipe_visitante_nome (str)
+                - fase (str)
+                - rodada (int)
+                - competicao (str)
+                - jogador_nome (str)
+                - jogada (str)
+                - tempo (str): tempo da jogada (ex: '1ºT', '2ºT', etc.)
+                - x_loc (float)
+                - y_loc (float)
+        """
+        self.cursor.execute("""
+            SELECT
+                jogos_1.equipe_mandante_nome,
+                jogos_1.equipe_visitante_nome,
+                jogos_1.fase,
+                jogos_1.rodada,
+                jogos_1.competicao,
+                jogadas_1.jogador_nome, 
+                jogadas_1.jogada,
+                jogadas_1.tempo,
+                jogadas_1.x_loc,
+                jogadas_1.y_loc
+            FROM
+                jogos_1
+            INNER JOIN
+                jogadas_1
+            ON
+                jogos_1.id = jogadas_1.jogo_id
+            WHERE
+                jogos_1.id = %s
+            ORDER BY
+                jogadas_1.id ASC
+        """, (jogo_id,))
+        return self.cursor.fetchall()
+    
     
     def listar_jogadores_por_equipe(self, equipe_id):
         """
